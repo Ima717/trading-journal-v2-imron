@@ -40,7 +40,7 @@ const CalendarView = () => {
   }, [user]);
 
   const handleDateClick = (value) => {
-    const formatted = value.toISOString().split("T")[0];
+    const formatted = value.toLocaleDateString("en-CA"); // gives YYYY-MM-DD format
     setSelectedDate(formatted);
     console.log("📆 Selected date:", formatted);
   };
