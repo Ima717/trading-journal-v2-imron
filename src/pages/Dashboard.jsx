@@ -4,7 +4,6 @@ import { auth } from "../utils/firebase";
 import { useNavigate } from "react-router-dom";
 import TradeTable from "../components/TradeTable";
 import AnalyticsOverview from "../components/AnalyticsOverview";
-import ChartTagPerformance from "../components/ChartTagPerformance"; // ✅ NEW
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -30,8 +29,12 @@ const Dashboard = () => {
         </button>
       </div>
 
+      {/* Main Analytics Section */}
       <AnalyticsOverview />
-      <TagPerformanceChart /> {/* ✅ Inserted chart below the analytics */}
+
+      {/* You already include the chart inside AnalyticsOverview now, so no need to duplicate */}
+      {/* <ChartTagPerformance /> ← remove this */}
+
       <TradeTable />
     </div>
   );
