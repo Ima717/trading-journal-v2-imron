@@ -10,15 +10,22 @@ const CalendarView = () => {
   const [tradesByDate, setTradesByDate] = useState({});
   const [selectedDate, setSelectedDate] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null); // 🛠 track errors
 
   useEffect(() => {
     const fetchTrades = async () => {
-      if (!user) return;
+      console.log("👤 Current user:", user);
+      if (!user) {
+        setLoading(false); // <- stop loading if not logged in
+        return;
+      }
 
       try {
         const ref = collection(db, "users", user.uid, "trades");
         const snapshot = await getDocs(ref);
         const trades = snapshot.docs.map((doc) => doc.data());
+
+        console.log("📊 Fetched trades:", trades);
 
         const byDate = {};
         trades.forEach((trade) => {
@@ -31,8 +38,10 @@ const CalendarView = () => {
 
         setTradesByDate(byDate);
         setLoading(false);
-      } catch (error) {
-        console.error("Error fetching trades:", error);
+      } catch (err) {
+        console.error("❌ Error fetching trades:", err);
+        setError("Failed to load trades.");
+        setLoading(false);
       }
     };
 
@@ -49,7 +58,11 @@ const CalendarView = () => {
       <h1 className="text-2xl font-bold mb-6">📅 Trade Calendar</h1>
 
       {loading ? (
-        <p>Loading calendar...</p>
+        <p>⏳ Loading calendar...</p>
+      ) : error ? (
+        <p className="text-red-500">{error}</p>
+      ) : !user ? (
+        <p className="text-yellow-600">You need to be signed in to see your calendar.</p>
       ) : (
         <>
           <div className="bg-white p-4 rounded shadow">
