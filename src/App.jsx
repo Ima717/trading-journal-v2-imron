@@ -6,6 +6,8 @@ import Dashboard from "./pages/Dashboard";
 import AddTrade from "./pages/AddTrade";
 import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
+import Test from './pages/Test';
+
 
 function App() {
   return (
@@ -15,6 +17,8 @@ function App() {
           {/* Public Routes */}
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/test" element={<Test />} />
+
 
           {/* Protected Routes */}
           <Route
