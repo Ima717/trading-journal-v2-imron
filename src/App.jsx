@@ -4,10 +4,10 @@ import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
 import AddTrade from "./pages/AddTrade";
+import CalendarView from "./pages/CalendarView"; // ✅ Add this import
 import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
 import Test from './pages/Test';
-
 
 function App() {
   return (
@@ -18,7 +18,6 @@ function App() {
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/test" element={<Test />} />
-
 
           {/* Protected Routes */}
           <Route
@@ -34,6 +33,14 @@ function App() {
             element={
               <PrivateRoute>
                 <AddTrade />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/calendar"
+            element={
+              <PrivateRoute>
+                <CalendarView />
               </PrivateRoute>
             }
           />
