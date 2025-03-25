@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../utils/firebase";
 import { useAuth } from "../context/AuthContext";
-import ChartTagPerformance from "../components/ChartTagPerformance";
+import TagPerformanceChart from "../components/ChartTagPerformance";
 
 const AnalyticsOverview = () => {
   const { user } = useAuth();
