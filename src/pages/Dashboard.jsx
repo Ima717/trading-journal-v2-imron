@@ -62,6 +62,7 @@ const Dashboard = () => {
         </div>
 
         {/* Analytics and Trade Table */}
+        <SummaryCards />
         <AnalyticsOverview />
         <TradeTable />
       </div>
