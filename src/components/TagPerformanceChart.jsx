@@ -1,60 +1,39 @@
-import React, { useEffect, useState } from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../utils/firebase";
-import { useAuth } from "../context/AuthContext";
+import React from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
-const TagPerformanceChart = () => {
-  const { user } = useAuth();
-  const [data, setData] = useState([]);
-
-  useEffect(() => {
-    const fetchTrades = async () => {
-      if (!user) return;
-      const tradesRef = collection(db, "users", user.uid, "trades");
-      const snapshot = await getDocs(tradesRef);
-      const trades = snapshot.docs.map(doc => doc.data());
-
-      const tagStats = {};
-
-      trades.forEach((trade) => {
-        const { pnl, tags = [] } = trade;
-
-        tags.forEach((tag) => {
-          if (!tagStats[tag]) {
-            tagStats[tag] = { totalPnL: 0, count: 0 };
-          }
-          tagStats[tag].totalPnL += Number(pnl);
-          tagStats[tag].count += 1;
-        });
-      });
-
-      const chartData = Object.entries(tagStats).map(([tag, stats]) => ({
-        tag,
-        avgPnL: stats.totalPnL / stats.count,
-      }));
-
-      setData(chartData);
-    };
-
-    fetchTrades();
-  }, [user]);
+const ChartTagPerformance = ({ data, onTagClick }) => {
+  const handleBarClick = (data) => {
+    const tag = data.activeLabel;
+    if (tag && onTagClick) {
+      onTagClick(tag);
+    }
+  };
 
   return (
-    <div className="bg-white p-4 rounded shadow w-full max-w-3xl mx-auto mb-8">
-      <h2 className="text-xl font-semibold mb-4 text-center">Tag Performance (Avg PnL)</h2>
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={data} layout="vertical" margin={{ top: 20, right: 30, left: 100, bottom: 10 }}>
+    <div className="w-full h-72">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={data}
+          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+          onClick={handleBarClick}
+        >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis type="number" />
-          <YAxis dataKey="tag" type="category" />
+          <XAxis dataKey="tag" />
+          <YAxis />
           <Tooltip />
-          <Legend />
-          <Bar dataKey="avgPnL" fill="#4F46E5" name="Avg PnL" />
+          <Bar dataKey="avgPnL" fill="#7C3AED" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
   );
 };
 
-export default TagPerformanceChart;
+export default ChartTagPerformance;
