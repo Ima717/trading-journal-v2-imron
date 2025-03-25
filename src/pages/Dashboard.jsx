@@ -4,7 +4,7 @@ import { auth } from "../utils/firebase";
 import { useNavigate } from "react-router-dom";
 import TradeTable from "../components/TradeTable";
 import AnalyticsOverview from "../components/AnalyticsOverview";
-import TagPerformanceChart from "../components/TagPerformanceChart"; // ✅ NEW
+import ChartTagPerformance from "../components/ChartTagPerformance"; // ✅ NEW
 
 const Dashboard = () => {
   const navigate = useNavigate();
