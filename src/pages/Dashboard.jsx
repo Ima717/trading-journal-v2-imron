@@ -5,6 +5,8 @@ import { useNavigate, Link } from "react-router-dom";
 
 import AnalyticsOverview from "../components/AnalyticsOverview";
 import TradeTable from "../components/TradeTable";
+import SummaryCards from "../components/SummaryCards";
+
 
 const Dashboard = () => {
   const navigate = useNavigate();
