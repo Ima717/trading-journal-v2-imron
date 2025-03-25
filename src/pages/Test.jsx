@@ -1,9 +1,13 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 const Test = () => {
+  useEffect(() => {
+    console.log("✅ Test page is mounted");
+  }, []);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <h1 className="text-2xl font-bold text-center">🚀 Test Page Working!</h1>
+    <div className="p-10">
+      <h1 className="text-3xl font-bold">🧪 This is the test page</h1>
     </div>
   );
 };
