@@ -30,6 +30,7 @@ const AnalyticsOverview = () => {
     }
   }, [selectedTag, trades]);
 
+  // Build tag stats
   const tagStats = {};
   trades.forEach((trade) => {
     const { pnl, tags = [] } = trade;
@@ -61,7 +62,8 @@ const AnalyticsOverview = () => {
       {selectedTag && (
         <div className="flex items-center justify-between bg-gray-100 px-4 py-2 rounded shadow">
           <p className="text-sm">
-            Showing trades with tag: <span className="font-medium text-purple-600">{selectedTag}</span>
+            Showing trades with tag:{" "}
+            <span className="font-medium text-purple-600">{selectedTag}</span>
           </p>
           <button
             onClick={() => setSelectedTag(null)}
