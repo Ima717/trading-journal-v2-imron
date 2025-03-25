@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{ user }}>
-      {children} {/* This will pass the user state down to the children */}
+      {children}
     </AuthContext.Provider>
   );
 };
