@@ -22,11 +22,11 @@ const Dashboard = () => {
       <div className="flex justify-between items-center max-w-4xl mx-auto mb-6">
         <h1 className="text-2xl font-bold">Welcome to your Dashboard</h1>
         <button
-          onClick={handleLogout}
-          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
-        >
-          Log Out
+  onClick={handleLogout}
+  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow transition duration-200 ease-in-out">
+  Log Out
         </button>
+
       </div>
 
       {/* Main Analytics Section */}
