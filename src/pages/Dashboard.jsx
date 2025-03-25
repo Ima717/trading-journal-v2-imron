@@ -23,28 +23,39 @@ const Dashboard = () => {
       <div className="flex justify-between items-center max-w-5xl mx-auto mb-6">
         <h1 className="text-2xl font-bold">Welcome to your Dashboard</h1>
         <div className="space-x-3">
-          {/* ✅ Calendar Button */}
-          <Link
-            to="/calendar"
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded"
-          >
-            📅 Calendar
-          </Link>
-          <Link
-            to="/test"
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
-            🧪 Test
-          </Link>
+  {/* ✅ Calendar Button */}
+  <Link
+    to="/calendar"
+    className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded"
+  >
+    📅 Calendar
+  </Link>
 
+  {/* 🧪 Test Button */}
+  <Link
+    to="/test"
+    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+  >
+    🧪 Test
+  </Link>
 
-          {/* 🔒 Logout Button */}
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
-          >
-            Hello
-          </button>
-        </div>
+  {/* ➕ Add Trade Button */}
+  <Link
+    to="/add-trade"
+    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+  >
+    ➕ Add Trade
+  </Link>
+
+  {/* 🔒 Logout Button */}
+  <button
+    onClick={handleLogout}
+    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+  >
+    Log Out
+  </button>
+</div>
+
       </div>
 
       <AnalyticsOverview />
