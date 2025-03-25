@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -75,4 +75,3 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
->>>>>>> b5af3b2 (Installed Recharts and fixed TagPerformanceChart)
