@@ -1,4 +1,3 @@
-// src/pages/CalendarView.jsx
 import React, { useEffect, useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
@@ -29,7 +28,7 @@ const CalendarView = () => {
           byDate[date].push(trade);
         });
 
-        console.log("📊 Trades fetched:", byDate);
+        console.log("✅ Trades fetched:", byDate);
         setTradesByDate(byDate);
         setLoading(false);
       } catch (error) {
