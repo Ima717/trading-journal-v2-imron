@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import SignIn from "./pages/SignIn";
@@ -77,4 +76,3 @@ function App() {
 }
 
 export default App
->>>>>>> b5af3b2 (Installed Recharts and fixed TagPerformanceChart)
