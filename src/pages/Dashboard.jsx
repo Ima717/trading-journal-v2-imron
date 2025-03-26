@@ -49,7 +49,6 @@ const Dashboard = () => {
       const snapshot = await getDocs(ref);
       const trades = snapshot.docs.map((doc) => doc.data());
 
-      // ⏳ Filter trades by selected date range
       let filtered = trades;
       if (dateRange.start && dateRange.end) {
         filtered = trades.filter((trade) => {
@@ -60,11 +59,9 @@ const Dashboard = () => {
       }
       setFilteredTrades(filtered);
 
-      // ✅ Set PnL data for chart
       const pnlSeries = getPnLOverTime(filtered);
       setPnlData(pnlSeries);
 
-      // ✅ Tag performance logic
       const tagMap = {};
       filtered.forEach((trade) => {
         if (Array.isArray(trade.tags)) {
@@ -88,11 +85,11 @@ const Dashboard = () => {
   }, [user, dateRange]);
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center max-w-6xl mx-auto mb-6">
-        <h1 className="text-2xl font-bold mb-2 sm:mb-0">📊 Welcome to IMAI Dashboard</h1>
-        <div className="space-x-2">
+      <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center max-w-6xl mx-auto mb-8">
+        <h1 className="text-2xl font-bold text-zinc-800 mb-2 sm:mb-0">📊 Welcome to IMAI Dashboard</h1>
+        <div className="flex flex-wrap gap-2">
           <Link to="/calendar" className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">📅 Calendar</Link>
           <Link to="/add-trade" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">➕ Add Trade</Link>
           <Link to="/test" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">🧪 Test</Link>
@@ -102,7 +99,7 @@ const Dashboard = () => {
       </div>
 
       {/* Date Range Info */}
-      <div className="max-w-6xl mx-auto flex justify-between items-center mb-6">
+      <div className="max-w-6xl mx-auto flex justify-between items-center mb-4">
         <p className="text-sm text-gray-600">{formatDateRange()}</p>
         {(dateRange.start || dateRange.end) && (
           <button
@@ -119,27 +116,27 @@ const Dashboard = () => {
 
       {/* PnL Over Time Chart */}
       {pnlData.length > 0 && (
-        <div className="max-w-6xl mx-auto mb-10">
+        <div className="max-w-6xl mx-auto mb-12">
           <PerformanceChart data={pnlData} />
         </div>
       )}
 
       {/* Analytics Overview */}
       <div className="max-w-6xl mx-auto">
-        <h2 className="text-2xl font-bold my-4">Analytics Overview</h2>
+        <h2 className="text-2xl font-bold mb-4">Analytics Overview</h2>
         <AnalyticsOverview />
       </div>
 
       {/* Tag Performance Chart */}
       {tagPerformanceData.length > 0 && (
-        <div className="max-w-6xl mx-auto mt-10">
+        <div className="max-w-6xl mx-auto mt-12">
           <h2 className="text-xl font-bold mb-3">📈 Tag Performance</h2>
           <ChartTagPerformance data={tagPerformanceData} />
         </div>
       )}
 
       {/* Trade Table */}
-      <div className="max-w-6xl mx-auto mt-10">
+      <div className="max-w-6xl mx-auto mt-12">
         <TradeTable trades={filteredTrades} />
       </div>
     </div>
