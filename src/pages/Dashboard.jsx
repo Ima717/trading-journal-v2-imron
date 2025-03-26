@@ -18,7 +18,14 @@ import { getPnLOverTime } from "../utils/calculations";
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { dateRange, setDateRange } = useFilters();
+  const {
+    dateRange,
+    setDateRange,
+    resultType,
+    setResultType,
+    tagSearchTerm,
+    setTagSearchTerm,
+  } = useFilters();
 
   const [tagPerformanceData, setTagPerformanceData] = useState([]);
   const [pnlData, setPnlData] = useState([]);
@@ -51,13 +58,29 @@ const Dashboard = () => {
       const trades = snapshot.docs.map((doc) => doc.data());
 
       let filtered = trades;
+
       if (dateRange.start && dateRange.end) {
-        filtered = trades.filter((trade) => {
+        filtered = filtered.filter((trade) => {
           const tradeDate = dayjs(trade.date);
-          return tradeDate.isAfter(dayjs(dateRange.start).subtract(1, "day")) &&
-                 tradeDate.isBefore(dayjs(dateRange.end).add(1, "day"));
+          return (
+            tradeDate.isAfter(dayjs(dateRange.start).subtract(1, "day")) &&
+            tradeDate.isBefore(dayjs(dateRange.end).add(1, "day"))
+          );
         });
       }
+
+      if (resultType !== "all") {
+        filtered = filtered.filter((trade) => trade.result === resultType);
+      }
+
+      if (tagSearchTerm.trim() !== "") {
+        filtered = filtered.filter((trade) =>
+          trade.tags?.some((tag) =>
+            tag.toLowerCase().includes(tagSearchTerm.toLowerCase())
+          )
+        );
+      }
+
       setFilteredTrades(filtered);
 
       const pnlSeries = getPnLOverTime(filtered);
@@ -83,7 +106,7 @@ const Dashboard = () => {
     };
 
     fetchTagPerformance();
-  }, [user, dateRange]);
+  }, [user, dateRange, resultType, tagSearchTerm]);
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
@@ -107,17 +130,44 @@ const Dashboard = () => {
 
         {/* Main Content */}
         <div className="lg:col-span-3 space-y-10">
-          {/* Date Range Info */}
-          <div className="flex justify-between items-center">
-            <p className="text-sm text-gray-600">{formatDateRange()}</p>
-            {(dateRange.start || dateRange.end) && (
-              <button
-                onClick={() => setDateRange({ start: null, end: null })}
-                className="text-sm underline text-blue-600 hover:text-blue-800"
-              >
-                Reset Date Filter ✕
-              </button>
-            )}
+          {/* Filters */}
+          <div className="flex flex-wrap gap-4 justify-between items-end">
+            <div className="flex flex-wrap gap-4">
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">Result</label>
+                <select
+                  value={resultType}
+                  onChange={(e) => setResultType(e.target.value)}
+                  className="border rounded-md px-3 py-1 text-sm"
+                >
+                  <option value="all">All</option>
+                  <option value="win">Win</option>
+                  <option value="loss">Loss</option>
+                  <option value="breakeven">Breakeven</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">Search Tag</label>
+                <input
+                  type="text"
+                  value={tagSearchTerm}
+                  onChange={(e) => setTagSearchTerm(e.target.value)}
+                  placeholder="e.g. breakout"
+                  className="border rounded-md px-3 py-1 text-sm"
+                />
+              </div>
+            </div>
+            <div className="text-sm text-gray-600">
+              <p>{formatDateRange()}</p>
+              {(dateRange.start || dateRange.end) && (
+                <button
+                  onClick={() => setDateRange({ start: null, end: null })}
+                  className="underline text-blue-600 hover:text-blue-800"
+                >
+                  Reset Date Filter ✕
+                </button>
+              )}
+            </div>
           </div>
 
           <SummaryCards trades={filteredTrades} />
