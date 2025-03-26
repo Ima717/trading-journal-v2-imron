@@ -4,9 +4,12 @@ import "react-calendar/dist/Calendar.css";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../utils/firebase";
 import { useAuth } from "../context/AuthContext";
+import { useFilters } from "../context/FilterContext";
 
 const CalendarPage = () => {
   const { user } = useAuth();
+  const { setDateRange } = useFilters();
+
   const [tradesByDate, setTradesByDate] = useState({});
   const [selectedDate, setSelectedDate] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -30,7 +33,7 @@ const CalendarPage = () => {
         setTradesByDate(byDate);
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching trades:", error);
+        console.error("❌ Error fetching trades:", error);
       }
     };
 
@@ -40,6 +43,7 @@ const CalendarPage = () => {
   const handleDateClick = (value) => {
     const formatted = value.toLocaleDateString("en-CA"); // YYYY-MM-DD
     setSelectedDate(formatted);
+    setDateRange({ start: formatted, end: formatted }); // ✅ update global filter
   };
 
   return (
