@@ -77,6 +77,11 @@ const AnalyticsOverview = () => {
         />
       </div>
 
+{selectedTag && (
+  <TagSummary tag={selectedTag} trades={filteredTrades} />
+)}
+
+
       <div className="bg-white rounded shadow p-4">
         <h3 className="text-xl font-semibold mb-3">Filtered Trades</h3>
         {filteredTrades.length === 0 ? (
