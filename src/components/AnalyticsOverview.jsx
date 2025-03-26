@@ -24,13 +24,14 @@ const AnalyticsOverview = () => {
 
   useEffect(() => {
     if (selectedTag) {
-      setFilteredTrades(trades.filter((trade) => trade.tags?.includes(selectedTag)));
+      setFilteredTrades(
+        trades.filter((trade) => trade.tags?.includes(selectedTag))
+      );
     } else {
       setFilteredTrades(trades);
     }
   }, [selectedTag, trades]);
 
-  // Build tag stats
   const tagStats = {};
   trades.forEach((trade) => {
     const { pnl, tags = [] } = trade;
@@ -60,16 +61,15 @@ const AnalyticsOverview = () => {
       </div>
 
       {selectedTag && (
-        <div className="flex items-center justify-between bg-gray-100 px-4 py-2 rounded shadow">
+        <div className="flex items-center justify-between bg-purple-50 px-4 py-2 rounded shadow">
           <p className="text-sm">
-            Showing trades with tag:{" "}
-            <span className="font-medium text-purple-600">{selectedTag}</span>
+            Filtering by tag: <span className="font-semibold text-purple-600">{selectedTag}</span>
           </p>
           <button
             onClick={() => setSelectedTag(null)}
-            className="text-sm text-gray-600 hover:text-black"
+            className="bg-gray-200 hover:bg-gray-300 text-sm px-3 py-1 rounded"
           >
-            Clear Filter ✕
+            Reset Filter
           </button>
         </div>
       )}
