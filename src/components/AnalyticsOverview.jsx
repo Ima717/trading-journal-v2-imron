@@ -10,6 +10,7 @@ const AnalyticsOverview = () => {
   const [trades, setTrades] = useState([]);
   const [filteredTrades, setFilteredTrades] = useState([]);
   const [selectedTag, setSelectedTag] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const fetchTrades = async () => {
@@ -25,14 +26,13 @@ const AnalyticsOverview = () => {
 
   useEffect(() => {
     if (selectedTag) {
-      setFilteredTrades(
-        trades.filter((trade) => trade.tags?.includes(selectedTag))
-      );
+      setFilteredTrades(trades.filter((trade) => trade.tags?.includes(selectedTag)));
     } else {
       setFilteredTrades(trades);
     }
   }, [selectedTag, trades]);
 
+  // Tag stats
   const tagStats = {};
   trades.forEach((trade) => {
     const { pnl, tags = [] } = trade;
@@ -45,14 +45,29 @@ const AnalyticsOverview = () => {
     });
   });
 
-  const tagChartData = Object.entries(tagStats).map(([tag, stats]) => ({
-    tag,
-    avgPnL: stats.totalPnL / stats.count,
-  }));
+  // Search-filtered tag chart data
+  const tagChartData = Object.entries(tagStats)
+    .filter(([tag]) =>
+      tag.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .map(([tag, stats]) => ({
+      tag,
+      avgPnL: stats.totalPnL / stats.count,
+    }));
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <h2 className="text-3xl font-bold text-gray-800 mb-4">Analytics Overview</h2>
+
+      <SearchFilter
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        selectedTag={selectedTag}
+        onClear={() => {
+          setSelectedTag(null);
+          setSearchTerm("");
+        }}
+      />
 
       <div className="bg-white shadow rounded p-4">
         <ChartTagPerformance
@@ -60,20 +75,6 @@ const AnalyticsOverview = () => {
           onTagClick={(tag) => setSelectedTag(tag)}
         />
       </div>
-
-      {selectedTag && (
-        <div className="flex items-center justify-between bg-purple-50 px-4 py-2 rounded shadow">
-          <p className="text-sm">
-            Filtering by tag: <span className="font-semibold text-purple-600">{selectedTag}</span>
-          </p>
-          <button
-            onClick={() => setSelectedTag(null)}
-            className="bg-gray-200 hover:bg-gray-300 text-sm px-3 py-1 rounded"
-          >
-            Reset Filter
-          </button>
-        </div>
-      )}
 
       <div className="bg-white rounded shadow p-4">
         <h3 className="text-xl font-semibold mb-3">Filtered Trades</h3>
