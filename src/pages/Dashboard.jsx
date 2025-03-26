@@ -12,6 +12,7 @@ import TradeTable from "../components/TradeTable";
 import SummaryCards from "../components/SummaryCards";
 import ChartTagPerformance from "../components/ChartTagPerformance";
 import PerformanceChart from "../components/PerformanceChart";
+import DashboardSidebar from "../components/DashboardSidebar";
 import { getPnLOverTime } from "../utils/calculations";
 
 const Dashboard = () => {
@@ -98,46 +99,45 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Date Range Info */}
-      <div className="max-w-6xl mx-auto flex justify-between items-center mb-4">
-        <p className="text-sm text-gray-600">{formatDateRange()}</p>
-        {(dateRange.start || dateRange.end) && (
-          <button
-            onClick={() => setDateRange({ start: null, end: null })}
-            className="text-sm underline text-blue-600 hover:text-blue-800"
-          >
-            Reset Date Filter ✕
-          </button>
-        )}
-      </div>
-
-      {/* Summary Cards */}
-      <SummaryCards trades={filteredTrades} />
-
-      {/* PnL Over Time Chart */}
-      {pnlData.length > 0 && (
-        <div className="max-w-6xl mx-auto mb-12">
-          <PerformanceChart data={pnlData} />
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Sidebar Calendar */}
+        <div className="lg:col-span-1">
+          <DashboardSidebar />
         </div>
-      )}
 
-      {/* Analytics Overview */}
-      <div className="max-w-6xl mx-auto">
-        <h2 className="text-2xl font-bold mb-4">Analytics Overview</h2>
-        <AnalyticsOverview />
-      </div>
+        {/* Main Content */}
+        <div className="lg:col-span-3 space-y-10">
+          {/* Date Range Info */}
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-gray-600">{formatDateRange()}</p>
+            {(dateRange.start || dateRange.end) && (
+              <button
+                onClick={() => setDateRange({ start: null, end: null })}
+                className="text-sm underline text-blue-600 hover:text-blue-800"
+              >
+                Reset Date Filter ✕
+              </button>
+            )}
+          </div>
 
-      {/* Tag Performance Chart */}
-      {tagPerformanceData.length > 0 && (
-        <div className="max-w-6xl mx-auto mt-12">
-          <h2 className="text-xl font-bold mb-3">📈 Tag Performance</h2>
-          <ChartTagPerformance data={tagPerformanceData} />
+          <SummaryCards trades={filteredTrades} />
+
+          {pnlData.length > 0 && <PerformanceChart data={pnlData} />}
+
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Analytics Overview</h2>
+            <AnalyticsOverview />
+          </div>
+
+          {tagPerformanceData.length > 0 && (
+            <div>
+              <h2 className="text-xl font-bold mb-3">📈 Tag Performance</h2>
+              <ChartTagPerformance data={tagPerformanceData} />
+            </div>
+          )}
+
+          <TradeTable trades={filteredTrades} />
         </div>
-      )}
-
-      {/* Trade Table */}
-      <div className="max-w-6xl mx-auto mt-12">
-        <TradeTable trades={filteredTrades} />
       </div>
     </div>
   );
