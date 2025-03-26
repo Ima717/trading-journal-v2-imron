@@ -9,15 +9,12 @@ import AnalyticsOverview from "../components/AnalyticsOverview";
 import TradeTable from "../components/TradeTable";
 import SummaryCards from "../components/SummaryCards";
 import ChartTagPerformance from "../components/ChartTagPerformance";
-import PerformanceChart from "../components/PerformanceChart";
-import { getPnLOverTime } from "../utils/calculations";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
   const [tagPerformanceData, setTagPerformanceData] = useState([]);
-  const [pnlData, setPnlData] = useState([]);
 
   const handleLogout = async () => {
     try {
@@ -36,12 +33,8 @@ const Dashboard = () => {
       const snapshot = await getDocs(ref);
       const trades = snapshot.docs.map((doc) => doc.data());
 
-      // ⬇️ Set PnL over time
-      const pnlSeries = getPnLOverTime(trades);
-      setPnlData(pnlSeries);
-
-      // ⬇️ Calculate average PnL per tag
       const tagMap = {};
+
       trades.forEach((trade) => {
         if (Array.isArray(trade.tags)) {
           trade.tags.forEach((tag) => {
@@ -78,13 +71,6 @@ const Dashboard = () => {
 
       {/* Summary Cards */}
       <SummaryCards />
-
-      {/* PnL Over Time Chart */}
-      {pnlData.length > 0 && (
-        <div className="max-w-6xl mx-auto mb-10">
-          <PerformanceChart data={pnlData} />
-        </div>
-      )}
 
       {/* Analytics Overview */}
       <div className="max-w-6xl mx-auto">
