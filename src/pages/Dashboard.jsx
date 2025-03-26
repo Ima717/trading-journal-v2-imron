@@ -4,6 +4,8 @@ import { auth, db } from "../utils/firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useFilters } from "../context/FilterContext";
+import dayjs from "dayjs";
 
 import AnalyticsOverview from "../components/AnalyticsOverview";
 import TradeTable from "../components/TradeTable";
@@ -15,6 +17,7 @@ import { getPnLOverTime } from "../utils/calculations";
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { dateRange, setDateRange } = useFilters();
 
   const [tagPerformanceData, setTagPerformanceData] = useState([]);
   const [pnlData, setPnlData] = useState([]);
@@ -28,6 +31,15 @@ const Dashboard = () => {
     }
   };
 
+  const formatDateRange = () => {
+    if (!dateRange.start || !dateRange.end) return "Showing all data";
+    const start = dayjs(dateRange.start).format("MMM D");
+    const end = dayjs(dateRange.end).format("MMM D");
+    return start === end
+      ? `Showing trades for ${start}`
+      : `Showing trades from ${start} to ${end}`;
+  };
+
   useEffect(() => {
     const fetchTagPerformance = async () => {
       if (!user) return;
@@ -36,11 +48,9 @@ const Dashboard = () => {
       const snapshot = await getDocs(ref);
       const trades = snapshot.docs.map((doc) => doc.data());
 
-      // ✅ Set PnL data for chart
       const pnlSeries = getPnLOverTime(trades);
       setPnlData(pnlSeries);
 
-      // ✅ Tag performance logic
       const tagMap = {};
       trades.forEach((trade) => {
         if (Array.isArray(trade.tags)) {
@@ -72,18 +82,28 @@ const Dashboard = () => {
           <Link to="/calendar" className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">📅 Calendar</Link>
           <Link to="/add-trade" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">➕ Add Trade</Link>
           <Link to="/test" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">🧪 Test</Link>
-          <Link to="/import" className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">
-  📤 Import Trades
-</Link>
-
+          <Link to="/import" className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">📤 Import Trades</Link>
           <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">🔒 Log Out</button>
         </div>
+      </div>
+
+      {/* Date Range Info */}
+      <div className="max-w-6xl mx-auto flex justify-between items-center mb-6">
+        <p className="text-sm text-gray-600">{formatDateRange()}</p>
+        {(dateRange.start || dateRange.end) && (
+          <button
+            onClick={() => setDateRange({ start: null, end: null })}
+            className="text-sm underline text-blue-600 hover:text-blue-800"
+          >
+            Reset Date Filter ✕
+          </button>
+        )}
       </div>
 
       {/* Summary Cards */}
       <SummaryCards />
 
-      {/* ✅ PnL Over Time Chart */}
+      {/* PnL Over Time Chart */}
       {pnlData.length > 0 && (
         <div className="max-w-6xl mx-auto mb-10">
           <PerformanceChart data={pnlData} />
