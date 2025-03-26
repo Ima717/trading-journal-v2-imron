@@ -2,16 +2,17 @@ import React, { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../utils/firebase";
 import { useAuth } from "../context/AuthContext";
+import { useFilters } from "../context/FilterContext";
 import ChartTagPerformance from "../components/ChartTagPerformance";
 import SearchFilter from "./SearchFilter";
 import TagSummary from "./TagSummary";
 
 const AnalyticsOverview = () => {
   const { user } = useAuth();
+  const { selectedTag, setSelectedTag, searchTerm, setSearchTerm } = useFilters();
+
   const [trades, setTrades] = useState([]);
   const [filteredTrades, setFilteredTrades] = useState([]);
-  const [selectedTag, setSelectedTag] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const fetchTrades = async () => {
@@ -25,6 +26,7 @@ const AnalyticsOverview = () => {
     fetchTrades();
   }, [user]);
 
+  // ⏳ Re-filter trades based on selected tag
   useEffect(() => {
     if (selectedTag) {
       setFilteredTrades(trades.filter((trade) => trade.tags?.includes(selectedTag)));
@@ -33,7 +35,7 @@ const AnalyticsOverview = () => {
     }
   }, [selectedTag, trades]);
 
-  // Tag stats
+  // 📊 Generate tag stats from full list of trades
   const tagStats = {};
   trades.forEach((trade) => {
     const { pnl, tags = [] } = trade;
@@ -46,7 +48,7 @@ const AnalyticsOverview = () => {
     });
   });
 
-  // Search-filtered tag chart data
+  // 🔍 Filter tag stats based on search input
   const tagChartData = Object.entries(tagStats)
     .filter(([tag]) =>
       tag.toLowerCase().includes(searchTerm.toLowerCase())
@@ -60,6 +62,7 @@ const AnalyticsOverview = () => {
     <div className="max-w-5xl mx-auto space-y-6">
       <h2 className="text-3xl font-bold text-gray-800 mb-4">Analytics Overview</h2>
 
+      {/* 🔍 Search input + selected tag info */}
       <SearchFilter
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
@@ -70,6 +73,7 @@ const AnalyticsOverview = () => {
         }}
       />
 
+      {/* 📈 Tag Chart */}
       <div className="bg-white shadow rounded p-4">
         <ChartTagPerformance
           data={tagChartData}
@@ -77,11 +81,10 @@ const AnalyticsOverview = () => {
         />
       </div>
 
-{selectedTag && (
-  <TagSummary tag={selectedTag} trades={filteredTrades} />
-)}
+      {/* 🧠 Optional tag summary */}
+      {selectedTag && <TagSummary tag={selectedTag} trades={filteredTrades} />}
 
-
+      {/* 📋 Filtered trade table */}
       <div className="bg-white rounded shadow p-4">
         <h3 className="text-xl font-semibold mb-3">Filtered Trades</h3>
         {filteredTrades.length === 0 ? (
@@ -102,7 +105,9 @@ const AnalyticsOverview = () => {
                 <tr key={i} className="border-t hover:bg-gray-50">
                   <td className="p-2">{trade.symbol}</td>
                   <td className="p-2">{trade.date}</td>
-                  <td className="p-2">${trade.pnl}</td>
+                  <td className={`p-2 ${trade.pnl >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                    ${trade.pnl}
+                  </td>
                   <td className="p-2 capitalize">{trade.result}</td>
                   <td className="p-2 text-gray-600">{trade.notes}</td>
                 </tr>
