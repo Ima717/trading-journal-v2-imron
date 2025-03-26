@@ -9,6 +9,7 @@ import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
 import Test from './pages/Test';
 import ImportTrades from "./pages/ImportTrades";
+import CalendarPage from "./pages/CalendarPage";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/signup" element={<SignUp />} />
           <Route path="/test" element={<Test />} />
           <Route path="/import" element={<ImportTrades />} />
+          <Route path="/calendar" element={<CalendarPage />} />
 
           {/* Protected Routes */}
           <Route
