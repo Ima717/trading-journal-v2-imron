@@ -5,14 +5,13 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from "../utils/firebase";
 import { useAuth } from "../context/AuthContext";
 
-const CalendarView = () => {
+const CalendarPage = () => {
   const { user } = useAuth();
   const [tradesByDate, setTradesByDate] = useState({});
   const [selectedDate, setSelectedDate] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log("📅 CalendarView mounted");
     if (!user) return;
 
     const fetchTrades = async () => {
@@ -28,11 +27,10 @@ const CalendarView = () => {
           byDate[date].push(trade);
         });
 
-        console.log("✅ Trades fetched:", byDate);
         setTradesByDate(byDate);
         setLoading(false);
       } catch (error) {
-        console.error("❌ Error fetching trades:", error);
+        console.error("Error fetching trades:", error);
       }
     };
 
@@ -40,9 +38,8 @@ const CalendarView = () => {
   }, [user]);
 
   const handleDateClick = (value) => {
-    const formatted = value.toLocaleDateString("en-CA"); // gives YYYY-MM-DD format
+    const formatted = value.toLocaleDateString("en-CA"); // YYYY-MM-DD
     setSelectedDate(formatted);
-    console.log("📆 Selected date:", formatted);
   };
 
   return (
@@ -81,4 +78,4 @@ const CalendarView = () => {
   );
 };
 
-export default CalendarView;
+export default CalendarPage;
