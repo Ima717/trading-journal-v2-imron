@@ -21,6 +21,7 @@ const Dashboard = () => {
 
   const [tagPerformanceData, setTagPerformanceData] = useState([]);
   const [pnlData, setPnlData] = useState([]);
+  const [filteredTrades, setFilteredTrades] = useState([]);
 
   const handleLogout = async () => {
     try {
@@ -48,11 +49,24 @@ const Dashboard = () => {
       const snapshot = await getDocs(ref);
       const trades = snapshot.docs.map((doc) => doc.data());
 
-      const pnlSeries = getPnLOverTime(trades);
+      // ⏳ Filter trades by selected date range
+      let filtered = trades;
+      if (dateRange.start && dateRange.end) {
+        filtered = trades.filter((trade) => {
+          const tradeDate = dayjs(trade.date);
+          return tradeDate.isAfter(dayjs(dateRange.start).subtract(1, "day")) &&
+                 tradeDate.isBefore(dayjs(dateRange.end).add(1, "day"));
+        });
+      }
+      setFilteredTrades(filtered);
+
+      // ✅ Set PnL data for chart
+      const pnlSeries = getPnLOverTime(filtered);
       setPnlData(pnlSeries);
 
+      // ✅ Tag performance logic
       const tagMap = {};
-      trades.forEach((trade) => {
+      filtered.forEach((trade) => {
         if (Array.isArray(trade.tags)) {
           trade.tags.forEach((tag) => {
             if (!tagMap[tag]) tagMap[tag] = { totalPnL: 0, count: 0 };
@@ -71,7 +85,7 @@ const Dashboard = () => {
     };
 
     fetchTagPerformance();
-  }, [user]);
+  }, [user, dateRange]);
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -126,7 +140,7 @@ const Dashboard = () => {
 
       {/* Trade Table */}
       <div className="max-w-6xl mx-auto mt-10">
-        <TradeTable />
+        <TradeTable trades={filteredTrades} />
       </div>
     </div>
   );
