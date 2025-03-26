@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../utils/firebase";
 import { useAuth } from "../context/AuthContext";
+import { db } from "../utils/firebase";
+import { collection, getDocs } from "firebase/firestore";
+import { useFilters } from "../context/FilterContext";
+import MetricCard from "./MetricCard";
 
 const SummaryCards = () => {
   const { user } = useAuth();
-  const [stats, setStats] = useState({
+  const { startDate, endDate } = useFilters();
+
+  const [summary, setSummary] = useState({
     totalTrades: 0,
     totalPnL: 0,
     winRate: 0,
@@ -13,20 +17,26 @@ const SummaryCards = () => {
   });
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchTrades = async () => {
       if (!user) return;
-
       const ref = collection(db, "users", user.uid, "trades");
       const snapshot = await getDocs(ref);
       const trades = snapshot.docs.map((doc) => doc.data());
 
-      const totalTrades = trades.length;
-      const totalPnL = trades.reduce((sum, t) => sum + (t.pnl || 0), 0);
-      const wins = trades.filter((t) => t.result === "win").length;
-      const winRate = totalTrades > 0 ? ((wins / totalTrades) * 100).toFixed(1) : 0;
-      const avgPnL = totalTrades > 0 ? (totalPnL / totalTrades).toFixed(2) : 0;
+      // 🔍 Filter trades by selected date range
+      const filtered = trades.filter((t) => {
+        const tradeDate = new Date(t.date);
+        return (!startDate || tradeDate >= new Date(startDate)) &&
+               (!endDate || tradeDate <= new Date(endDate));
+      });
 
-      setStats({
+      const totalTrades = filtered.length;
+      const totalPnL = filtered.reduce((sum, t) => sum + (t.pnl || 0), 0);
+      const wins = filtered.filter((t) => t.result === "win").length;
+      const winRate = totalTrades ? ((wins / totalTrades) * 100).toFixed(1) : 0;
+      const avgPnL = totalTrades ? (totalPnL / totalTrades).toFixed(2) : 0;
+
+      setSummary({
         totalTrades,
         totalPnL,
         winRate,
@@ -34,32 +44,15 @@ const SummaryCards = () => {
       });
     };
 
-    fetchStats();
-  }, [user]);
+    fetchTrades();
+  }, [user, startDate, endDate]);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-      <div className="bg-white p-4 rounded-lg shadow border-l-4 border-purple-500">
-        <h3 className="text-sm font-medium text-gray-500">Total Trades</h3>
-        <p className="text-2xl font-bold">{stats.totalTrades}</p>
-      </div>
-
-      <div className="bg-white p-4 rounded-lg shadow border-l-4 border-green-500">
-        <h3 className="text-sm font-medium text-gray-500">Total PnL</h3>
-        <p className={`text-2xl font-bold ${stats.totalPnL >= 0 ? "text-green-700" : "text-red-600"}`}>
-          ${stats.totalPnL}
-        </p>
-      </div>
-
-      <div className="bg-white p-4 rounded-lg shadow border-l-4 border-yellow-400">
-        <h3 className="text-sm font-medium text-gray-500">Win Rate</h3>
-        <p className="text-2xl font-bold">{stats.winRate}%</p>
-      </div>
-
-      <div className="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
-        <h3 className="text-sm font-medium text-gray-500">Average PnL</h3>
-        <p className="text-2xl font-bold">${stats.avgPnL}</p>
-      </div>
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-6xl mx-auto mb-8">
+      <MetricCard title="Total Trades" value={summary.totalTrades} />
+      <MetricCard title="Total PnL" value={`$${summary.totalPnL}`} />
+      <MetricCard title="Win Rate" value={`${summary.winRate}%`} />
+      <MetricCard title="Avg PnL/Trade" value={`$${summary.avgPnL}`} />
     </div>
   );
 };
