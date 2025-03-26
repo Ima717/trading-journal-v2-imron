@@ -115,7 +115,7 @@ const Dashboard = () => {
       </div>
 
       {/* Summary Cards */}
-      <SummaryCards />
+      <SummaryCards trades={filteredTrades} />
 
       {/* PnL Over Time Chart */}
       {pnlData.length > 0 && (
