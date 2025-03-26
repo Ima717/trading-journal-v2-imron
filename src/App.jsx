@@ -8,6 +8,7 @@ import CalendarView from "./pages/CalendarView"; // ✅ Add this import
 import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
 import Test from './pages/Test';
+import ImportTrades from "./pages/ImportTrades";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/test" element={<Test />} />
+          <Route path="/import" element={<ImportTrades />} />
 
           {/* Protected Routes */}
           <Route
