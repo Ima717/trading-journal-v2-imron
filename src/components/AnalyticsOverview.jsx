@@ -7,7 +7,7 @@ import { filterTradesByDate } from "../utils/filterUtils";
 import ChartTagPerformance from "../components/ChartTagPerformance";
 import SearchFilter from "./SearchFilter";
 import TagSummary from "./TagSummary";
-import ResultFilter from "../components/ResultFilter";
+import ResultFilter from "./ResultFilter";
 
 const AnalyticsOverview = () => {
   const { user } = useAuth();
@@ -36,22 +36,23 @@ const AnalyticsOverview = () => {
   }, [user]);
 
   useEffect(() => {
-    const dateFiltered = filterTradesByDate(trades, dateRange);
+    let result = filterTradesByDate(trades, dateRange);
 
-    const tagFiltered = selectedTag
-      ? dateFiltered.filter((t) => t.tags?.includes(selectedTag))
-      : dateFiltered;
+    if (selectedTag) {
+      result = result.filter((t) => t.tags?.includes(selectedTag));
+    }
 
-    const resultFiltered =
-      resultFilter === "all"
-        ? tagFiltered
-        : tagFiltered.filter((t) => t.result === resultFilter);
+    if (resultFilter !== "all") {
+      result = result.filter((t) => t.result === resultFilter);
+    }
 
-    setFilteredTrades(resultFiltered);
+    setFilteredTrades(result);
   }, [selectedTag, trades, dateRange, resultFilter]);
 
   const tagStats = {};
-  const dateFiltered = filterTradesByDate(trades, dateRange);
+  const dateFiltered = filterTradesByDate(trades, dateRange).filter(
+    (t) => resultFilter === "all" || t.result === resultFilter
+  );
 
   dateFiltered.forEach((trade) => {
     const { pnl, tags = [] } = trade;
@@ -117,11 +118,7 @@ const AnalyticsOverview = () => {
                   <tr key={i} className="border-t hover:bg-gray-50">
                     <td className="p-2 whitespace-nowrap">{trade.symbol}</td>
                     <td className="p-2 whitespace-nowrap">{trade.date}</td>
-                    <td
-                      className={`p-2 whitespace-nowrap ${
-                        trade.pnl >= 0 ? "text-green-600" : "text-red-500"
-                      }`}
-                    >
+                    <td className={`p-2 whitespace-nowrap ${trade.pnl >= 0 ? 'text-green-600' : 'text-red-500'}`}>
                       ${trade.pnl}
                     </td>
                     <td className="p-2 capitalize whitespace-nowrap">{trade.result}</td>
