@@ -3,7 +3,7 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from "../utils/firebase";
 import { useAuth } from "../context/AuthContext";
 import ChartTagPerformance from "../components/ChartTagPerformance";
-import SearchFilter from "../components/SearchFilter";
+import SearchFilter from "./SearchFilter";
 
 const AnalyticsOverview = () => {
   const { user } = useAuth();
