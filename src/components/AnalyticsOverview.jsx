@@ -27,7 +27,6 @@ const AnalyticsOverview = () => {
     fetchTrades();
   }, [user]);
 
-  // ⏳ Filter by date, then tag
   useEffect(() => {
     const dateFiltered = filterTradesByDate(trades, dateRange);
     if (selectedTag) {
@@ -37,7 +36,6 @@ const AnalyticsOverview = () => {
     }
   }, [selectedTag, trades, dateRange]);
 
-  // 📊 Tag stats from date-filtered trades
   const tagStats = {};
   const dateFiltered = filterTradesByDate(trades, dateRange);
 
@@ -60,8 +58,8 @@ const AnalyticsOverview = () => {
     }));
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      <h2 className="text-3xl font-bold text-gray-800 mb-4">Analytics Overview</h2>
+    <div className="max-w-6xl mx-auto space-y-6">
+      <h2 className="text-3xl font-bold text-zinc-800 mb-4">Analytics Overview</h2>
 
       <SearchFilter
         searchTerm={searchTerm}
@@ -73,7 +71,7 @@ const AnalyticsOverview = () => {
         }}
       />
 
-      <div className="bg-white shadow rounded p-4">
+      <div className="bg-white shadow rounded-xl p-4">
         <ChartTagPerformance
           data={tagChartData}
           onTagClick={(tag) => setSelectedTag(tag)}
@@ -82,35 +80,37 @@ const AnalyticsOverview = () => {
 
       {selectedTag && <TagSummary tag={selectedTag} trades={filteredTrades} />}
 
-      <div className="bg-white rounded shadow p-4">
+      <div className="bg-white rounded-xl shadow p-4">
         <h3 className="text-xl font-semibold mb-3">Filtered Trades</h3>
         {filteredTrades.length === 0 ? (
           <p className="text-gray-500 text-sm">No trades found.</p>
         ) : (
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr className="bg-gray-100 text-left">
-                <th className="p-2 font-medium">Symbol</th>
-                <th className="p-2 font-medium">Date</th>
-                <th className="p-2 font-medium">PnL</th>
-                <th className="p-2 font-medium">Result</th>
-                <th className="p-2 font-medium">Notes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTrades.map((trade, i) => (
-                <tr key={i} className="border-t hover:bg-gray-50">
-                  <td className="p-2">{trade.symbol}</td>
-                  <td className="p-2">{trade.date}</td>
-                  <td className={`p-2 ${trade.pnl >= 0 ? 'text-green-600' : 'text-red-500'}`}>
-                    ${trade.pnl}
-                  </td>
-                  <td className="p-2 capitalize">{trade.result}</td>
-                  <td className="p-2 text-gray-600">{trade.notes}</td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="bg-gray-100 text-left">
+                  <th className="p-2 font-medium">Symbol</th>
+                  <th className="p-2 font-medium">Date</th>
+                  <th className="p-2 font-medium">PnL</th>
+                  <th className="p-2 font-medium">Result</th>
+                  <th className="p-2 font-medium">Notes</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredTrades.map((trade, i) => (
+                  <tr key={i} className="border-t hover:bg-gray-50">
+                    <td className="p-2 whitespace-nowrap">{trade.symbol}</td>
+                    <td className="p-2 whitespace-nowrap">{trade.date}</td>
+                    <td className={`p-2 whitespace-nowrap ${trade.pnl >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                      ${trade.pnl}
+                    </td>
+                    <td className="p-2 capitalize whitespace-nowrap">{trade.result}</td>
+                    <td className="p-2 text-gray-600 whitespace-nowrap">{trade.notes}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
