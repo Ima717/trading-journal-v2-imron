@@ -7,9 +7,23 @@ export const FilterProvider = ({ children }) => {
   const [selectedTag, setSelectedTag] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const resetFilters = () => {
+    setDateRange({ start: null, end: null });
+    setSelectedTag(null);
+    setSearchTerm("");
+  };
+
   return (
     <FilterContext.Provider
-      value={{ dateRange, setDateRange, selectedTag, setSelectedTag, searchTerm, setSearchTerm }}
+      value={{
+        dateRange,
+        setDateRange,
+        selectedTag,
+        setSelectedTag,
+        searchTerm,
+        setSearchTerm,
+        resetFilters,
+      }}
     >
       {children}
     </FilterContext.Provider>
