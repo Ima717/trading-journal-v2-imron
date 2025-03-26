@@ -6,11 +6,13 @@ export const FilterProvider = ({ children }) => {
   const [dateRange, setDateRange] = useState({ start: null, end: null });
   const [selectedTag, setSelectedTag] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [resultFilter, setResultFilter] = useState("all"); // "all", "win", "loss", "breakeven"
 
   const resetFilters = () => {
     setDateRange({ start: null, end: null });
     setSelectedTag(null);
     setSearchTerm("");
+    setResultFilter("all");
   };
 
   return (
@@ -22,6 +24,8 @@ export const FilterProvider = ({ children }) => {
         setSelectedTag,
         searchTerm,
         setSearchTerm,
+        resultFilter,
+        setResultFilter,
         resetFilters,
       }}
     >
