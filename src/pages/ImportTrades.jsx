@@ -5,9 +5,11 @@ import Papa from "papaparse";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../utils/firebase";
 import { useAuth } from "../context/AuthContext";
+import { useFilters } from "../context/FilterContext"; // Import useFilters
 
 const ImportTrades = () => {
   const { user } = useAuth();
+  const { triggerRefresh } = useFilters(); // Get triggerRefresh from context
   const navigate = useNavigate();
   const [file, setFile] = useState(null);
   const [trades, setTrades] = useState([]);
@@ -92,7 +94,8 @@ const ImportTrades = () => {
     setSuggestions({});
 
     if (errors === 0) {
-      navigate("/"); // Redirect to the main page (/)
+      triggerRefresh(); // Trigger refresh to update dashboard data
+      navigate("/");
     }
   };
 
@@ -102,7 +105,7 @@ const ImportTrades = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-zinc-800">Import Trades</h1>
           <button
-            onClick={() => navigate("/")} // Navigate to the main page (/)
+            onClick={() => navigate("/")}
             className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
           >
             Back to Dashboard
