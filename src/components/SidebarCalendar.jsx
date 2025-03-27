@@ -51,7 +51,7 @@ const SidebarCalendar = () => {
   };
 
   return (
-    <div className="bg-white shadow rounded-xl p-4 animate-fade-in">
+    <div className="bg-white shadow rounded-xl p-4 animate-fade-in relative" style={{ overflow: "visible" }}>
       <h3 className="text-sm text-gray-600 mb-3">Calendar</h3>
       <Calendar
         onChange={onChange}
@@ -64,7 +64,7 @@ const SidebarCalendar = () => {
         id="calendar-tooltip"
         place="top"
         style={{
-          zIndex: 1000,
+          zIndex: 9999, // Increased z-index to ensure visibility
           backgroundColor: "#333",
           color: "#fff",
           padding: "4px 8px",
