@@ -118,9 +118,11 @@ const Dashboard = () => {
   }, [user, dateRange, resultType, tagSearchTerm, clickedTag]);
 
   const handleTagClick = (tag) => {
-    setClickedTag(tag);
-    tradeTableRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  setClickedTag(tag);
+  setTagSearchTerm("");     // ✅ Clear the search input
+  setResultType("all");     // ✅ Optional: reset result filter
+  tradeTableRef.current?.scrollIntoView({ behavior: "smooth" });
+};
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
