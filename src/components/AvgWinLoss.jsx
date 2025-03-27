@@ -15,26 +15,26 @@ const AvgWinLoss = () => {
     : 0;
 
   return (
-    <div className="bg-white shadow rounded-xl p-4 animate-fade-in w-full h-32 flex flex-col justify-center items-center">
-      <h3 className="text-sm text-gray-600">Avg Win/Loss Trade</h3>
+    <div className="bg-white shadow rounded-xl p-4 animate-fade-in w-full h-36 flex flex-col justify-center items-center">
+      <h3 className="text-xs text-gray-600">Avg Win/Loss Trade</h3>
       <div className="flex gap-4 mt-2">
         <div className="flex items-center">
-          <div className="w-24 h-4 bg-gray-200 rounded">
+          <div className="w-20 h-3 bg-gray-200 rounded">
             <div
               className="h-full bg-green-500 rounded"
               style={{ width: `${Math.min((avgWin / (avgWin + avgLoss)) * 100, 100)}%` }}
             ></div>
           </div>
-          <p className="ml-2 text-sm text-green-600">${avgWin.toFixed(1)}</p>
+          <p className="ml-2 text-xs text-green-600">${avgWin.toFixed(1)}</p>
         </div>
         <div className="flex items-center">
-          <div className="w-24 h-4 bg-gray-200 rounded">
+          <div className="w-20 h-3 bg-gray-200 rounded">
             <div
               className="h-full bg-red-500 rounded"
               style={{ width: `${Math.min((avgLoss / (avgWin + avgLoss)) * 100, 100)}%` }}
             ></div>
           </div>
-          <p className="ml-2 text-sm text-red-500">-${avgLoss.toFixed(1)}</p>
+          <p className="ml-2 text-xs text-red-500">-${avgLoss.toFixed(1)}</p>
         </div>
       </div>
     </div>
