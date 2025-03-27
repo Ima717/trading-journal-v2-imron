@@ -20,13 +20,13 @@ const QuickStats = () => {
   ];
 
   return (
-    <div className="bg-white shadow rounded-xl p-4 animate-fade-in">
-      <h3 className="text-xl font-semibold mb-3">Overall Stats</h3>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="bg-white shadow rounded-xl p-4 animate-fade-in w-full h-36 flex flex-col justify-center items-center">
+      <h3 className="text-sm text-gray-600 mb-2">Overall Stats</h3>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
         {stats.map((stat, index) => (
-          <div key={index} className="p-4 bg-gray-100 rounded">
-            <p className="text-sm text-gray-600">{stat.label}</p>
-            <p className="text-xl font-bold">{stat.value}</p>
+          <div key={index} className="p-4 bg-gray-100 rounded text-center">
+            <p className="text-xs text-gray-600">{stat.label}</p>
+            <p className="text-lg font-bold">{stat.value}</p>
           </div>
         ))}
       </div>
