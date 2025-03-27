@@ -5,8 +5,7 @@ import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
 import AddTrade from "./pages/AddTrade";
 import { AuthProvider } from "./context/AuthContext";
-import PrivateRoute from "./components/PrivateRoute";
-import Test from './pages/Test';
+import Test from "./pages/Test";
 import ImportTrades from "./pages/ImportTrades";
 import CalendarPage from "./pages/CalendarPage";
 import { FilterProvider } from "./context/FilterContext";
@@ -24,23 +23,9 @@ function App() {
             <Route path="/import" element={<ImportTrades />} />
             <Route path="/calendar" element={<CalendarPage />} />
 
-            {/* Protected Routes */}
-            <Route
-              path="/"
-              element={
-                <PrivateRoute>
-                  <Dashboard />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/add-trade"
-              element={
-                <PrivateRoute>
-                  <AddTrade />
-                </PrivateRoute>
-              }
-            />
+            {/* Dashboard is now public for dev access */}
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/add-trade" element={<AddTrade />} />
           </Routes>
         </FilterProvider>
       </AuthProvider>
