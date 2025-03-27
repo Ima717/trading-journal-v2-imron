@@ -1,3 +1,4 @@
+// /src/pages/Dashboard.jsx (Updated)
 import React, { useEffect, useState, useRef } from "react";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../utils/firebase";
@@ -16,7 +17,6 @@ import { getPnLOverTime } from "../utils/calculations";
 
 import ResultFilter from "../components/ResultFilter";
 import SearchFilter from "../components/SearchFilter";
-import SummaryCards from "../components/SummaryCards";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -81,28 +81,27 @@ const Dashboard = () => {
         }
       });
 
-      const formatted = Object.entries(tagMap).map(([tag, val]) => ({
+      let formatted = Object.entries(tagMap).map(([tag, val]) => ({
         tag,
         avgPnL: parseFloat((val.totalPnL / val.count).toFixed(2)),
       }));
 
-      // Filter by the search term if present
+      // Apply tagSearchTerm filter
       if (tagSearchTerm) {
-        const filteredTags = formatted.filter((tag) =>
-          tag.tag.toLowerCase().includes(tagSearchTerm.toLowerCase())
+        formatted = formatted.filter((item) =>
+          item.tag.toLowerCase().includes(tagSearchTerm.toLowerCase())
         );
-        setTagPerformanceData(filteredTags);
-      } else {
-        setTagPerformanceData(formatted);
       }
+
+      setTagPerformanceData(formatted);
     };
 
     fetchTagPerformance();
-  }, [user, dateRange, resultFilter, tagSearchTerm, clickedTag]);
+  }, [user, dateRange, resultFilter, tagSearchTerm, clickedTag, filterTrades]);
 
   const handleTagClick = (tag) => {
     setClickedTag(tag);
-    setTagSearchTerm(""); // clear the search term on click
+    setTagSearchTerm("");
     setResultFilter("all");
     tradeTableRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -123,7 +122,7 @@ const Dashboard = () => {
           <DashboardSidebar />
         </div>
 
-        <div className="lg:col-span-3 space-y-10">
+        <div className="lg:col-span-3 space-y-6"> {/* Reduced space-y-10 to space-y-6 for tighter layout */}
           <div className="flex flex-wrap gap-4 justify-between items-end mb-6">
             <ResultFilter />
             <SearchFilter
@@ -148,15 +147,16 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Reintroduce the Summary Cards */}
-          <SummaryCards trades={filteredTrades} />
+          <AnalyticsOverview />
 
-          {/* PnL Chart */}
-          {pnlData.length > 0 && <PerformanceChart data={pnlData} />}
+          {pnlData.length > 0 && (
+            <div className="animate-fade-in"> {/* Added fade-in animation */}
+              <PerformanceChart data={pnlData} />
+            </div>
+          )}
 
-          {/* Tag Performance Chart */}
-          {tagPerformanceData.length > 0 && (
-            <div>
+          {tagPerformanceData.length > 0 ? (
+            <div className="animate-fade-in"> {/* Added fade-in animation */}
               <h2 className="text-xl font-bold mb-3">📈 Tag Performance</h2>
               <ChartTagPerformance data={tagPerformanceData} onTagClick={handleTagClick} />
               {clickedTag && filteredTrades.length === 0 && (
@@ -165,9 +165,10 @@ const Dashboard = () => {
                 </p>
               )}
             </div>
-          )}
+          ) : tagSearchTerm ? (
+            <p className="text-sm text-gray-500">No tags found for "{tagSearchTerm}".</p>
+          ) : null}
 
-          {/* Trade Table */}
           <div ref={tradeTableRef}>
             <TradeTable trades={filteredTrades} />
           </div>
