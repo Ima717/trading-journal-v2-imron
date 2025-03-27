@@ -1,4 +1,4 @@
-// /src/pages/Dashboard.jsx (Updated)
+// /src/pages/Dashboard.jsx
 import React, { useEffect, useState, useRef } from "react";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../utils/firebase";
@@ -86,7 +86,6 @@ const Dashboard = () => {
         avgPnL: parseFloat((val.totalPnL / val.count).toFixed(2)),
       }));
 
-      // Apply tagSearchTerm filter
       if (tagSearchTerm) {
         formatted = formatted.filter((item) =>
           item.tag.toLowerCase().includes(tagSearchTerm.toLowerCase())
@@ -122,7 +121,7 @@ const Dashboard = () => {
           <DashboardSidebar />
         </div>
 
-        <div className="lg:col-span-3 space-y-6"> {/* Reduced space-y-10 to space-y-6 for tighter layout */}
+        <div className="lg:col-span-3 space-y-6">
           <div className="flex flex-wrap gap-4 justify-between items-end mb-6">
             <ResultFilter />
             <SearchFilter
@@ -150,13 +149,13 @@ const Dashboard = () => {
           <AnalyticsOverview />
 
           {pnlData.length > 0 && (
-            <div className="animate-fade-in"> {/* Added fade-in animation */}
+            <div className="animate-fade-in">
               <PerformanceChart data={pnlData} />
             </div>
           )}
 
           {tagPerformanceData.length > 0 ? (
-            <div className="animate-fade-in"> {/* Added fade-in animation */}
+            <div className="animate-fade-in">
               <h2 className="text-xl font-bold mb-3">📈 Tag Performance</h2>
               <ChartTagPerformance data={tagPerformanceData} onTagClick={handleTagClick} />
               {clickedTag && filteredTrades.length === 0 && (
