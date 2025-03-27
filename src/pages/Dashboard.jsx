@@ -24,9 +24,9 @@ import ProgressTracker from "../components/ProgressTracker";
 import CurrentStreak from "../components/CurrentStreak";
 import { getPnLOverTime } from "../utils/calculations";
 import ErrorBoundary from "../components/ErrorBoundary";
-
 import ResultFilter from "../components/ResultFilter";
 import SearchFilter from "../components/SearchFilter";
+import SidebarCalendar from "..components/SidebarCalendar";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -115,6 +115,14 @@ const Dashboard = () => {
     setResultFilter("all");
     tradeTableRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  const DashboardSidebar = () => {
+  return (
+    <div className="bg-white shadow rounded-xl p-4">
+      <SidebarCalendar />
+    </div>
+  );
+};
 
   return (
     <ErrorBoundary>
