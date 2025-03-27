@@ -1,3 +1,4 @@
+// /src/components/SearchFilter.jsx
 import React from "react";
 
 const SearchFilter = ({ searchTerm, onSearchChange, selectedTag, onClear }) => {
