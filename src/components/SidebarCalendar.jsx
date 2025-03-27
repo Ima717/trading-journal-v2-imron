@@ -60,7 +60,18 @@ const SidebarCalendar = () => {
         tileContent={tileContent}
         className="border-none"
       />
-      <Tooltip id="calendar-tooltip" place="top" effect="solid" />
+      <Tooltip
+        id="calendar-tooltip"
+        place="top"
+        style={{
+          zIndex: 1000,
+          backgroundColor: "#333",
+          color: "#fff",
+          padding: "4px 8px",
+          borderRadius: "4px",
+          fontSize: "12px",
+        }}
+      />
     </div>
   );
 };
