@@ -24,10 +24,11 @@ const Dashboard = () => {
   const {
     dateRange,
     setDateRange,
-    resultType,
-    setResultType,
+    resultFilter,
+    setResultFilter,
     tagSearchTerm,
     setTagSearchTerm,
+    filterTrades
   } = useFilters();
 
   const [tagPerformanceData, setTagPerformanceData] = useState([]);
@@ -63,36 +64,7 @@ const Dashboard = () => {
       const snapshot = await getDocs(ref);
       const trades = snapshot.docs.map((doc) => doc.data());
 
-      let filtered = trades;
-
-      if (dateRange.start && dateRange.end) {
-        filtered = filtered.filter((trade) => {
-          const tradeDate = dayjs(trade.date);
-          return (
-            tradeDate.isAfter(dayjs(dateRange.start).subtract(1, "day")) &&
-            tradeDate.isBefore(dayjs(dateRange.end).add(1, "day"))
-          );
-        });
-      }
-
-      if (resultType !== "all") {
-        filtered = filtered.filter((trade) => trade.result === resultType);
-      }
-
-      if (tagSearchTerm.trim() !== "") {
-        filtered = filtered.filter((trade) =>
-          trade.tags?.some((tag) =>
-            tag.toLowerCase().includes(tagSearchTerm.toLowerCase())
-          )
-        );
-      }
-
-      if (clickedTag) {
-        filtered = filtered.filter((trade) =>
-          trade.tags?.includes(clickedTag)
-        );
-      }
-
+      const filtered = filterTrades(trades);
       setFilteredTrades(filtered);
 
       const pnlSeries = getPnLOverTime(filtered);
@@ -118,37 +90,34 @@ const Dashboard = () => {
     };
 
     fetchTagPerformance();
-  }, [user, dateRange, resultType, tagSearchTerm, clickedTag]);
+  }, [user, dateRange, resultFilter, tagSearchTerm, clickedTag]);
 
   const handleTagClick = (tag) => {
     setClickedTag(tag);
-    setTagSearchTerm(""); // ✅ Clear the search input
-    setResultType("all"); // ✅ Optional: reset result filter
+    setTagSearchTerm(""); 
+    setResultFilter("all"); 
     tradeTableRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center max-w-6xl mx-auto mb-8">
         <h1 className="text-2xl font-bold text-zinc-800 mb-2 sm:mb-0">📊 Welcome to IMAI Dashboard</h1>
         <div className="flex flex-wrap gap-2">
           <Link to="/calendar" className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">📅 Calendar</Link>
           <Link to="/add-trade" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">➕ Add Trade</Link>
+          <Link to="/test" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">🧪 Test</Link>
           <Link to="/import" className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">📤 Import Trades</Link>
           <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">🔒 Log Out</button>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Sidebar Calendar */}
         <div className="lg:col-span-1">
           <DashboardSidebar />
         </div>
 
-        {/* Main Content */}
         <div className="lg:col-span-3 space-y-10">
-          {/* Filters */}
           <div className="flex flex-wrap gap-4 justify-between items-end mb-6">
             <ResultFilter />
             <SearchFilter
@@ -174,9 +143,7 @@ const Dashboard = () => {
           </div>
 
           <SummaryCards trades={filteredTrades} />
-
           {pnlData.length > 0 && <PerformanceChart data={pnlData} />}
-
           <div>
             <h2 className="text-2xl font-bold mb-4">Analytics Overview</h2>
             <AnalyticsOverview />
@@ -186,7 +153,6 @@ const Dashboard = () => {
             <div>
               <h2 className="text-xl font-bold mb-3">📈 Tag Performance</h2>
               <ChartTagPerformance data={tagPerformanceData} onTagClick={handleTagClick} />
-
               {clickedTag && filteredTrades.length === 0 && (
                 <p className="text-sm text-red-500 mt-2">
                   No trades found for tag "<span className="font-semibold">{clickedTag}</span>" with current filters.
