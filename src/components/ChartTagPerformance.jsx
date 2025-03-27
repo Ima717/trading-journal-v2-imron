@@ -1,4 +1,4 @@
-// /src/components/ChartTagPerformance.jsx
+// /src/components/ChartTagPerformance.jsx (Updated)
 import React, { useRef, useEffect } from "react";
 import Chart from "chart.js/auto";
 
@@ -11,16 +11,13 @@ const ChartTagPerformance = ({ data, onTagClick }) => {
 
     const ctx = chartRef.current.getContext("2d");
 
-    // Destroy existing chart instance if it exists
     if (chartInstanceRef.current) {
       chartInstanceRef.current.destroy();
     }
 
-    // Prepare chart data
     const labels = data.map((item) => item.tag);
     const avgPnLs = data.map((item) => item.avgPnL);
 
-    // Create new chart
     chartInstanceRef.current = new Chart(ctx, {
       type: "bar",
       data: {
@@ -74,7 +71,7 @@ const ChartTagPerformance = ({ data, onTagClick }) => {
           if (elements.length > 0) {
             const index = elements[0].index;
             const tag = labels[index];
-            onTagClick(tag); // Trigger the callback to filter trades by tag
+            onTagClick(tag);
           }
         },
         onHover: (event, elements) => {
@@ -83,7 +80,6 @@ const ChartTagPerformance = ({ data, onTagClick }) => {
       },
     });
 
-    // Cleanup on unmount
     return () => {
       if (chartInstanceRef.current) {
         chartInstanceRef.current.destroy();
@@ -94,7 +90,7 @@ const ChartTagPerformance = ({ data, onTagClick }) => {
   return (
     <div className="bg-white shadow rounded-xl p-4">
       <h3 className="text-xl font-semibold mb-3">📈 Tag Performance</h3>
-      <div className="h-80">
+      <div className="h-64"> {/* Reduced from h-80 to h-64 */}
         <canvas ref={chartRef} />
       </div>
     </div>
