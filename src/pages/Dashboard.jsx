@@ -1,4 +1,3 @@
-// /src/pages/Dashboard.jsx
 import React, { useEffect, useState, useRef } from "react";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../utils/firebase";
