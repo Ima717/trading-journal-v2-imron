@@ -64,7 +64,9 @@ const Dashboard = () => {
       const snapshot = await getDocs(ref);
       const trades = snapshot.docs.map((doc) => doc.data());
 
-      const filtered = filterTrades(trades);
+      const filtered = filterTrades(trades).filter((trade) =>
+        clickedTag ? trade.tags?.includes(clickedTag) : true
+      );
       setFilteredTrades(filtered);
 
       const pnlSeries = getPnLOverTime(filtered);
@@ -101,6 +103,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center max-w-6xl mx-auto mb-8">
         <h1 className="text-2xl font-bold text-zinc-800 mb-2 sm:mb-0">📊 Welcome to IMAI Dashboard</h1>
         <div className="flex flex-wrap gap-2">
@@ -116,6 +119,7 @@ const Dashboard = () => {
         </div>
 
         <div className="lg:col-span-3 space-y-10">
+          {/* Filters */}
           <div className="flex flex-wrap gap-4 justify-between items-end mb-6">
             <ResultFilter />
             <SearchFilter
@@ -140,13 +144,10 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Use the refocused AnalyticsOverview for summary stats */}
-          <AnalyticsOverview />
+          <AnalyticsOverview trades={filteredTrades} />
 
-          {/* PnL Chart */}
           {pnlData.length > 0 && <PerformanceChart data={pnlData} />}
 
-          {/* Tag Performance Chart */}
           {tagPerformanceData.length > 0 && (
             <div>
               <h2 className="text-xl font-bold mb-3">📈 Tag Performance</h2>
@@ -159,7 +160,6 @@ const Dashboard = () => {
             </div>
           )}
 
-          {/* Trade Table */}
           <div ref={tradeTableRef}>
             <TradeTable trades={filteredTrades} />
           </div>
