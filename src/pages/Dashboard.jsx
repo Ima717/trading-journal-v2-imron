@@ -131,7 +131,7 @@ const Dashboard = () => {
             <DashboardSidebar />
           </div>
 
-          <div className="lg:col-span-3 space-y-4">
+          <div className="lg:col-span-3 space-y-6">
             <div className="flex flex-wrap gap-4 justify-between items-end mb-4">
               <ResultFilter />
               <SearchFilter
@@ -157,18 +157,18 @@ const Dashboard = () => {
             </div>
 
             {/* Top Row: Quick Stats, Profit Factor, Day Win %, Avg Win/Loss */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <QuickStats />
-              <ProfitFactor />
-              <DayWinPercent />
-              <AvgWinLoss />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="max-w-[300px] w-full"><QuickStats /></div>
+              <div className="max-w-[300px] w-full"><ProfitFactor /></div>
+              <div className="max-w-[300px] w-full"><DayWinPercent /></div>
+              <div className="max-w-[300px] w-full"><AvgWinLoss /></div>
             </div>
 
             {/* Middle Row: IMAI Score, Progress Tracker, Current Streak, PNL Over Time */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <IMAIScore />
-              <ProgressTracker />
-              <CurrentStreak />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="max-w-[300px] w-full"><IMAIScore /></div>
+              <div className="max-w-[300px] w-full"><ProgressTracker /></div>
+              <div className="max-w-[300px] w-full"><CurrentStreak /></div>
               <div className="lg:col-span-2">
                 {isLoading ? (
                   <div className="bg-white shadow rounded-xl p-4 text-center h-48 flex items-center justify-center">
