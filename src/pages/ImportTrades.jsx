@@ -92,7 +92,7 @@ const ImportTrades = () => {
     setSuggestions({});
 
     if (errors === 0) {
-      navigate("/dashboard");
+      navigate("/"); // Redirect to the main page (/)
     }
   };
 
@@ -102,7 +102,7 @@ const ImportTrades = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-zinc-800">Import Trades</h1>
           <button
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate("/")} // Navigate to the main page (/)
             className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
           >
             Back to Dashboard
