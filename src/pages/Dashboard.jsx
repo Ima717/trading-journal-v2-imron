@@ -87,7 +87,15 @@ const Dashboard = () => {
         avgPnL: parseFloat((val.totalPnL / val.count).toFixed(2)),
       }));
 
-      setTagPerformanceData(formatted);
+      // Filter by the search term if present
+      if (tagSearchTerm) {
+        const filteredTags = formatted.filter((tag) =>
+          tag.tag.toLowerCase().includes(tagSearchTerm.toLowerCase())
+        );
+        setTagPerformanceData(filteredTags);
+      } else {
+        setTagPerformanceData(formatted);
+      }
     };
 
     fetchTagPerformance();
@@ -95,7 +103,7 @@ const Dashboard = () => {
 
   const handleTagClick = (tag) => {
     setClickedTag(tag);
-    setTagSearchTerm("");
+    setTagSearchTerm(""); // clear the search term on click
     setResultFilter("all");
     tradeTableRef.current?.scrollIntoView({ behavior: "smooth" });
   };
