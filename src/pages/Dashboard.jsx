@@ -13,7 +13,9 @@ import TradeTable from "../components/TradeTable";
 import ChartTagPerformance from "../components/ChartTagPerformance";
 import PerformanceChart from "../components/PerformanceChart";
 import DashboardSidebar from "../components/DashboardSidebar";
-import QuickStats from "../components/QuickStats";
+import TotalTrades from "../components/TotalTrades"; // New import
+import WinRate from "../components/WinRate"; // New import
+import AvgPnL from "../components/AvgPnL"; // New import
 import ProfitFactor from "../components/ProfitFactor";
 import DayWinPercent from "../components/DayWinPercent";
 import AvgWinLoss from "../components/AvgWinLoss";
@@ -156,20 +158,30 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Top Row: Quick Stats, Profit Factor, Day Win %, Avg Win/Loss */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="max-w-[300px] w-full"><QuickStats /></div>
+            {/* First Row: Total Trades, Win Rate, Avg PnL */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="max-w-[300px] w-full border border-gray-200 rounded-xl"><TotalTrades /></div>
+              <div className="max-w-[300px] w-full border border-gray-200 rounded-xl"><WinRate /></div>
+              <div className="max-w-[300px] w-full border border-gray-200 rounded-xl"><AvgPnL /></div>
+            </div>
+
+            {/* Second Row: IMAI Score, Profit Factor, Day Win % */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="max-w-[300px] w-full"><ProfitFactor /></div>
               <div className="max-w-[300px] w-full"><DayWinPercent /></div>
+              <div className="max-w-[300px] w-full"><IMAIScore /></div>
+            </div>
+
+            {/* Third Row: Progress Tracker, Current Streak, Avg Win/Loss Trade */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="max-w-[300px] w-full"><ProgressTracker /></div>
+              <div className="max-w-[300px] w-full"><CurrentStreak /></div>
               <div className="max-w-[300px] w-full"><AvgWinLoss /></div>
             </div>
 
-            {/* Middle Row: IMAI Score, Progress Tracker, Current Streak, PNL Over Time */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="max-w-[300px] w-full"><IMAIScore /></div>
-              <div className="max-w-[300px] w-full"><ProgressTracker /></div>
-              <div className="max-w-[300px] w-full"><CurrentStreak /></div>
-              <div className="lg:col-span-2">
+            {/* Fourth Row: PNL Over Time, Tag Performance */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="w-full">
                 {isLoading ? (
                   <div className="bg-white shadow rounded-xl p-4 text-center h-48 flex items-center justify-center">
                     <p className="text-gray-500">Loading chart...</p>
@@ -180,31 +192,32 @@ const Dashboard = () => {
                   </div>
                 )}
               </div>
+              <div className="w-full">
+                {isLoading ? (
+                  <div className="bg-white shadow rounded-xl p-4 text-center h-48 flex items-center justify-center">
+                    <p className="text-gray-500">Loading chart...</p>
+                  </div>
+                ) : (
+                  <>
+                    {tagPerformanceData.length > 0 ? (
+                      <div className="animate-fade-in">
+                        <h2 className="text-xl font-bold mb-3">📈 Tag Performance</h2>
+                        <ChartTagPerformance data={tagPerformanceData} onTagClick={handleTagClick} />
+                        {clickedTag && filteredTrades.length === 0 && (
+                          <p className="text-sm text-red-500 mt-2">
+                            No trades found for tag "<span className="font-semibold">{clickedTag}</span>" with current filters.
+                          </p>
+                        )}
+                      </div>
+                    ) : tagSearchTerm ? (
+                      <p className="text-sm text-gray-500">No tags found for "{tagSearchTerm}".</p>
+                    ) : null}
+                  </>
+                )}
+              </div>
             </div>
 
-            {/* Tag Performance and Trade Table */}
-            {isLoading ? (
-              <div className="bg-white shadow rounded-xl p-4 text-center">
-                <p className="text-gray-500">Loading charts...</p>
-              </div>
-            ) : (
-              <>
-                {tagPerformanceData.length > 0 ? (
-                  <div className="animate-fade-in">
-                    <h2 className="text-xl font-bold mb-3">📈 Tag Performance</h2>
-                    <ChartTagPerformance data={tagPerformanceData} onTagClick={handleTagClick} />
-                    {clickedTag && filteredTrades.length === 0 && (
-                      <p className="text-sm text-red-500 mt-2">
-                        No trades found for tag "<span className="font-semibold">{clickedTag}</span>" with current filters.
-                      </p>
-                    )}
-                  </div>
-                ) : tagSearchTerm ? (
-                  <p className="text-sm text-gray-500">No tags found for "{tagSearchTerm}".</p>
-                ) : null}
-              </>
-            )}
-
+            {/* Trade Table */}
             <div ref={tradeTableRef}>
               {(resultFilter !== "all" || clickedTag) && (
                 <div className="mb-2 text-sm text-gray-600">
