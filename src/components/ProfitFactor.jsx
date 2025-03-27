@@ -14,10 +14,10 @@ const ProfitFactor = () => {
   const profitFactor = grossLoss !== 0 ? (grossProfit / grossLoss).toFixed(2) : 0;
 
   return (
-    <div className="bg-white shadow rounded-xl p-4 animate-fade-in w-full h-32 flex flex-col justify-center items-center">
-      <h3 className="text-sm text-gray-600">Profit Factor</h3>
-      <p className="text-2xl font-bold">{profitFactor}</p>
-      <div className="w-16 h-16 relative">
+    <div className="bg-white shadow rounded-xl p-4 animate-fade-in w-full h-36 flex flex-col justify-center items-center">
+      <h3 className="text-xs text-gray-600">Profit Factor</h3>
+      <p className="text-lg font-bold">{profitFactor}</p>
+      <div className="w-12 h-12 relative">
         <svg className="w-full h-full" viewBox="0 0 36 36">
           <path
             d="M18 2.0845
