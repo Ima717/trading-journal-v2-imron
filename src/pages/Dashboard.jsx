@@ -1,3 +1,4 @@
+// /src/pages/Dashboard.jsx
 import React, { useEffect, useState, useRef } from "react";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../utils/firebase";
@@ -9,7 +10,6 @@ import dayjs from "dayjs";
 
 import AnalyticsOverview from "../components/AnalyticsOverview";
 import TradeTable from "../components/TradeTable";
-import SummaryCards from "../components/SummaryCards";
 import ChartTagPerformance from "../components/ChartTagPerformance";
 import PerformanceChart from "../components/PerformanceChart";
 import DashboardSidebar from "../components/DashboardSidebar";
@@ -28,7 +28,7 @@ const Dashboard = () => {
     setResultFilter,
     tagSearchTerm,
     setTagSearchTerm,
-    filterTrades
+    filterTrades,
   } = useFilters();
 
   const [tagPerformanceData, setTagPerformanceData] = useState([]);
@@ -94,8 +94,8 @@ const Dashboard = () => {
 
   const handleTagClick = (tag) => {
     setClickedTag(tag);
-    setTagSearchTerm(""); 
-    setResultFilter("all"); 
+    setTagSearchTerm("");
+    setResultFilter("all");
     tradeTableRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -140,13 +140,13 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <SummaryCards trades={filteredTrades} />
+          {/* Use the refocused AnalyticsOverview for summary stats */}
+          <AnalyticsOverview />
+
+          {/* PnL Chart */}
           {pnlData.length > 0 && <PerformanceChart data={pnlData} />}
-          
-          <div>
-            <h2 className="text-2xl font-bold mb-4">Analytics Overview</h2>
-          </div>
-            
+
+          {/* Tag Performance Chart */}
           {tagPerformanceData.length > 0 && (
             <div>
               <h2 className="text-xl font-bold mb-3">📈 Tag Performance</h2>
@@ -159,6 +159,7 @@ const Dashboard = () => {
             </div>
           )}
 
+          {/* Trade Table */}
           <div ref={tradeTableRef}>
             <TradeTable trades={filteredTrades} />
           </div>
