@@ -17,6 +17,7 @@ import { getPnLOverTime } from "../utils/calculations";
 
 import ResultFilter from "../components/ResultFilter";
 import SearchFilter from "../components/SearchFilter";
+import SummaryCards from "../components/SummaryCards";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -140,8 +141,8 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Analytics Overview */}
-          <AnalyticsOverview />
+          {/* Reintroduce the Summary Cards */}
+          <SummaryCards trades={filteredTrades} />
 
           {/* PnL Chart */}
           {pnlData.length > 0 && <PerformanceChart data={pnlData} />}
