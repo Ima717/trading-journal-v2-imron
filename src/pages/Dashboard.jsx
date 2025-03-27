@@ -1,4 +1,4 @@
-// /src/pages/Dashboard.jsx (Final Update)
+// /src/pages/Dashboard.jsx
 import React, { useEffect, useState, useRef } from "react";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../utils/firebase";
@@ -15,7 +15,7 @@ import PerformanceChart from "../components/PerformanceChart";
 import DashboardSidebar from "../components/DashboardSidebar";
 import QuickStats from "../components/QuickStats";
 import { getPnLOverTime } from "../utils/calculations";
-import ErrorBoundary from "../components/ErrorBoundary"; // New import
+import ErrorBoundary from "../components/ErrorBoundary";
 
 import ResultFilter from "../components/ResultFilter";
 import SearchFilter from "../components/SearchFilter";
@@ -183,6 +183,12 @@ const Dashboard = () => {
             )}
 
             <div ref={tradeTableRef}>
+              {(resultFilter !== "all" || clickedTag) && (
+                <div className="mb-2 text-sm text-gray-600">
+                  Showing: {resultFilter !== "all" ? resultFilter : ""}{" "}
+                  {clickedTag ? `(${clickedTag} trades)` : ""}
+                </div>
+              )}
               <TradeTable trades={filteredTrades} />
             </div>
           </div>
