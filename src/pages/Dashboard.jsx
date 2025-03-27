@@ -143,7 +143,10 @@ const Dashboard = () => {
           <SummaryCards trades={filteredTrades} />
           {pnlData.length > 0 && <PerformanceChart data={pnlData} />}
           
-
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Analytics Overview</h2>
+          </div>
+            
           {tagPerformanceData.length > 0 && (
             <div>
               <h2 className="text-xl font-bold mb-3">📈 Tag Performance</h2>
