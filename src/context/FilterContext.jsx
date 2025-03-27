@@ -1,9 +1,8 @@
-// /src/context/FilterContext.jsx (Updated)
+// /src/context/FilterContext.jsx
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../utils/firebase";
 import { useAuth } from "./AuthContext";
-import { filterTradesByDate } from "../utils/filterUtils";
 
 const FilterContext = createContext();
 
@@ -15,6 +14,11 @@ export const FilterProvider = ({ children }) => {
   const [clickedTag, setClickedTag] = useState(null);
   const [trades, setTrades] = useState([]);
   const [filteredTrades, setFilteredTrades] = useState([]);
+  const [refresh, setRefresh] = useState(0); // Add refresh state
+
+  const triggerRefresh = () => {
+    setRefresh((prev) => prev + 1); // Increment refresh to trigger re-fetch
+  };
 
   useEffect(() => {
     const fetchTrades = async () => {
@@ -26,31 +30,53 @@ export const FilterProvider = ({ children }) => {
     };
 
     fetchTrades();
-  }, [user]);
+  }, [user, refresh]); // Add refresh as a dependency
 
   useEffect(() => {
-    let result = filterTradesByDate(trades, dateRange);
+    let result = trades;
+
+    if (dateRange.start && dateRange.end) {
+      result = result.filter((trade) => {
+        const tradeDate = new Date(trade.date);
+        const startDate = new Date(dateRange.start);
+        const endDate = new Date(dateRange.end);
+        return tradeDate >= startDate && tradeDate <= endDate;
+      });
+    }
 
     if (clickedTag) {
       result = result.filter((t) => t.tags?.includes(clickedTag));
     }
 
     if (resultFilter !== "all") {
-      result = result.filter((t) => (resultFilter === "Win" ? t.pnl > 0 : t.pnl <= 0));
+      result = result.filter((t) =>
+        resultFilter === "Win" ? t.pnl > 0 : resultFilter === "Loss" ? t.pnl < 0 : t.pnl === 0
+      );
     }
 
     setFilteredTrades(result);
   }, [trades, dateRange, clickedTag, resultFilter]);
 
   const filterTrades = (tradesToFilter) => {
-    let result = filterTradesByDate(tradesToFilter, dateRange);
+    let result = tradesToFilter;
+
+    if (dateRange.start && dateRange.end) {
+      result = result.filter((trade) => {
+        const tradeDate = new Date(trade.date);
+        const startDate = new Date(dateRange.start);
+        const endDate = new Date(dateRange.end);
+        return tradeDate >= startDate && tradeDate <= endDate;
+      });
+    }
 
     if (clickedTag) {
       result = result.filter((t) => t.tags?.includes(clickedTag));
     }
 
     if (resultFilter !== "all") {
-      result = result.filter((t) => (resultFilter === "Win" ? t.pnl > 0 : t.pnl <= 0));
+      result = result.filter((t) =>
+        resultFilter === "Win" ? t.pnl > 0 : resultFilter === "Loss" ? t.pnl < 0 : t.pnl === 0
+      );
     }
 
     return result;
@@ -59,16 +85,17 @@ export const FilterProvider = ({ children }) => {
   return (
     <FilterContext.Provider
       value={{
-        dateRange: dateRange || { start: null, end: null }, // Ensure defined
+        dateRange: dateRange || { start: null, end: null },
         setDateRange,
-        resultFilter: resultFilter || "all", // Ensure defined
+        resultFilter: resultFilter || "all",
         setResultFilter,
-        tagSearchTerm: tagSearchTerm || "", // Ensure defined
+        tagSearchTerm: tagSearchTerm || "",
         setTagSearchTerm,
-        clickedTag: clickedTag || null, // Ensure defined
+        clickedTag: clickedTag || null,
         setClickedTag,
         filterTrades,
-        filteredTrades: filteredTrades || [], // Ensure defined
+        filteredTrades: filteredTrades || [],
+        triggerRefresh, // Add triggerRefresh to context
       }}
     >
       {children}
