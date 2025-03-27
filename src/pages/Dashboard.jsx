@@ -13,9 +13,9 @@ import TradeTable from "../components/TradeTable";
 import ChartTagPerformance from "../components/ChartTagPerformance";
 import PerformanceChart from "../components/PerformanceChart";
 import DashboardSidebar from "../components/DashboardSidebar";
-import TotalTrades from "../components/TotalTrades"; // New import
-import WinRate from "../components/WinRate"; // New import
-import AvgPnL from "../components/AvgPnL"; // New import
+import TotalTrades from "../components/TotalTrades";
+import WinRate from "../components/WinRate";
+import AvgPnL from "../components/AvgPnL";
 import ProfitFactor from "../components/ProfitFactor";
 import DayWinPercent from "../components/DayWinPercent";
 import AvgWinLoss from "../components/AvgWinLoss";
@@ -26,7 +26,8 @@ import { getPnLOverTime } from "../utils/calculations";
 import ErrorBoundary from "../components/ErrorBoundary";
 import ResultFilter from "../components/ResultFilter";
 import SearchFilter from "../components/SearchFilter";
-import SidebarCalendar from "..components/SidebarCalendar";
+
+// Removed the incorrect import for SidebarCalendar since it's already rendered via DashboardSidebar
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -115,14 +116,6 @@ const Dashboard = () => {
     setResultFilter("all");
     tradeTableRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-
-  const DashboardSidebar = () => {
-  return (
-    <div className="bg-white shadow rounded-xl p-4">
-      <SidebarCalendar />
-    </div>
-  );
-};
 
   return (
     <ErrorBoundary>
