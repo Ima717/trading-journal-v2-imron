@@ -196,11 +196,18 @@ const Dashboard = () => {
           </div>
 
           {tagPerformanceData.length > 0 && (
-            <div>
-              <h2 className="text-xl font-bold mb-3">📈 Tag Performance</h2>
-              <ChartTagPerformance data={tagPerformanceData} onTagClick={handleTagClick} />
-            </div>
-          )}
+  <div>
+    <h2 className="text-xl font-bold mb-3">📈 Tag Performance</h2>
+    <ChartTagPerformance data={tagPerformanceData} onTagClick={handleTagClick} />
+
+    {clickedTag && filteredTrades.length === 0 && (
+      <p className="text-sm text-red-500 mt-2">
+        No trades found for tag "<span className="font-semibold">{clickedTag}</span>" with current filters.
+      </p>
+    )}
+  </div>
+)}
+
 
           <div ref={tradeTableRef}>
             <TradeTable trades={filteredTrades} />
