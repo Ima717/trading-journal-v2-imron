@@ -1,18 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth } from '../utils/firebase'; // Assuming you exported firebase auth from firebase.js
-import { onAuthStateChanged } from 'firebase/auth'; // For listening to auth state changes
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user); // Set the user state when the auth state changes
-    });
-    return () => unsubscribe(); // Cleanup subscription on unmount
-  }, []);
+  // 🔧 MOCKED user object for development:
+  const [user, setUser] = useState({ uid: "mocked-user-id", email: "demo@imai.app" });
 
   return (
     <AuthContext.Provider value={{ user }}>
@@ -21,7 +13,6 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// Custom hook to use the AuthContext in any component
 export const useAuth = () => {
   return useContext(AuthContext);
 };
