@@ -15,6 +15,9 @@ import PerformanceChart from "../components/PerformanceChart";
 import DashboardSidebar from "../components/DashboardSidebar";
 import { getPnLOverTime } from "../utils/calculations";
 
+import ResultFilter from "../components/ResultFilter";
+import SearchFilter from "../components/SearchFilter";
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -118,11 +121,11 @@ const Dashboard = () => {
   }, [user, dateRange, resultType, tagSearchTerm, clickedTag]);
 
   const handleTagClick = (tag) => {
-  setClickedTag(tag);
-  setTagSearchTerm("");     // ✅ Clear the search input
-  setResultType("all");     // ✅ Optional: reset result filter
-  tradeTableRef.current?.scrollIntoView({ behavior: "smooth" });
-};
+    setClickedTag(tag);
+    setTagSearchTerm(""); // ✅ Clear the search input
+    setResultType("all"); // ✅ Optional: reset result filter
+    tradeTableRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
@@ -147,32 +150,17 @@ const Dashboard = () => {
         {/* Main Content */}
         <div className="lg:col-span-3 space-y-10">
           {/* Filters */}
-          <div className="flex flex-wrap gap-4 justify-between items-end">
-            <div className="flex flex-wrap gap-4">
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">Result</label>
-                <select
-                  value={resultType}
-                  onChange={(e) => setResultType(e.target.value)}
-                  className="border rounded-md px-3 py-1 text-sm"
-                >
-                  <option value="all">All</option>
-                  <option value="win">Win</option>
-                  <option value="loss">Loss</option>
-                  <option value="breakeven">Breakeven</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">Search Tag</label>
-                <input
-                  type="text"
-                  value={tagSearchTerm}
-                  onChange={(e) => setTagSearchTerm(e.target.value)}
-                  placeholder="e.g. breakout"
-                  className="border rounded-md px-3 py-1 text-sm"
-                />
-              </div>
-            </div>
+          <div className="flex flex-wrap gap-4 justify-between items-end mb-6">
+            <ResultFilter />
+            <SearchFilter
+              searchTerm={tagSearchTerm}
+              onSearchChange={(term) => setTagSearchTerm(term)}
+              selectedTag={clickedTag}
+              onClear={() => {
+                setTagSearchTerm("");
+                setClickedTag(null);
+              }}
+            />
             <div className="text-sm text-gray-600">
               <p>{formatDateRange()}</p>
               {(dateRange.start || dateRange.end) && (
@@ -196,18 +184,17 @@ const Dashboard = () => {
           </div>
 
           {tagPerformanceData.length > 0 && (
-  <div>
-    <h2 className="text-xl font-bold mb-3">📈 Tag Performance</h2>
-    <ChartTagPerformance data={tagPerformanceData} onTagClick={handleTagClick} />
+            <div>
+              <h2 className="text-xl font-bold mb-3">📈 Tag Performance</h2>
+              <ChartTagPerformance data={tagPerformanceData} onTagClick={handleTagClick} />
 
-    {clickedTag && filteredTrades.length === 0 && (
-      <p className="text-sm text-red-500 mt-2">
-        No trades found for tag "<span className="font-semibold">{clickedTag}</span>" with current filters.
-      </p>
-    )}
-  </div>
-)}
-
+              {clickedTag && filteredTrades.length === 0 && (
+                <p className="text-sm text-red-500 mt-2">
+                  No trades found for tag "<span className="font-semibold">{clickedTag}</span>" with current filters.
+                </p>
+              )}
+            </div>
+          )}
 
           <div ref={tradeTableRef}>
             <TradeTable trades={filteredTrades} />
