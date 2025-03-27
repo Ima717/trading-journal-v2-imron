@@ -24,10 +24,11 @@ const Dashboard = () => {
   const {
     dateRange,
     setDateRange,
-    resultType,
-    setResultType,
+    resultFilter,
+    setResultFilter,
     tagSearchTerm,
     setTagSearchTerm,
+    filterTradesByResult, // Import filter function
   } = useFilters();
 
   const [tagPerformanceData, setTagPerformanceData] = useState([]);
@@ -61,12 +62,13 @@ const Dashboard = () => {
 
       const ref = collection(db, "users", user.uid, "trades");
       const snapshot = await getDocs(ref);
-      const trades = snapshot.docs.map((doc) => doc.data());
+      let trades = snapshot.docs.map((doc) => doc.data());
 
-      let filtered = trades;
+      // Apply PnL-based filtering here
+      trades = filterTradesByResult(trades);
 
       if (dateRange.start && dateRange.end) {
-        filtered = filtered.filter((trade) => {
+        trades = trades.filter((trade) => {
           const tradeDate = dayjs(trade.date);
           return (
             tradeDate.isAfter(dayjs(dateRange.start).subtract(1, "day")) &&
@@ -75,12 +77,8 @@ const Dashboard = () => {
         });
       }
 
-      if (resultType !== "all") {
-        filtered = filtered.filter((trade) => trade.result === resultType);
-      }
-
       if (tagSearchTerm.trim() !== "") {
-        filtered = filtered.filter((trade) =>
+        trades = trades.filter((trade) =>
           trade.tags?.some((tag) =>
             tag.toLowerCase().includes(tagSearchTerm.toLowerCase())
           )
@@ -88,18 +86,18 @@ const Dashboard = () => {
       }
 
       if (clickedTag) {
-        filtered = filtered.filter((trade) =>
+        trades = trades.filter((trade) =>
           trade.tags?.includes(clickedTag)
         );
       }
 
-      setFilteredTrades(filtered);
+      setFilteredTrades(trades);
 
-      const pnlSeries = getPnLOverTime(filtered);
+      const pnlSeries = getPnLOverTime(trades);
       setPnlData(pnlSeries);
 
       const tagMap = {};
-      filtered.forEach((trade) => {
+      trades.forEach((trade) => {
         if (Array.isArray(trade.tags)) {
           trade.tags.forEach((tag) => {
             if (!tagMap[tag]) tagMap[tag] = { totalPnL: 0, count: 0 };
@@ -118,12 +116,19 @@ const Dashboard = () => {
     };
 
     fetchTagPerformance();
-  }, [user, dateRange, resultType, tagSearchTerm, clickedTag]);
+  }, [
+    user,
+    dateRange,
+    resultFilter, // Ensure it triggers when result filter changes
+    tagSearchTerm,
+    clickedTag,
+    filterTradesByResult, // Include in dependencies
+  ]);
 
   const handleTagClick = (tag) => {
     setClickedTag(tag);
     setTagSearchTerm(""); // ✅ Clear the search input
-    setResultType("all"); // ✅ Optional: reset result filter
+    setResultFilter("all"); // ✅ Optional: reset result filter
     tradeTableRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
