@@ -85,9 +85,9 @@ const ProgressTracker = () => {
   };
 
   return (
-    <div className="bg-white shadow rounded-xl p-4 animate-fade-in w-full h-48 flex flex-col justify-center items-center">
-      <h3 className="text-sm text-gray-600 mb-2">Progress Tracker</h3>
-      <div className="w-full h-32">
+    <div className="bg-white shadow rounded-xl p-4 animate-fade-in w-full h-44 flex flex-col justify-center items-center">
+      <h3 className="text-xs text-gray-600 mb-2">Progress Tracker</h3>
+      <div className="w-full h-28">
         <Radar data={data} options={options} />
       </div>
     </div>
