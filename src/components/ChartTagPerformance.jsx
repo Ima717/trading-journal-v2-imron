@@ -90,7 +90,7 @@ const ChartTagPerformance = ({ data, onTagClick }) => {
   return (
     <div className="bg-white shadow rounded-xl p-4">
       <h3 className="text-sm text-gray-600 mb-3">📈 Tag Performance</h3>
-      <div className="h-48">
+      <div className="h-40"> {/* Reduced from h-48 to h-40 */}
         <canvas ref={chartRef} />
       </div>
     </div>
