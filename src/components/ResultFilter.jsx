@@ -1,29 +1,23 @@
+// /src/components/ResultFilter.jsx
 import React from "react";
 import { useFilters } from "../context/FilterContext";
-
-const filterOptions = [
-  { label: "All", value: "all" },
-  { label: "Win", value: "win" },
-  { label: "Loss", value: "loss" },
-  { label: "Breakeven", value: "breakeven" },
-];
 
 const ResultFilter = () => {
   const { resultFilter, setResultFilter } = useFilters();
 
   return (
-    <div className="flex gap-2 flex-wrap mb-4">
-      {filterOptions.map((opt) => (
+    <div className="flex gap-2">
+      {["all", "Win", "Loss", "Break-even"].map((filter) => (
         <button
-          key={opt.value}
-          onClick={() => setResultFilter(opt.value)}
-          className={`px-4 py-2 text-sm rounded-full border transition font-medium ${
-            resultFilter === opt.value
-              ? "bg-blue-600 text-white border-blue-600"
-              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+          key={filter}
+          onClick={() => setResultFilter(filter)}
+          className={`px-4 py-2 rounded-lg capitalize transition-all duration-200 ${
+            resultFilter === filter
+              ? "bg-blue-500 text-white shadow-md"
+              : "bg-gray-200 text-gray-800 hover:bg-gray-300"
           }`}
         >
-          {opt.label}
+          {filter}
         </button>
       ))}
     </div>
