@@ -1,4 +1,4 @@
-// /src/pages/Dashboard.jsx
+// /src/pages/Dashboard.jsx (Final Update)
 import React, { useEffect, useState, useRef } from "react";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../utils/firebase";
@@ -13,6 +13,7 @@ import TradeTable from "../components/TradeTable";
 import ChartTagPerformance from "../components/ChartTagPerformance";
 import PerformanceChart from "../components/PerformanceChart";
 import DashboardSidebar from "../components/DashboardSidebar";
+import QuickStats from "../components/QuickStats";
 import { getPnLOverTime } from "../utils/calculations";
 
 import ResultFilter from "../components/ResultFilter";
@@ -28,13 +29,14 @@ const Dashboard = () => {
     setResultFilter,
     tagSearchTerm,
     setTagSearchTerm,
-    filterTrades,
+    clickedTag,
+    setClickedTag,
+    filteredTrades,
   } = useFilters();
 
   const [tagPerformanceData, setTagPerformanceData] = useState([]);
   const [pnlData, setPnlData] = useState([]);
-  const [filteredTrades, setFilteredTrades] = useState([]);
-  const [clickedTag, setClickedTag] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const tradeTableRef = useRef(null);
 
@@ -60,18 +62,17 @@ const Dashboard = () => {
     const fetchTagPerformance = async () => {
       if (!user) return;
 
+      setIsLoading(true);
+
       const ref = collection(db, "users", user.uid, "trades");
       const snapshot = await getDocs(ref);
       const trades = snapshot.docs.map((doc) => doc.data());
 
-      const filtered = filterTrades(trades);
-      setFilteredTrades(filtered);
-
-      const pnlSeries = getPnLOverTime(filtered);
+      const pnlSeries = getPnLOverTime(filteredTrades);
       setPnlData(pnlSeries);
 
       const tagMap = {};
-      filtered.forEach((trade) => {
+      filteredTrades.forEach((trade) => {
         if (Array.isArray(trade.tags)) {
           trade.tags.forEach((tag) => {
             if (!tagMap[tag]) tagMap[tag] = { totalPnL: 0, count: 0 };
@@ -93,10 +94,11 @@ const Dashboard = () => {
       }
 
       setTagPerformanceData(formatted);
+      setIsLoading(false);
     };
 
     fetchTagPerformance();
-  }, [user, dateRange, resultFilter, tagSearchTerm, clickedTag, filterTrades]);
+  }, [user, dateRange, resultFilter, tagSearchTerm, clickedTag, filteredTrades]);
 
   const handleTagClick = (tag) => {
     setClickedTag(tag);
@@ -106,8 +108,8 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center max-w-6xl mx-auto mb-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center max-w-7xl mx-auto mb-8">
         <h1 className="text-2xl font-bold text-zinc-800 mb-2 sm:mb-0">📊 Welcome to IMAI Dashboard</h1>
         <div className="flex flex-wrap gap-2">
           <Link to="/add-trade" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">➕ Add Trade</Link>
@@ -116,13 +118,13 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-1">
           <DashboardSidebar />
         </div>
 
-        <div className="lg:col-span-3 space-y-6">
-          <div className="flex flex-wrap gap-4 justify-between items-end mb-6">
+        <div className="lg:col-span-3 space-y-4">
+          <div className="flex flex-wrap gap-4 justify-between items-end mb-4">
             <ResultFilter />
             <SearchFilter
               searchTerm={tagSearchTerm}
@@ -146,27 +148,37 @@ const Dashboard = () => {
             </div>
           </div>
 
+          <QuickStats />
+
           <AnalyticsOverview />
 
-          {pnlData.length > 0 && (
-            <div className="animate-fade-in">
-              <PerformanceChart data={pnlData} />
+          {isLoading ? (
+            <div className="bg-white shadow rounded-xl p-4 text-center">
+              <p className="text-gray-500">Loading charts...</p>
             </div>
-          )}
-
-          {tagPerformanceData.length > 0 ? (
-            <div className="animate-fade-in">
-              <h2 className="text-xl font-bold mb-3">📈 Tag Performance</h2>
-              <ChartTagPerformance data={tagPerformanceData} onTagClick={handleTagClick} />
-              {clickedTag && filteredTrades.length === 0 && (
-                <p className="text-sm text-red-500 mt-2">
-                  No trades found for tag "<span className="font-semibold">{clickedTag}</span>" with current filters.
-                </p>
+          ) : (
+            <>
+              {pnlData.length > 0 && (
+                <div className="animate-fade-in">
+                  <PerformanceChart data={pnlData} />
+                </div>
               )}
-            </div>
-          ) : tagSearchTerm ? (
-            <p className="text-sm text-gray-500">No tags found for "{tagSearchTerm}".</p>
-          ) : null}
+
+              {tagPerformanceData.length > 0 ? (
+                <div className="animate-fade-in">
+                  <h2 className="text-xl font-bold mb-3">📈 Tag Performance</h2>
+                  <ChartTagPerformance data={tagPerformanceData} onTagClick={handleTagClick} />
+                  {clickedTag && filteredTrades.length === 0 && (
+                    <p className="text-sm text-red-500 mt-2">
+                      No trades found for tag "<span className="font-semibold">{clickedTag}</span>" with current filters.
+                    </p>
+                  )}
+                </div>
+              ) : tagSearchTerm ? (
+                <p className="text-sm text-gray-500">No tags found for "{tagSearchTerm}".</p>
+              ) : null}
+            </>
+          )}
 
           <div ref={tradeTableRef}>
             <TradeTable trades={filteredTrades} />
