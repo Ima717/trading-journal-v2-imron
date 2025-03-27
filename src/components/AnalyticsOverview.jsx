@@ -1,4 +1,4 @@
-// /src/components/AnalyticsOverview.jsx (Latest)
+// /src/components/AnalyticsOverview.jsx (Updated)
 import React, { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../utils/firebase";
@@ -8,7 +8,7 @@ import { filterTradesByDate } from "../utils/filterUtils";
 
 const AnalyticsOverview = () => {
   const { user } = useAuth();
-  const { dateRange, selectedTag, resultFilter } = useFilters();
+  const { dateRange, clickedTag, resultFilter } = useFilters(); // Use clickedTag instead of selectedTag
   const [trades, setTrades] = useState([]);
 
   useEffect(() => {
@@ -26,20 +26,20 @@ const AnalyticsOverview = () => {
   const filteredTrades = React.useMemo(() => {
     let result = filterTradesByDate(trades, dateRange);
 
-    if (selectedTag) {
-      result = result.filter((t) => t.tags?.includes(selectedTag));
+    if (clickedTag) {
+      result = result.filter((t) => t.tags?.includes(clickedTag));
     }
 
     if (resultFilter !== "all") {
-      result = result.filter((t) => t.result === resultFilter);
+      result = result.filter((t) => (resultFilter === "Win" ? t.pnl > 0 : t.pnl <= 0));
     }
 
     return result;
-  }, [trades, dateRange, selectedTag, resultFilter]);
+  }, [trades, dateRange, clickedTag, resultFilter]);
 
   const totalTrades = filteredTrades.length || 0;
   const winRate = totalTrades
-    ? (filteredTrades.filter((t) => t.result === "Win").length / totalTrades) * 100
+    ? (filteredTrades.filter((t) => t.pnl > 0).length / totalTrades) * 100 // Match QuickStats logic
     : 0;
   const avgPnL = totalTrades
     ? filteredTrades.reduce((sum, t) => sum + Number(t.pnl), 0) / totalTrades
@@ -52,8 +52,8 @@ const AnalyticsOverview = () => {
   ];
 
   return (
-    <div className="bg-white shadow rounded-xl p-4">
-      <h3 className="text-xl font-semibold mb-3">Overview</h3>
+    <div className="bg-blue-50 shadow rounded-xl p-4 animate-fade-in"> {/* Changed bg-white to bg-blue-50 */}
+      <h3 className="text-xl font-semibold mb-3">Filtered Overview</h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {summaryStats.map((stat, index) => (
           <div key={index} className="p-4 bg-gray-100 rounded">
