@@ -15,6 +15,15 @@ export const FilterProvider = ({ children }) => {
     setResultFilter("all");
   };
 
+  const filterTradesByResult = (trades) => {
+    if (resultFilter === "win") {
+      return trades.filter((trade) => trade.pnl > 0);
+    } else if (resultFilter === "loss") {
+      return trades.filter((trade) => trade.pnl < 0);
+    }
+    return trades; // For "all" result
+  };
+
   return (
     <FilterContext.Provider
       value={{
@@ -27,6 +36,7 @@ export const FilterProvider = ({ children }) => {
         resultFilter,
         setResultFilter,
         resetFilters,
+        filterTradesByResult, // Pass function to filter by result
       }}
     >
       {children}
