@@ -105,7 +105,7 @@ const ImportTrades = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-zinc-800">Import Trades</h1>
           <button
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate("/")}
             className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
           >
             Back to Dashboard
