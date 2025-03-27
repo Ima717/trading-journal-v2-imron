@@ -15,6 +15,7 @@ import PerformanceChart from "../components/PerformanceChart";
 import DashboardSidebar from "../components/DashboardSidebar";
 import QuickStats from "../components/QuickStats";
 import { getPnLOverTime } from "../utils/calculations";
+import ErrorBoundary from "../components/ErrorBoundary"; // New import
 
 import ResultFilter from "../components/ResultFilter";
 import SearchFilter from "../components/SearchFilter";
@@ -87,7 +88,7 @@ const Dashboard = () => {
         avgPnL: parseFloat((val.totalPnL / val.count).toFixed(2)),
       }));
 
-      if (tagSearchTerm) {
+      if (tagSearchTerm && typeof tagSearchTerm === "string") {
         formatted = formatted.filter((item) =>
           item.tag.toLowerCase().includes(tagSearchTerm.toLowerCase())
         );
@@ -108,84 +109,86 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center max-w-7xl mx-auto mb-8">
-        <h1 className="text-2xl font-bold text-zinc-800 mb-2 sm:mb-0">📊 Welcome to IMAI Dashboard</h1>
-        <div className="flex flex-wrap gap-2">
-          <Link to="/add-trade" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">➕ Add Trade</Link>
-          <Link to="/import" className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">📤 Import Trades</Link>
-          <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">🔒 Log Out</button>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-1">
-          <DashboardSidebar />
-        </div>
-
-        <div className="lg:col-span-3 space-y-4">
-          <div className="flex flex-wrap gap-4 justify-between items-end mb-4">
-            <ResultFilter />
-            <SearchFilter
-              searchTerm={tagSearchTerm}
-              onSearchChange={(term) => setTagSearchTerm(term)}
-              selectedTag={clickedTag}
-              onClear={() => {
-                setTagSearchTerm("");
-                setClickedTag(null);
-              }}
-            />
-            <div className="text-sm text-gray-600">
-              <p>{formatDateRange()}</p>
-              {(dateRange.start || dateRange.end) && (
-                <button
-                  onClick={() => setDateRange({ start: null, end: null })}
-                  className="underline text-blue-600 hover:text-blue-800"
-                >
-                  Reset Date Filter ✕
-                </button>
-              )}
-            </div>
-          </div>
-
-          <QuickStats />
-
-          <AnalyticsOverview />
-
-          {isLoading ? (
-            <div className="bg-white shadow rounded-xl p-4 text-center">
-              <p className="text-gray-500">Loading charts...</p>
-            </div>
-          ) : (
-            <>
-              {pnlData.length > 0 && (
-                <div className="animate-fade-in">
-                  <PerformanceChart data={pnlData} />
-                </div>
-              )}
-
-              {tagPerformanceData.length > 0 ? (
-                <div className="animate-fade-in">
-                  <h2 className="text-xl font-bold mb-3">📈 Tag Performance</h2>
-                  <ChartTagPerformance data={tagPerformanceData} onTagClick={handleTagClick} />
-                  {clickedTag && filteredTrades.length === 0 && (
-                    <p className="text-sm text-red-500 mt-2">
-                      No trades found for tag "<span className="font-semibold">{clickedTag}</span>" with current filters.
-                    </p>
-                  )}
-                </div>
-              ) : tagSearchTerm ? (
-                <p className="text-sm text-gray-500">No tags found for "{tagSearchTerm}".</p>
-              ) : null}
-            </>
-          )}
-
-          <div ref={tradeTableRef}>
-            <TradeTable trades={filteredTrades} />
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center max-w-7xl mx-auto mb-8">
+          <h1 className="text-2xl font-bold text-zinc-800 mb-2 sm:mb-0">📊 Welcome to IMAI Dashboard</h1>
+          <div className="flex flex-wrap gap-2">
+            <Link to="/add-trade" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">➕ Add Trade</Link>
+            <Link to="/import" className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">📤 Import Trades</Link>
+            <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">🔒 Log Out</button>
           </div>
         </div>
+
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-1">
+            <DashboardSidebar />
+          </div>
+
+          <div className="lg:col-span-3 space-y-4">
+            <div className="flex flex-wrap gap-4 justify-between items-end mb-4">
+              <ResultFilter />
+              <SearchFilter
+                searchTerm={tagSearchTerm}
+                onSearchChange={(term) => setTagSearchTerm(term)}
+                selectedTag={clickedTag}
+                onClear={() => {
+                  setTagSearchTerm("");
+                  setClickedTag(null);
+                }}
+              />
+              <div className="text-sm text-gray-600">
+                <p>{formatDateRange()}</p>
+                {(dateRange.start || dateRange.end) && (
+                  <button
+                    onClick={() => setDateRange({ start: null, end: null })}
+                    className="underline text-blue-600 hover:text-blue-800"
+                  >
+                    Reset Date Filter ✕
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <QuickStats />
+
+            <AnalyticsOverview />
+
+            {isLoading ? (
+              <div className="bg-white shadow rounded-xl p-4 text-center">
+                <p className="text-gray-500">Loading charts...</p>
+              </div>
+            ) : (
+              <>
+                {pnlData.length > 0 && (
+                  <div className="animate-fade-in">
+                    <PerformanceChart data={pnlData} />
+                  </div>
+                )}
+
+                {tagPerformanceData.length > 0 ? (
+                  <div className="animate-fade-in">
+                    <h2 className="text-xl font-bold mb-3">📈 Tag Performance</h2>
+                    <ChartTagPerformance data={tagPerformanceData} onTagClick={handleTagClick} />
+                    {clickedTag && filteredTrades.length === 0 && (
+                      <p className="text-sm text-red-500 mt-2">
+                        No trades found for tag "<span className="font-semibold">{clickedTag}</span>" with current filters.
+                      </p>
+                    )}
+                  </div>
+                ) : tagSearchTerm ? (
+                  <p className="text-sm text-gray-500">No tags found for "{tagSearchTerm}".</p>
+                ) : null}
+              </>
+            )}
+
+            <div ref={tradeTableRef}>
+              <TradeTable trades={filteredTrades} />
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </ErrorBoundary>
   );
 };
 
