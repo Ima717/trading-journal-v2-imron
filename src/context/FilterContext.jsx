@@ -1,3 +1,4 @@
+// /src/context/FilterContext.jsx
 import React, { createContext, useContext, useState } from "react";
 
 const FilterContext = createContext();
@@ -16,32 +17,43 @@ export const FilterProvider = ({ children }) => {
   };
 
   const filterTrades = (trades) => {
-    let filtered = trades;
+    let filtered = [...trades];
 
+    // Filter by date
     if (dateRange.start && dateRange.end) {
       filtered = filtered.filter((trade) => {
         const tradeDate = new Date(trade.date);
-        return tradeDate >= new Date(dateRange.start) && tradeDate <= new Date(dateRange.end);
+        return (
+          tradeDate >= new Date(dateRange.start) &&
+          tradeDate <= new Date(dateRange.end)
+        );
       });
     }
 
-    if (resultFilter === "win") {
-      filtered = filtered.filter((trade) => trade.pnl > 0);
-    } else if (resultFilter === "loss") {
-      filtered = filtered.filter((trade) => trade.pnl < 0);
-    } else if (resultFilter === "breakeven") {
-      filtered = filtered.filter((trade) => trade.pnl === 0);
+    // Filter by PnL-based result
+    if (resultFilter !== "all") {
+      filtered = filtered.filter((trade) => {
+        const pnl = Number(trade.pnl);
+        if (resultFilter === "win") return pnl > 0;
+        if (resultFilter === "loss") return pnl < 0;
+        if (resultFilter === "breakeven") return pnl === 0;
+        return true;
+      });
     }
 
-    if (selectedTag) {
+    // Filter by search tag
+    if (searchTerm.trim() !== "") {
       filtered = filtered.filter((trade) =>
-        trade.tags?.includes(selectedTag)
+        trade.tags?.some((tag) =>
+          tag.toLowerCase().includes(searchTerm.toLowerCase())
+        )
       );
     }
 
-    if (searchTerm.trim()) {
+    // Filter by clicked tag
+    if (selectedTag) {
       filtered = filtered.filter((trade) =>
-        trade.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+        trade.tags?.includes(selectedTag)
       );
     }
 
@@ -60,7 +72,7 @@ export const FilterProvider = ({ children }) => {
         resultFilter,
         setResultFilter,
         resetFilters,
-        filterTrades
+        filterTrades,
       }}
     >
       {children}
