@@ -1,4 +1,4 @@
-// /src/components/ChartTagPerformance.jsx (Updated)
+// /src/components/ChartTagPerformance.jsx
 import React, { useRef, useEffect } from "react";
 import Chart from "chart.js/auto";
 
@@ -89,8 +89,8 @@ const ChartTagPerformance = ({ data, onTagClick }) => {
 
   return (
     <div className="bg-white shadow rounded-xl p-4">
-      <h3 className="text-xl font-semibold mb-3">📈 Tag Performance</h3>
-      <div className="h-64"> {/* Reduced from h-80 to h-64 */}
+      <h3 className="text-sm text-gray-600 mb-3">📈 Tag Performance</h3>
+      <div className="h-48">
         <canvas ref={chartRef} />
       </div>
     </div>
