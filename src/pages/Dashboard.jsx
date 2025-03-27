@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../utils/firebase";
 import { collection, getDocs } from "firebase/firestore";
@@ -30,6 +30,9 @@ const Dashboard = () => {
   const [tagPerformanceData, setTagPerformanceData] = useState([]);
   const [pnlData, setPnlData] = useState([]);
   const [filteredTrades, setFilteredTrades] = useState([]);
+  const [clickedTag, setClickedTag] = useState(null);
+
+  const tradeTableRef = useRef(null);
 
   const handleLogout = async () => {
     try {
@@ -81,6 +84,12 @@ const Dashboard = () => {
         );
       }
 
+      if (clickedTag) {
+        filtered = filtered.filter((trade) =>
+          trade.tags?.includes(clickedTag)
+        );
+      }
+
       setFilteredTrades(filtered);
 
       const pnlSeries = getPnLOverTime(filtered);
@@ -106,7 +115,12 @@ const Dashboard = () => {
     };
 
     fetchTagPerformance();
-  }, [user, dateRange, resultType, tagSearchTerm]);
+  }, [user, dateRange, resultType, tagSearchTerm, clickedTag]);
+
+  const handleTagClick = (tag) => {
+    setClickedTag(tag);
+    tradeTableRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
@@ -182,11 +196,13 @@ const Dashboard = () => {
           {tagPerformanceData.length > 0 && (
             <div>
               <h2 className="text-xl font-bold mb-3">📈 Tag Performance</h2>
-              <ChartTagPerformance data={tagPerformanceData} />
+              <ChartTagPerformance data={tagPerformanceData} onTagClick={handleTagClick} />
             </div>
           )}
 
-          <TradeTable trades={filteredTrades} />
+          <div ref={tradeTableRef}>
+            <TradeTable trades={filteredTrades} />
+          </div>
         </div>
       </div>
     </div>
