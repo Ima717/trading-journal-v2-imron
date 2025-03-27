@@ -22,6 +22,9 @@ import AvgWinLoss from "../components/AvgWinLoss";
 import IMAIScore from "../components/IMAIScore";
 import ProgressTracker from "../components/ProgressTracker";
 import CurrentStreak from "../components/CurrentStreak";
+import RiskRewardRatio from "../components/RiskRewardRatio"; // New import
+import WinLossStreaks from "../components/WinLossStreaks"; // New import
+import PerformanceByTag from "../components/PerformanceByTag"; // New import
 import { getPnLOverTime } from "../utils/calculations";
 import ErrorBoundary from "../components/ErrorBoundary";
 import ResultFilter from "../components/ResultFilter";
@@ -171,14 +174,20 @@ const Dashboard = () => {
               <div className="max-w-[300px] w-full"><IMAIScore /></div>
             </div>
 
-            {/* Third Row: Progress Tracker, Current Distance, Avg Win/Loss Trade */}
+            {/* Third Row: Progress Tracker, Current Streak, Avg Win/Loss Trade */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="max-w-[300px] w-full"><ProgressTracker /></div>
               <div className="max-w-[300px] w-full"><CurrentStreak /></div>
               <div className="max-w-[300px] w-full"><AvgWinLoss /></div>
             </div>
 
-            {/* Fourth Row: PNL Over Time, Tag Performance */}
+            {/* Fourth Row: Risk-Reward Ratio, Win/Loss Streaks */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+              <div className="max-w-[300px] w-full"><RiskRewardRatio /></div>
+              <div className="max-w-[300px] w-full"><WinLossStreaks /></div>
+            </div>
+
+            {/* Fifth Row: PNL Over Time, Tag Performance */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="w-full">
                 {isLoading ? (
@@ -214,6 +223,11 @@ const Dashboard = () => {
                   </>
                 )}
               </div>
+            </div>
+
+            {/* Sixth Row: Performance by Tag */}
+            <div className="grid grid-cols-1 gap-6">
+              <PerformanceByTag />
             </div>
 
             {/* Trade Table */}
