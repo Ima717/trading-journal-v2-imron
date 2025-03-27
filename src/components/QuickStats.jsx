@@ -1,11 +1,10 @@
-// /src/components/QuickStats.jsx (New)
+// /src/components/QuickStats.jsx
 import React from "react";
 import { useFilters } from "../context/FilterContext";
 
 const QuickStats = () => {
-  const { filteredTrades } = useFilters(); // Assuming FilterContext provides filteredTrades
+  const { filteredTrades } = useFilters();
 
-  // Calculate stats
   const totalTrades = filteredTrades.length || 0;
   const winRate = totalTrades
     ? (filteredTrades.filter((t) => t.pnl > 0).length / totalTrades) * 100
@@ -22,7 +21,7 @@ const QuickStats = () => {
 
   return (
     <div className="bg-white shadow rounded-xl p-4 animate-fade-in">
-      <h3 className="text-xl font-semibold mb-3">📊 Quick Stats</h3>
+      <h3 className="text-xl font-semibold mb-3">Overall Stats</h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {stats.map((stat, index) => (
           <div key={index} className="p-4 bg-gray-100 rounded">
