@@ -59,16 +59,16 @@ export const FilterProvider = ({ children }) => {
   return (
     <FilterContext.Provider
       value={{
-        dateRange,
+        dateRange: dateRange || { start: null, end: null }, // Ensure defined
         setDateRange,
-        resultFilter,
+        resultFilter: resultFilter || "all", // Ensure defined
         setResultFilter,
-        tagSearchTerm,
+        tagSearchTerm: tagSearchTerm || "", // Ensure defined
         setTagSearchTerm,
-        clickedTag,
+        clickedTag: clickedTag || null, // Ensure defined
         setClickedTag,
         filterTrades,
-        filteredTrades, // Expose filteredTrades for use in components
+        filteredTrades: filteredTrades || [], // Ensure defined
       }}
     >
       {children}
