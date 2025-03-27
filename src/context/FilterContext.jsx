@@ -1,63 +1,59 @@
-// /src/context/FilterContext.jsx
-import React, { createContext, useContext, useState } from "react";
+// /src/context/FilterContext.jsx (Updated)
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../utils/firebase";
+import { useAuth } from "./AuthContext";
+import { filterTradesByDate } from "../utils/filterUtils";
 
 const FilterContext = createContext();
 
 export const FilterProvider = ({ children }) => {
+  const { user } = useAuth();
   const [dateRange, setDateRange] = useState({ start: null, end: null });
-  const [selectedTag, setSelectedTag] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const [resultFilter, setResultFilter] = useState("all");
+  const [tagSearchTerm, setTagSearchTerm] = useState("");
+  const [clickedTag, setClickedTag] = useState(null);
+  const [trades, setTrades] = useState([]);
+  const [filteredTrades, setFilteredTrades] = useState([]);
 
-  const resetFilters = () => {
-    setDateRange({ start: null, end: null });
-    setSelectedTag(null);
-    setSearchTerm("");
-    setResultFilter("all");
-  };
+  useEffect(() => {
+    const fetchTrades = async () => {
+      if (!user) return;
+      const ref = collection(db, "users", user.uid, "trades");
+      const snapshot = await getDocs(ref);
+      const fetched = snapshot.docs.map((doc) => doc.data());
+      setTrades(fetched);
+    };
 
-  const filterTrades = (trades) => {
-    let filtered = [...trades];
+    fetchTrades();
+  }, [user]);
 
-    // Filter by date
-    if (dateRange.start && dateRange.end) {
-      filtered = filtered.filter((trade) => {
-        const tradeDate = new Date(trade.date);
-        return (
-          tradeDate >= new Date(dateRange.start) &&
-          tradeDate <= new Date(dateRange.end)
-        );
-      });
+  useEffect(() => {
+    let result = filterTradesByDate(trades, dateRange);
+
+    if (clickedTag) {
+      result = result.filter((t) => t.tags?.includes(clickedTag));
     }
 
-    // Filter by PnL-based result
     if (resultFilter !== "all") {
-      filtered = filtered.filter((trade) => {
-        const pnl = Number(trade.pnl);
-        if (resultFilter === "win") return pnl > 0;
-        if (resultFilter === "loss") return pnl < 0;
-        if (resultFilter === "breakeven") return pnl === 0;
-        return true;
-      });
+      result = result.filter((t) => (resultFilter === "Win" ? t.pnl > 0 : t.pnl <= 0));
     }
 
-    // Filter by search tag
-    if (searchTerm.trim() !== "") {
-      filtered = filtered.filter((trade) =>
-        trade.tags?.some((tag) =>
-          tag.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
+    setFilteredTrades(result);
+  }, [trades, dateRange, clickedTag, resultFilter]);
+
+  const filterTrades = (tradesToFilter) => {
+    let result = filterTradesByDate(tradesToFilter, dateRange);
+
+    if (clickedTag) {
+      result = result.filter((t) => t.tags?.includes(clickedTag));
     }
 
-    // Filter by clicked tag
-    if (selectedTag) {
-      filtered = filtered.filter((trade) =>
-        trade.tags?.includes(selectedTag)
-      );
+    if (resultFilter !== "all") {
+      result = result.filter((t) => (resultFilter === "Win" ? t.pnl > 0 : t.pnl <= 0));
     }
 
-    return filtered;
+    return result;
   };
 
   return (
@@ -65,14 +61,14 @@ export const FilterProvider = ({ children }) => {
       value={{
         dateRange,
         setDateRange,
-        selectedTag,
-        setSelectedTag,
-        searchTerm,
-        setSearchTerm,
         resultFilter,
         setResultFilter,
-        resetFilters,
+        tagSearchTerm,
+        setTagSearchTerm,
+        clickedTag,
+        setClickedTag,
         filterTrades,
+        filteredTrades, // Expose filteredTrades for use in components
       }}
     >
       {children}
