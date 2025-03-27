@@ -27,8 +27,6 @@ import ErrorBoundary from "../components/ErrorBoundary";
 import ResultFilter from "../components/ResultFilter";
 import SearchFilter from "../components/SearchFilter";
 
-// Removed the incorrect import for SidebarCalendar since it's already rendered via DashboardSidebar
-
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -173,7 +171,7 @@ const Dashboard = () => {
               <div className="max-w-[300px] w-full"><IMAIScore /></div>
             </div>
 
-            {/* Third Row: Progress Tracker, Current Streak, Avg Win/Loss Trade */}
+            {/* Third Row: Progress Tracker, Current Distance, Avg Win/Loss Trade */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="max-w-[300px] w-full"><ProgressTracker /></div>
               <div className="max-w-[300px] w-full"><CurrentStreak /></div>
