@@ -22,9 +22,9 @@ import AvgWinLoss from "../components/AvgWinLoss";
 import IMAIScore from "../components/IMAIScore";
 import ProgressTracker from "../components/ProgressTracker";
 import CurrentStreak from "../components/CurrentStreak";
-import RiskRewardRatio from "../components/RiskRewardRatio"; // New import
-import WinLossStreaks from "../components/WinLossStreaks"; // New import
-import PerformanceByTag from "../components/PerformanceByTag"; // New import
+import RiskRewardRatio from "../components/RiskRewardRatio";
+import WinLossStreaks from "../components/WinLossStreaks";
+import PerformanceByTag from "../components/PerformanceByTag";
 import { getPnLOverTime } from "../utils/calculations";
 import ErrorBoundary from "../components/ErrorBoundary";
 import ResultFilter from "../components/ResultFilter";
