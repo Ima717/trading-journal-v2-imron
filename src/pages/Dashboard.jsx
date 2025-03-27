@@ -14,6 +14,12 @@ import ChartTagPerformance from "../components/ChartTagPerformance";
 import PerformanceChart from "../components/PerformanceChart";
 import DashboardSidebar from "../components/DashboardSidebar";
 import QuickStats from "../components/QuickStats";
+import ProfitFactor from "../components/ProfitFactor";
+import DayWinPercent from "../components/DayWinPercent";
+import AvgWinLoss from "../components/AvgWinLoss";
+import IMAIScore from "../components/IMAIScore";
+import ProgressTracker from "../components/ProgressTracker";
+import CurrentStreak from "../components/CurrentStreak";
 import { getPnLOverTime } from "../utils/calculations";
 import ErrorBoundary from "../components/ErrorBoundary";
 
@@ -150,22 +156,39 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <QuickStats />
+            {/* Top Row: Quick Stats, Profit Factor, Day Win %, Avg Win/Loss */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <QuickStats />
+              <ProfitFactor />
+              <DayWinPercent />
+              <AvgWinLoss />
+            </div>
 
-            <AnalyticsOverview />
+            {/* Middle Row: IMAI Score, Progress Tracker, Current Streak, PNL Over Time */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <IMAIScore />
+              <ProgressTracker />
+              <CurrentStreak />
+              <div className="lg:col-span-2">
+                {isLoading ? (
+                  <div className="bg-white shadow rounded-xl p-4 text-center h-48 flex items-center justify-center">
+                    <p className="text-gray-500">Loading chart...</p>
+                  </div>
+                ) : (
+                  <div className="animate-fade-in">
+                    <PerformanceChart data={pnlData} />
+                  </div>
+                )}
+              </div>
+            </div>
 
+            {/* Tag Performance and Trade Table */}
             {isLoading ? (
               <div className="bg-white shadow rounded-xl p-4 text-center">
                 <p className="text-gray-500">Loading charts...</p>
               </div>
             ) : (
               <>
-                {pnlData.length > 0 && (
-                  <div className="animate-fade-in">
-                    <PerformanceChart data={pnlData} />
-                  </div>
-                )}
-
                 {tagPerformanceData.length > 0 ? (
                   <div className="animate-fade-in">
                     <h2 className="text-xl font-bold mb-3">📈 Tag Performance</h2>
