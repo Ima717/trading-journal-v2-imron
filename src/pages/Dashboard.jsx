@@ -104,9 +104,7 @@ const Dashboard = () => {
       <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center max-w-6xl mx-auto mb-8">
         <h1 className="text-2xl font-bold text-zinc-800 mb-2 sm:mb-0">📊 Welcome to IMAI Dashboard</h1>
         <div className="flex flex-wrap gap-2">
-          <Link to="/calendar" className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">📅 Calendar</Link>
           <Link to="/add-trade" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">➕ Add Trade</Link>
-          <Link to="/test" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">🧪 Test</Link>
           <Link to="/import" className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">📤 Import Trades</Link>
           <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">🔒 Log Out</button>
         </div>
@@ -144,10 +142,7 @@ const Dashboard = () => {
 
           <SummaryCards trades={filteredTrades} />
           {pnlData.length > 0 && <PerformanceChart data={pnlData} />}
-          <div>
-            <h2 className="text-2xl font-bold mb-4">Analytics Overview</h2>
-            <AnalyticsOverview />
-          </div>
+          
 
           {tagPerformanceData.length > 0 && (
             <div>
