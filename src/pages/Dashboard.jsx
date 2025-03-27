@@ -1,4 +1,22 @@
 // /src/pages/Dashboard.jsx
+import React, { useEffect, useState, useRef } from "react";
+import { signOut } from "firebase/auth";
+import { auth, db } from "../utils/firebase";
+import { collection, getDocs } from "firebase/firestore";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { useFilters } from "../context/FilterContext";
+import dayjs from "dayjs";
+
+import AnalyticsOverview from "../components/AnalyticsOverview";
+import TradeTable from "../components/TradeTable";
+import ChartTagPerformance from "../components/ChartTagPerformance";
+import PerformanceChart from "../components/PerformanceChart";
+import DashboardSidebar from "../components/DashboardSidebar";
+import { getPnLOverTime } from "../utils/calculations";
+
+import ResultFilter from "../components/ResultFilter";
+import SearchFilter from "../components/SearchFilter";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -81,13 +99,6 @@ const Dashboard = () => {
     tradeTableRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Calculate the values dynamically for the widgets
-  const totalTrades = filteredTrades.length || 0;
-  const winRate = totalTrades
-    ? (filteredTrades.filter((t) => t.result === "Win").length / totalTrades) * 100
-    : 0;
-  const totalPnL = filteredTrades.reduce((sum, trade) => sum + (trade.pnl || 0), 0);
-
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
       <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center max-w-6xl mx-auto mb-8">
@@ -105,21 +116,6 @@ const Dashboard = () => {
         </div>
 
         <div className="lg:col-span-3 space-y-10">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
-            <div className="bg-white p-4 rounded-lg shadow">
-              <h3 className="text-lg font-semibold text-gray-700">Total Trades</h3>
-              <p className="text-2xl font-bold text-gray-900">{totalTrades}</p>
-            </div>
-            <div className="bg-white p-4 rounded-lg shadow">
-              <h3 className="text-lg font-semibold text-gray-700">Win Rate</h3>
-              <p className="text-2xl font-bold text-gray-900">{winRate.toFixed(2)}%</p>
-            </div>
-            <div className="bg-white p-4 rounded-lg shadow">
-              <h3 className="text-lg font-semibold text-gray-700">Total PnL</h3>
-              <p className="text-2xl font-bold text-gray-900">${totalPnL.toFixed(2)}</p>
-            </div>
-          </div>
-
           <div className="flex flex-wrap gap-4 justify-between items-end mb-6">
             <ResultFilter />
             <SearchFilter
