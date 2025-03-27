@@ -1,37 +1,73 @@
-import React from "react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+// /src/components/PerformanceChart.jsx (Updated)
+import React, { useRef, useEffect } from "react";
+import Chart from "chart.js/auto";
 
 const PerformanceChart = ({ data }) => {
+  const chartRef = useRef(null);
+  const chartInstanceRef = useRef(null);
+
+  useEffect(() => {
+    if (!data || data.length === 0) return;
+
+    const ctx = chartRef.current.getContext("2d");
+
+    if (chartInstanceRef.current) {
+      chartInstanceRef.current.destroy();
+    }
+
+    chartInstanceRef.current = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: data.map((d) => d.date),
+        datasets: [
+          {
+            label: "PnL Over Time",
+            data: data.map((d) => d.pnl),
+            borderColor: "rgba(34, 197, 94, 1)",
+            backgroundColor: "rgba(34, 197, 94, 0.2)",
+            fill: true,
+            tension: 0.3,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: "Date",
+            },
+          },
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: "PnL ($)",
+            },
+          },
+        },
+        plugins: {
+          legend: {
+            display: false,
+          },
+        },
+      },
+    });
+
+    return () => {
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.destroy();
+      }
+    };
+  }, [data]);
+
   return (
-    <div className="bg-white dark:bg-zinc-900 shadow rounded-2xl px-4 py-6 my-6">
-      <h2 className="text-md font-medium mb-3 text-zinc-800 dark:text-white">
-        📈 PnL Over Time
-      </h2>
-      <div className="h-64">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={data}
-            margin={{ top: 10, right: 20, left: 0, bottom: 30 }}
-          >
-            <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-            <YAxis tick={{ fontSize: 12 }} />
-            <Tooltip />
-            <Line
-              type="monotone"
-              dataKey="pnl"
-              stroke="#4ade80"
-              strokeWidth={2}
-              dot={false}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+    <div className="bg-white shadow rounded-xl p-4">
+      <h3 className="text-xl font-semibold mb-3">📈 PnL Over Time</h3>
+      <div className="h-64"> {/* Reduced from h-80 to h-64 */}
+        <canvas ref={chartRef} />
       </div>
     </div>
   );
