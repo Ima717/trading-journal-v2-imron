@@ -28,7 +28,7 @@ const Dashboard = () => {
     setResultFilter,
     tagSearchTerm,
     setTagSearchTerm,
-    filterTradesByResult, // Import filter function
+    filterTrades
   } = useFilters();
 
   const [tagPerformanceData, setTagPerformanceData] = useState([]);
@@ -62,42 +62,16 @@ const Dashboard = () => {
 
       const ref = collection(db, "users", user.uid, "trades");
       const snapshot = await getDocs(ref);
-      let trades = snapshot.docs.map((doc) => doc.data());
+      const trades = snapshot.docs.map((doc) => doc.data());
 
-      // Apply PnL-based filtering here
-      trades = filterTradesByResult(trades);
+      const filtered = filterTrades(trades);
+      setFilteredTrades(filtered);
 
-      if (dateRange.start && dateRange.end) {
-        trades = trades.filter((trade) => {
-          const tradeDate = dayjs(trade.date);
-          return (
-            tradeDate.isAfter(dayjs(dateRange.start).subtract(1, "day")) &&
-            tradeDate.isBefore(dayjs(dateRange.end).add(1, "day"))
-          );
-        });
-      }
-
-      if (tagSearchTerm.trim() !== "") {
-        trades = trades.filter((trade) =>
-          trade.tags?.some((tag) =>
-            tag.toLowerCase().includes(tagSearchTerm.toLowerCase())
-          )
-        );
-      }
-
-      if (clickedTag) {
-        trades = trades.filter((trade) =>
-          trade.tags?.includes(clickedTag)
-        );
-      }
-
-      setFilteredTrades(trades);
-
-      const pnlSeries = getPnLOverTime(trades);
+      const pnlSeries = getPnLOverTime(filtered);
       setPnlData(pnlSeries);
 
       const tagMap = {};
-      trades.forEach((trade) => {
+      filtered.forEach((trade) => {
         if (Array.isArray(trade.tags)) {
           trade.tags.forEach((tag) => {
             if (!tagMap[tag]) tagMap[tag] = { totalPnL: 0, count: 0 };
@@ -116,25 +90,17 @@ const Dashboard = () => {
     };
 
     fetchTagPerformance();
-  }, [
-    user,
-    dateRange,
-    resultFilter, // Ensure it triggers when result filter changes
-    tagSearchTerm,
-    clickedTag,
-    filterTradesByResult, // Include in dependencies
-  ]);
+  }, [user, dateRange, resultFilter, tagSearchTerm, clickedTag]);
 
   const handleTagClick = (tag) => {
     setClickedTag(tag);
-    setTagSearchTerm(""); // ✅ Clear the search input
-    setResultFilter("all"); // ✅ Optional: reset result filter
+    setTagSearchTerm(""); 
+    setResultFilter("all"); 
     tradeTableRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center max-w-6xl mx-auto mb-8">
         <h1 className="text-2xl font-bold text-zinc-800 mb-2 sm:mb-0">📊 Welcome to IMAI Dashboard</h1>
         <div className="flex flex-wrap gap-2">
@@ -147,14 +113,11 @@ const Dashboard = () => {
       </div>
 
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Sidebar Calendar */}
         <div className="lg:col-span-1">
           <DashboardSidebar />
         </div>
 
-        {/* Main Content */}
         <div className="lg:col-span-3 space-y-10">
-          {/* Filters */}
           <div className="flex flex-wrap gap-4 justify-between items-end mb-6">
             <ResultFilter />
             <SearchFilter
@@ -180,9 +143,7 @@ const Dashboard = () => {
           </div>
 
           <SummaryCards trades={filteredTrades} />
-
           {pnlData.length > 0 && <PerformanceChart data={pnlData} />}
-
           <div>
             <h2 className="text-2xl font-bold mb-4">Analytics Overview</h2>
             <AnalyticsOverview />
@@ -192,7 +153,6 @@ const Dashboard = () => {
             <div>
               <h2 className="text-xl font-bold mb-3">📈 Tag Performance</h2>
               <ChartTagPerformance data={tagPerformanceData} onTagClick={handleTagClick} />
-
               {clickedTag && filteredTrades.length === 0 && (
                 <p className="text-sm text-red-500 mt-2">
                   No trades found for tag "<span className="font-semibold">{clickedTag}</span>" with current filters.
