@@ -13,7 +13,7 @@ const TradeTable = ({ trades }) => {
 
   if (!trades || trades.length === 0) {
     return (
-      <div className="bg-white dark:bg-zinc-900 shadow rounded-2xl p-4 mt-10">
+      <div className="bg-white dark:bg-zinc-900 shadow rounded-2xl p-4 mt-10 animate-fade-in">
         <p className="text-center text-gray-500 dark:text-gray-400">
           No trades found for this filter.
         </p>
@@ -40,7 +40,7 @@ const TradeTable = ({ trades }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-zinc-900 shadow rounded-2xl p-4 mt-10 overflow-x-auto">
+    <div className="bg-white dark:bg-zinc-900 shadow rounded-2xl p-4 mt-10 overflow-x-auto animate-fade-in">
       <h3 className="text-xl font-semibold mb-4 text-zinc-800 dark:text-white">Trades</h3>
       <table className="min-w-full text-sm border-collapse">
         <thead>
@@ -57,7 +57,7 @@ const TradeTable = ({ trades }) => {
           {trades.map((trade, i) => (
             <tr
               key={i}
-              className="border-t border-zinc-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-800"
+              className="border-t border-zinc-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors duration-200"
             >
               <td className="p-2 text-zinc-800 dark:text-zinc-100">{trade.symbol}</td>
               <td className="p-2 text-zinc-800 dark:text-zinc-100">{trade.date}</td>
@@ -73,13 +73,13 @@ const TradeTable = ({ trades }) => {
               <td className="p-2 whitespace-nowrap">
                 <button
                   onClick={() => handleEdit(trade.id)}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded mr-2"
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded mr-2 transition-colors duration-200"
                 >
                   Edit
                 </button>
                 <button
                   onClick={() => handleDelete(trade.id)}
-                  className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded"
+                  className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded transition-colors duration-200"
                 >
                   Delete
                 </button>
