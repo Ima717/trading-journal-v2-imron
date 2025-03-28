@@ -37,14 +37,15 @@ const EditTrade = () => {
             tags: data.tags ? data.tags.join(", ") : "",
             notes: data.notes || "",
           });
-        } catch (err) {
-          console.error("Error fetching trade:", err);
-          setError("Failed to load trade. Please try again.");
-        }
-      };
+        } // Added missing closing brace for the if block
+      } catch (err) {
+        console.error("Error fetching trade:", err);
+        setError("Failed to load trade. Please try again.");
+      }
+    };
 
-      fetchTrade();
-    }, [user, id]);
+    fetchTrade();
+  }, [user, id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
