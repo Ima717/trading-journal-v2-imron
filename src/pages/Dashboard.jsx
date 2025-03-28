@@ -6,6 +6,7 @@ import { collection, getDocs } from "firebase/firestore";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useFilters } from "../context/FilterContext";
+import { useTheme } from "../context/ThemeContext"; // New import
 import dayjs from "dayjs";
 
 import AnalyticsOverview from "../components/AnalyticsOverview";
@@ -33,6 +34,7 @@ import SearchFilter from "../components/SearchFilter";
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme(); // Use theme context
   const {
     dateRange,
     setDateRange,
@@ -120,12 +122,15 @@ const Dashboard = () => {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:bg-gradient-to-br dark:from-zinc-900 dark:to-zinc-800 p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center max-w-7xl mx-auto mb-8">
-          <h1 className="text-2xl font-bold text-zinc-800 mb-2 sm:mb-0">📊 Welcome to IMAI Dashboard</h1>
+          <h1 className="text-2xl font-bold text-zinc-800 dark:text-white mb-2 sm:mb-0">📊 Welcome to IMAI Dashboard</h1>
           <div className="flex flex-wrap gap-2">
             <Link to="/add-trade" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">➕ Add Trade</Link>
             <Link to="/import" className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">📤 Import Trades</Link>
+            <button onClick={toggleTheme} className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+              {theme === "light" ? "🌙 Dark Mode" : "☀️ Light Mode"}
+            </button>
             <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">🔒 Log Out</button>
           </div>
         </div>
@@ -147,12 +152,12 @@ const Dashboard = () => {
                   setClickedTag(null);
                 }}
               />
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
                 <p>{formatDateRange()}</p>
                 {(dateRange.start || dateRange.end) && (
                   <button
                     onClick={() => setDateRange({ start: null, end: null })}
-                    className="underline text-blue-600 hover:text-blue-800"
+                    className="underline text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                   >
                     Reset Date Filter ✕
                   </button>
@@ -162,9 +167,9 @@ const Dashboard = () => {
 
             {/* First Row: Total Trades, Win Rate, Avg PnL */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="max-w-[300px] w-full border border-gray-200 rounded-xl"><TotalTrades /></div>
-              <div className="max-w-[300px] w-full border border-gray-200 rounded-xl"><WinRate /></div>
-              <div className="max-w-[300px] w-full border border-gray-200 rounded-xl"><AvgPnL /></div>
+              <div className="max-w-[300px] w-full border border-gray-200 dark:border-zinc-700 rounded-xl"><TotalTrades /></div>
+              <div className="max-w-[300px] w-full border border-gray-200 dark:border-zinc-700 rounded-xl"><WinRate /></div>
+              <div className="max-w-[300px] w-full border border-gray-200 dark:border-zinc-700 rounded-xl"><AvgPnL /></div>
             </div>
 
             {/* Second Row: IMAI Score, Profit Factor, Day Win % */}
@@ -191,8 +196,8 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="w-full">
                 {isLoading ? (
-                  <div className="bg-white shadow rounded-xl p-4 text-center h-48 flex items-center justify-center">
-                    <p className="text-gray-500">Loading chart...</p>
+                  <div className="bg-white dark:bg-zinc-900 shadow rounded-xl p-4 text-center h-48 flex items-center justify-center">
+                    <p className="text-gray-500 dark:text-gray-400">Loading chart...</p>
                   </div>
                 ) : (
                   <div className="animate-fade-in">
@@ -202,23 +207,23 @@ const Dashboard = () => {
               </div>
               <div className="w-full">
                 {isLoading ? (
-                  <div className="bg-white shadow rounded-xl p-4 text-center h-48 flex items-center justify-center">
-                    <p className="text-gray-500">Loading chart...</p>
+                  <div className="bg-white dark:bg-zinc-900 shadow rounded-xl p-4 text-center h-48 flex items-center justify-center">
+                    <p className="text-gray-500 dark:text-gray-400">Loading chart...</p>
                   </div>
                 ) : (
                   <>
                     {tagPerformanceData.length > 0 ? (
                       <div className="animate-fade-in">
-                        <h2 className="text-xl font-bold mb-3">📈 Tag Performance</h2>
+                        <h2 className="text-xl font-bold mb-3 text-zinc-800 dark:text-white">📈 Tag Performance</h2>
                         <ChartTagPerformance data={tagPerformanceData} onTagClick={handleTagClick} />
                         {clickedTag && filteredTrades.length === 0 && (
-                          <p className="text-sm text-red-500 mt-2">
+                          <p className="text-sm text-red-500 dark:text-red-400 mt-2">
                             No trades found for tag "<span className="font-semibold">{clickedTag}</span>" with current filters.
                           </p>
                         )}
                       </div>
                     ) : tagSearchTerm ? (
-                      <p className="text-sm text-gray-500">No tags found for "{tagSearchTerm}".</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">No tags found for "{tagSearchTerm}".</p>
                     ) : null}
                   </>
                 )}
@@ -233,7 +238,7 @@ const Dashboard = () => {
             {/* Trade Table */}
             <div ref={tradeTableRef}>
               {(resultFilter !== "all" || clickedTag) && (
-                <div className="mb-2 text-sm text-gray-600">
+                <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
                   Showing: {resultFilter !== "all" ? resultFilter : ""}{" "}
                   {clickedTag ? `(${clickedTag} trades)` : ""}
                 </div>
