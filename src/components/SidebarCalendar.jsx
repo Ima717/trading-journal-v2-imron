@@ -1,77 +1,86 @@
 // /src/components/SidebarCalendar.jsx
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { useFilters } from "../context/FilterContext";
-import { Tooltip } from "react-tooltip";
 
 const SidebarCalendar = () => {
-  const { filteredTrades, setDateRange } = useFilters();
-  const [date, setDate] = useState(new Date());
-  const [dailyPnL, setDailyPnL] = useState({});
+  const { dateRange, setDateRange, filteredTrades } = useFilters();
 
-  useEffect(() => {
-    const pnLMap = {};
-    filteredTrades.forEach((trade) => {
-      const tradeDate = trade.date;
-      if (!pnLMap[tradeDate]) pnLMap[tradeDate] = 0;
-      pnLMap[tradeDate] += trade.pnl;
-    });
-    setDailyPnL(pnLMap);
-  }, [filteredTrades]);
-
-  const tileClassName = ({ date }) => {
-    const dateString = date.toISOString().split("T")[0];
-    const pnL = dailyPnL[dateString] || 0;
-    if (pnL > 0) return "bg-green-200 hover:bg-green-300";
-    if (pnL < 0) return "bg-red-200 hover:bg-red-300";
-    return "bg-gray-200 hover:bg-gray-300";
+  const onChange = (date) => {
+    const start = date instanceof Array ? date[0] : date;
+    const end = date instanceof Array ? date[1] : date;
+    setDateRange({ start, end });
   };
 
-  const tileContent = ({ date }) => {
-    const dateString = date.toISOString().split("T")[0];
-    const pnL = dailyPnL[dateString] || 0;
-    return pnL !== 0 ? (
-      <div
-        data-tooltip-id="calendar-tooltip"
-        data-tooltip-content={pnL > 0 ? `+$${pnL}` : `-$${Math.abs(pnL)}`}
-        className="absolute top-0 left-0 w-full h-full flex items-center justify-center text-xs text-gray-800"
-      >
-        {pnL > 0 ? `+$${pnL}` : `-$${Math.abs(pnL)}`}
-      </div>
-    ) : null;
+  // Calculate trade count for each date
+  const getTradeCountForDate = (date) => {
+    const formattedDate = date.toISOString().split("T")[0];
+    return filteredTrades.filter((trade) => trade.date === formattedDate).length;
   };
 
-  const onChange = (newDate) => {
-    setDate(newDate);
-    setDateRange({
-      start: newDate.toISOString().split("T")[0],
-      end: newDate.toISOString().split("T")[0],
-    });
+  // Custom tile content to add tooltips
+  const tileContent = ({ date, view }) => {
+    if (view === "month") {
+      const tradeCount = getTradeCountForDate(date);
+      return tradeCount > 0 ? (
+        <div className="relative">
+          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+            {tradeCount}
+          </span>
+        </div>
+      ) : null;
+    }
+    return null;
+  };
+
+  // Add tooltip using title attribute
+  const tileClassName = ({ date, view }) => {
+    if (view === "month") {
+      const tradeCount = getTradeCountForDate(date);
+      return tradeCount > 0 ? "has-trades" : "";
+    }
+    return null;
   };
 
   return (
-    <div className="bg-white shadow rounded-xl p-4 animate-fade-in relative" style={{ overflow: "visible" }}>
-      <h3 className="text-sm text-gray-600 mb-3">Calendar</h3>
+    <div className="bg-white dark:bg-zinc-900 shadow rounded-2xl p-4 animate-fade-in">
+      <h3 className="text-xl font-semibold mb-4 text-zinc-800 dark:text-white">Calendar</h3>
       <Calendar
         onChange={onChange}
-        value={date}
-        tileClassName={tileClassName}
+        value={[dateRange.start, dateRange.end]}
+        selectRange={true}
         tileContent={tileContent}
-        className="border-none"
-      />
-      <Tooltip
-        id="calendar-tooltip"
-        place="top"
-        style={{
-          zIndex: 9999, // Increased z-index to ensure visibility
-          backgroundColor: "#333",
-          color: "#fff",
-          padding: "4px 8px",
-          borderRadius: "4px",
-          fontSize: "12px",
+        tileClassName={tileClassName}
+        className="border-none text-zinc-800 dark:text-zinc-100 bg-transparent"
+        calendarType="US"
+        title={(date) => {
+          const tradeCount = getTradeCountForDate(date);
+          return tradeCount > 0 ? `${tradeCount} trade${tradeCount > 1 ? "s" : ""} on this day` : null;
         }}
       />
+      <style jsx>{`
+        .has-trades {
+          position: relative;
+        }
+        .react-calendar__tile {
+          padding: 8px;
+          color: #333;
+        }
+        .react-calendar__tile--active {
+          background: #2563eb !important;
+          color: white !important;
+        }
+        .react-calendar__tile--now {
+          background: #e5e7eb !important;
+        }
+        .dark .react-calendar__tile--now {
+          background: #4b5563 !important;
+        }
+        .dark .react-calendar__tile--active {
+          background: #3b82f6 !important;
+        }
+      `}</style>
     </div>
   );
 };
