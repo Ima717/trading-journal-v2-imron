@@ -37,7 +37,7 @@ const EditTrade = () => {
             tags: data.tags ? data.tags.join(", ") : "",
             notes: data.notes || "",
           });
-        } // Added missing closing brace for the if block
+        }
       } catch (err) {
         console.error("Error fetching trade:", err);
         setError("Failed to load trade. Please try again.");
@@ -76,9 +76,9 @@ const EditTrade = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-white dark:bg-zinc-900 shadow rounded-2xl p-4">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:bg-gradient-to-br dark:from-zinc-900 dark:to-zinc-800 p-4 sm:p-6">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-white dark:bg-zinc-900 shadow rounded-2xl p-4 sm:p-6">
             <p className="text-red-500 dark:text-red-400">{error}</p>
             <button
               onClick={() => navigate("/")} // Updated redirect to root route
@@ -94,9 +94,9 @@ const EditTrade = () => {
 
   if (!trade) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-white dark:bg-zinc-900 shadow rounded-2xl p-4">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:bg-gradient-to-br dark:from-zinc-900 dark:to-zinc-800 p-4 sm:p-6">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-white dark:bg-zinc-900 shadow rounded-2xl p-4 sm:p-6">
             <p className="text-gray-500 dark:text-gray-400">Loading...</p>
           </div>
         </div>
@@ -105,10 +105,10 @@ const EditTrade = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-zinc-800 dark:text-white">Edit Trade</h1>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:bg-gradient-to-br dark:from-zinc-900 dark:to-zinc-800 p-4 sm:p-6">
+      <div className="max-w-3xl mx-auto">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+          <h1 className="text-2xl font-bold text-zinc-800 dark:text-white mb-2 sm:mb-0">Edit Trade</h1>
           <button
             onClick={() => navigate("/")} // Updated redirect to root route
             className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
@@ -116,7 +116,7 @@ const EditTrade = () => {
             Back to Dashboard
           </button>
         </div>
-        <div className="bg-white dark:bg-zinc-900 shadow rounded-2xl p-4">
+        <div className="bg-white dark:bg-zinc-900 shadow rounded-2xl p-4 sm:p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Symbol</label>
@@ -170,17 +170,17 @@ const EditTrade = () => {
                 className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <button
                 type="submit"
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded w-full sm:w-auto"
               >
                 Save
               </button>
               <button
                 type="button"
                 onClick={() => navigate("/")} // Updated redirect to root route
-                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
+                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded w-full sm:w-auto"
               >
                 Cancel
               </button>
