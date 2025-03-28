@@ -66,7 +66,7 @@ const EditTrade = () => {
         notes: formData.notes,
       });
       triggerRefresh(); // Refresh dashboard data after update
-      navigate("/dashboard");
+      navigate("/"); // Updated redirect to root route
     } catch (err) {
       console.error("Error updating trade:", err);
       setError("Failed to update trade. Please try again.");
@@ -80,7 +80,7 @@ const EditTrade = () => {
           <div className="bg-white dark:bg-zinc-900 shadow rounded-2xl p-4">
             <p className="text-red-500 dark:text-red-400">{error}</p>
             <button
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/")} // Updated redirect to root route
               className="mt-4 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
             >
               Back to Dashboard
@@ -109,7 +109,7 @@ const EditTrade = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-zinc-800 dark:text-white">Edit Trade</h1>
           <button
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate("/")} // Updated redirect to root route
             className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
           >
             Back to Dashboard
@@ -178,7 +178,7 @@ const EditTrade = () => {
               </button>
               <button
                 type="button"
-                onClick={() => navigate("/dashboard")}
+                onClick={() => navigate("/")} // Updated redirect to root route
                 className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
               >
                 Cancel
