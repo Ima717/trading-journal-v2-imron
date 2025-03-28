@@ -5,7 +5,7 @@ import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
 import AddTrade from "./pages/AddTrade";
-import EditTrade from "./pages/EditTrade"; // New import
+import EditTrade from "./pages/EditTrade";
 import { AuthProvider } from "./context/AuthContext";
 import Test from "./pages/Test";
 import ImportTrades from "./pages/ImportTrades";
