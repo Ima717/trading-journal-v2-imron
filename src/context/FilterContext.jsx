@@ -14,10 +14,10 @@ export const FilterProvider = ({ children }) => {
   const [clickedTag, setClickedTag] = useState(null);
   const [trades, setTrades] = useState([]);
   const [filteredTrades, setFilteredTrades] = useState([]);
-  const [refresh, setRefresh] = useState(0); // Add refresh state
+  const [refresh, setRefresh] = useState(0);
 
   const triggerRefresh = () => {
-    setRefresh((prev) => prev + 1); // Increment refresh to trigger re-fetch
+    setRefresh((prev) => prev + 1);
   };
 
   useEffect(() => {
@@ -25,12 +25,15 @@ export const FilterProvider = ({ children }) => {
       if (!user) return;
       const ref = collection(db, "users", user.uid, "trades");
       const snapshot = await getDocs(ref);
-      const fetched = snapshot.docs.map((doc) => doc.data());
+      const fetched = snapshot.docs.map((doc) => ({
+        id: doc.id, // Include the document ID
+        ...doc.data(),
+      }));
       setTrades(fetched);
     };
 
     fetchTrades();
-  }, [user, refresh]); // Add refresh as a dependency
+  }, [user, refresh]);
 
   useEffect(() => {
     let result = trades;
@@ -95,7 +98,7 @@ export const FilterProvider = ({ children }) => {
         setClickedTag,
         filterTrades,
         filteredTrades: filteredTrades || [],
-        triggerRefresh, // Add triggerRefresh to context
+        triggerRefresh,
       }}
     >
       {children}
