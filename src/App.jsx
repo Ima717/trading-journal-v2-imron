@@ -11,25 +11,28 @@ import Test from "./pages/Test";
 import ImportTrades from "./pages/ImportTrades";
 import CalendarPage from "./pages/CalendarPage";
 import { FilterProvider } from "./context/FilterContext";
+import { ThemeProvider } from "./context/ThemeContext"; // New import
 
 function App() {
   return (
     <Router>
       <AuthProvider>
         <FilterProvider>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/signin" element={<SignIn />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/test" element={<Test />} />
-            <Route path="/import" element={<ImportTrades />} />
-            <Route path="/calendar" element={<CalendarPage />} />
+          <ThemeProvider>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/signin" element={<SignIn />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/test" element={<Test />} />
+              <Route path="/import" element={<ImportTrades />} />
+              <Route path="/calendar" element={<CalendarPage />} />
 
-            {/* Dashboard is now public for dev access */}
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/add-trade" element={<AddTrade />} />
-            <Route path="/edit-trade/:id" element={<EditTrade />} />
-          </Routes>
+              {/* Dashboard is now public for dev access */}
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/add-trade" element={<AddTrade />} />
+              <Route path="/edit-trade/:id" element={<EditTrade />} />
+            </Routes>
+          </ThemeProvider>
         </FilterProvider>
       </AuthProvider>
     </Router>
