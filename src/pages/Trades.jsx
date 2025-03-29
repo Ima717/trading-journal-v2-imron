@@ -111,16 +111,20 @@ const Trades = () => {
                     key={trade.id}
                     className="border-t border-zinc-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors duration-200"
                   >
-                    <td className="p-2 text-zinc-800 dark:text-zinc-100">{trade.symbol}</td>
-                    <td className="p-2 text-zinc-800 dark:text-zinc-100">{trade.instrumentType}</td>
-                    <td className="p-2 text-zinc-800 dark:text-zinc-100">{trade.date}</td>
-                    <td className="p-2 text-zinc-800 dark:text-zinc-100">{trade.quantity}</td>
-                    <td className="p-2 text-zinc-800 dark:text-zinc-100">${trade.entryPrice.toFixed(2)}</td>
-                    <td className="p-2 text-zinc-800 dark:text-zinc-100">${trade.exitPrice.toFixed(2)}</td>
-                    <td className={`p-2 ${trade.pnl >= 0 ? "text-green-600" : "text-red-500"}`}>
-                      ${trade.pnl.toFixed(2)}
+                    <td className="p-2 text-zinc-800 dark:text-zinc-100">{trade.symbol || "N/A"}</td>
+                    <td className="p-2 text-zinc-800 dark:text-zinc-100">{trade.instrumentType || "N/A"}</td>
+                    <td className="p-2 text-zinc-800 dark:text-zinc-100">{trade.date || "N/A"}</td>
+                    <td className="p-2 text-zinc-800 dark:text-zinc-100">{trade.quantity || 0}</td>
+                    <td className="p-2 text-zinc-800 dark:text-zinc-100">
+                      ${typeof trade.entryPrice === "number" ? trade.entryPrice.toFixed(2) : "0.00"}
                     </td>
-                    <td className="p-2 capitalize text-zinc-800 dark:text-zinc-100">{trade.result}</td>
+                    <td className="p-2 text-zinc-800 dark:text-zinc-100">
+                      ${typeof trade.exitPrice === "number" ? trade.exitPrice.toFixed(2) : "0.00"}
+                    </td>
+                    <td className={`p-2 ${trade.pnl >= 0 ? "text-green-600" : "text-red-500"}`}>
+                      ${typeof trade.pnl === "number" ? trade.pnl.toFixed(2) : "0.00"}
+                    </td>
+                    <td className="p-2 capitalize text-zinc-800 dark:text-zinc-100">{trade.result || "N/A"}</td>
                     <td className="p-2 text-zinc-800 dark:text-zinc-100">{trade.playbook || "N/A"}</td>
                     <td className="p-2 whitespace-nowrap">
                       <button
