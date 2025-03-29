@@ -91,7 +91,7 @@ const AddTrade = () => {
           legs: newLegs,
         },
       };
-    }));
+    });
   };
 
   const handleRatingChange = (rating) => {
