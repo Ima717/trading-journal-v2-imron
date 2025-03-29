@@ -6,6 +6,7 @@ import { db } from "../utils/firebase";
 import { useAuth } from "../context/AuthContext";
 import { useFilters } from "../context/FilterContext";
 import { createChart } from "lightweight-charts";
+import axios from "axios";
 
 const EditTrade = () => {
   const { user } = useAuth();
@@ -42,6 +43,7 @@ const EditTrade = () => {
   const [mae, setMae] = useState(0);
   const [mfe, setMfe] = useState(0);
   const [error, setError] = useState(null);
+  const [chartData, setChartData] = useState([]);
 
   const symbols = [
     "SPY", "QQQ", "IWM", "AAPL", "MSFT", "NVDA", "TSLA", "GOOGL", "AMZN", "META",
@@ -128,6 +130,48 @@ const EditTrade = () => {
     fetchTrade();
   }, [user, id]);
 
+  // Fetch historical data for the chart
+  useEffect(() => {
+    const fetchChartData = async () => {
+      if (!formData.symbol || !formData.date) return;
+
+      try {
+        const apiKey = "YOUR_ALPHA_VANTAGE_API_KEY"; // Replace with your Alpha Vantage API key
+        const response = await axios.get(
+          `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${formData.symbol}&interval=1min&month=${formData.date.slice(0, 7)}&outputsize=full&apikey=${apiKey}`
+        );
+
+        const timeSeries = response.data["Time Series (1min)"];
+        if (!timeSeries) {
+          console.error("No time series data found for this symbol and date.");
+          return;
+        }
+
+        const chartData = Object.entries(timeSeries).map(([time, values]) => ({
+          time: new Date(time).getTime() / 1000,
+          open: parseFloat(values["1. open"]),
+          high: parseFloat(values["2. high"]),
+          low: parseFloat(values["3. low"]),
+          close: parseFloat(values["4. close"]),
+        }));
+
+        // Filter data to the trade date
+        const tradeDateStart = new Date(formData.date).setHours(0, 0, 0, 0) / 1000;
+        const tradeDateEnd = new Date(formData.date).setHours(23, 59, 59, 999) / 1000;
+        const filteredData = chartData.filter(
+          (data) => data.time >= tradeDateStart && data.time <= tradeDateEnd
+        );
+
+        setChartData(filteredData);
+      } catch (err) {
+        console.error("Error fetching chart data:", err);
+        setChartData([]);
+      }
+    };
+
+    fetchChartData();
+  }, [formData.symbol, formData.date]);
+
   // Calculate PnL, MAE, and MFE automatically
   useEffect(() => {
     const calculateMetrics = () => {
@@ -162,18 +206,18 @@ const EditTrade = () => {
 
   // Setup TradingView chart
   useEffect(() => {
-    if (!chartContainerRef.current || !formData.symbol || !formData.date) return;
+    if (!chartContainerRef.current || !formData.symbol || !formData.date || chartData.length === 0) return;
 
     const chart = createChart(chartContainerRef.current, {
       width: chartContainerRef.current.clientWidth,
       height: 300,
       layout: {
-        background: { color: "#ffffff" },
-        textColor: "#333",
+        background: { color: "#1a1a1a" }, // Dark background like TradeZella
+        textColor: "#d1d4dc",
       },
       grid: {
-        vertLines: { color: "#f0f0f0" },
-        horzLines: { color: "#f0f0f0" },
+        vertLines: { color: "#2a2a2a" },
+        horzLines: { color: "#2a2a2a" },
       },
       timeScale: {
         timeVisible: true,
@@ -181,18 +225,17 @@ const EditTrade = () => {
       },
     });
 
-    const candlestickSeries = chart.addCandlestickSeries();
+    const candlestickSeries = chart.addCandlestickSeries({
+      upColor: "#26a69a", // Green for up candles
+      downColor: "#ef5350", // Red for down candles
+      borderVisible: false,
+      wickUpColor: "#26a69a",
+      wickDownColor: "#ef5350",
+    });
 
-    // Mock candlestick data (replace with real data in production)
-    const mockData = [
-      { time: new Date(formData.date).getTime() / 1000 - 3600, open: formData.entryPrice * 0.98, high: formData.entryPrice * 1.02, low: formData.entryPrice * 0.95, close: formData.entryPrice },
-      { time: new Date(formData.date).getTime() / 1000, open: formData.entryPrice, high: Math.max(formData.entryPrice, formData.exitPrice) * 1.01, low: Math.min(formData.entryPrice, formData.exitPrice) * 0.99, close: formData.exitPrice },
-      { time: new Date(formData.date).getTime() / 1000 + 3600, open: formData.exitPrice, high: formData.exitPrice * 1.02, low: formData.exitPrice * 0.98, close: formData.exitPrice * 1.01 },
-    ];
+    candlestickSeries.setData(chartData);
 
-    candlestickSeries.setData(mockData);
-
-    // Add entry and exit markers
+    // Add entry and exit markers (simplified: using the trade date as the time)
     candlestickSeries.setMarkers([
       {
         time: new Date(formData.date).getTime() / 1000,
@@ -202,7 +245,7 @@ const EditTrade = () => {
         text: "Entry",
       },
       {
-        time: new Date(formData.date).getTime() / 1000,
+        time: new Date(formData.date).getTime() / 1000 + 3600, // Offset by 1 hour for visibility
         position: "aboveBar",
         color: "red",
         shape: "arrowDown",
@@ -215,7 +258,7 @@ const EditTrade = () => {
     return () => {
       chart.remove();
     };
-  }, [formData.symbol, formData.date, formData.entryPrice, formData.exitPrice]);
+  }, [formData.symbol, formData.date, formData.entryPrice, formData.exitPrice, chartData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -362,7 +405,15 @@ const EditTrade = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:bg-gradient-to-br dark:from-zinc-900 dark:to-zinc-800 p-4 sm:p-6">
       <div className="max-w-3xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-          <h1 className="text-2xl font-bold text-zinc-800 dark:text-white mb-2 sm:mb-0">Edit Trade</h1>
+          <div className="flex flex-col sm:flex-row gap-2 mb-2 sm:mb-0">
+            <button
+              onClick={() => navigate("/")}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
+            >
+              Back to Dashboard
+            </button>
+            <h1 className="text-2xl font-bold text-zinc-800 dark:text-white">Edit Trade</h1>
+          </div>
           <button
             onClick={() => navigate("/trades")}
             className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
