@@ -1,5 +1,5 @@
 // /src/pages/AddTrade.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../utils/firebase";
@@ -14,11 +14,12 @@ const AddTrade = () => {
     symbol: "",
     instrumentType: "option",
     date: "",
+    quantity: "",
     entryPrice: "",
     exitPrice: "",
     fees: "",
     commissions: "",
-    pnl: "",
+    pnl: 0, // Will be auto-calculated
     tags: "",
     notes: "",
     playbook: "",
@@ -36,8 +37,67 @@ const AddTrade = () => {
     },
   });
 
-  const predefinedTags = ["Scalp", "Swing", "Day Trade", "Breakout", "Reversal", "Mistake: Overtrading", "Mistake: Moved Stop Loss"];
+  const symbols = [
+    "SPY", "QQQ", "IWM", "AAPL", "MSFT", "NVDA", "TSLA", "GOOGL", "AMZN", "META",
+    "JPM", "BAC", "WMT", "ES", "MES", "NQ", "MNQ", "YM", "MYM", "RTY", "M2K",
+    "CL", "GC", "SI", "HG", "ZN", "ZB", "6E", "6J"
+  ];
+
+  const predefinedTags = [
+    "Scalp", "Swing", "Day Trade", "Breakout", "Reversal", "News-based Trade", "Momentum",
+    "Earnings Play", "Emotional Trade", "High Risk", "Premarket", "Afterhours", "Gap Fill",
+    "Trend Following", "Mean Reversion", "Double Top", "Double Bottom", "Cup & Handle",
+    "Head & Shoulders", "Inverse Head & Shoulders", "Triangle", "Flag", "Pennant", "Wedge",
+    "Channel", "Mistake: Overtrading", "Mistake: Moved Stop Loss", "Mistake: Chasing",
+    "Mistake: No Stop Loss", "Mistake: Overleveraged", "Mistake: FOMO"
+  ];
+
   const playbooks = ["Breakout", "Pullback", "Reversal", "Scalping"];
+
+  const futuresTickValues = {
+    ES: { tickSize: 0.25, tickValue: 12.50 },
+    MES: { tickSize: 0.25, tickValue: 1.25 },
+    NQ: { tickSize: 0.25, tickValue: 5.00 },
+    MNQ: { tickSize: 0.25, tickValue: 0.50 },
+    YM: { tickSize: 1.0, tickValue: 5.00 },
+    MYM: { tickSize: 1.0, tickValue: 0.50 },
+    RTY: { tickSize: 0.10, tickValue: 5.00 },
+    M2K: { tickSize: 0.10, tickValue: 0.50 },
+    CL: { tickSize: 0.01, tickValue: 10.00 },
+    GC: { tickSize: 0.10, tickValue: 10.00 },
+    SI: { tickSize: 0.005, tickValue: 25.00 },
+    HG: { tickSize: 0.0005, tickValue: 12.50 },
+    ZN: { tickSize: 0.015625, tickValue: 15.625 },
+    ZB: { tickSize: 0.03125, tickValue: 31.25 },
+    "6E": { tickSize: 0.00005, tickValue: 6.25 },
+    "6J": { tickSize: 0.0000005, tickValue: 6.25 },
+  };
+
+  // Calculate PnL automatically
+  useEffect(() => {
+    const calculatePnL = () => {
+      const entryPrice = parseFloat(formData.entryPrice) || 0;
+      const exitPrice = parseFloat(formData.exitPrice) || 0;
+      const quantity = parseFloat(formData.quantity) || 0;
+      const fees = parseFloat(formData.fees) || 0;
+      const commissions = parseFloat(formData.commissions) || 0;
+
+      let calculatedPnL = 0;
+      if (formData.instrumentType === "option") {
+        // Options PnL: ((Exit Price - Entry Price) * Quantity * 100) - Fees - Commissions
+        calculatedPnL = ((exitPrice - entryPrice) * quantity * 100) - fees - commissions;
+      } else if (formData.instrumentType === "future") {
+        // Futures PnL: (Exit Price - Entry Price) × (Tick Value / Tick Size) × Quantity
+        const tickData = futuresTickValues[formData.symbol] || { tickSize: 0.25, tickValue: 12.50 }; // Default to ES if symbol not found
+        const ticks = (exitPrice - entryPrice) / tickData.tickSize;
+        calculatedPnL = ticks * tickData.tickValue * quantity;
+      }
+
+      setFormData((prev) => ({ ...prev, pnl: calculatedPnL.toFixed(2) }));
+    };
+
+    calculatePnL();
+  }, [formData.entryPrice, formData.exitPrice, formData.quantity, formData.fees, formData.commissions, formData.instrumentType, formData.symbol]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -108,6 +168,7 @@ const AddTrade = () => {
         symbol: formData.symbol,
         instrumentType: formData.instrumentType,
         date: formData.date,
+        quantity: parseFloat(formData.quantity) || 0,
         entryPrice: parseFloat(formData.entryPrice) || 0,
         exitPrice: parseFloat(formData.exitPrice) || 0,
         fees: parseFloat(formData.fees) || 0,
@@ -164,14 +225,18 @@ const AddTrade = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Symbol</label>
-              <input
-                type="text"
+              <select
                 name="symbol"
                 value={formData.symbol}
                 onChange={handleChange}
                 className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
                 required
-              />
+              >
+                <option value="">Select Symbol</option>
+                {symbols.map((symbol) => (
+                  <option key={symbol} value={symbol}>{symbol}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Instrument Type</label>
@@ -197,57 +262,73 @@ const AddTrade = () => {
                 required
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Entry Price</label>
-              <input
-                type="number"
-                name="entryPrice"
-                value={formData.entryPrice}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                required
-              />
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Quantity</label>
+                <input
+                  type="number"
+                  name="quantity"
+                  value={formData.quantity}
+                  onChange={handleChange}
+                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                  required
+                />
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Entry Price</label>
+                <input
+                  type="number"
+                  name="entryPrice"
+                  value={formData.entryPrice}
+                  onChange={handleChange}
+                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                  required
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Exit Price</label>
+                <input
+                  type="number"
+                  name="exitPrice"
+                  value={formData.exitPrice}
+                  onChange={handleChange}
+                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                  required
+                />
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Fees</label>
+                <input
+                  type="number"
+                  name="fees"
+                  value={formData.fees}
+                  onChange={handleChange}
+                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Commissions</label>
+                <input
+                  type="number"
+                  name="commissions"
+                  value={formData.commissions}
+                  onChange={handleChange}
+                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                />
+              </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Exit Price</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">P&L (Auto-Calculated)</label>
               <input
-                type="number"
-                name="exitPrice"
-                value={formData.exitPrice}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Fees</label>
-              <input
-                type="number"
-                name="fees"
-                value={formData.fees}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Commissions</label>
-              <input
-                type="number"
-                name="commissions"
-                value={formData.commissions}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">P&L</label>
-              <input
-                type="number"
+                type="text"
                 name="pnl"
                 value={formData.pnl}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                required
+                className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-gray-100 dark:bg-zinc-700 text-gray-900 dark:text-gray-100"
+                readOnly
               />
             </div>
 
