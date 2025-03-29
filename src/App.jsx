@@ -11,7 +11,8 @@ import Test from "./pages/Test";
 import ImportTrades from "./pages/ImportTrades";
 import CalendarPage from "./pages/CalendarPage";
 import { FilterProvider } from "./context/FilterContext";
-import { ThemeProvider } from "./context/ThemeContext"; // New import
+import { ThemeProvider } from "./context/ThemeContext";
+import Trades from "./pages/Trades";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/add-trade" element={<AddTrade />} />
               <Route path="/edit-trade/:id" element={<EditTrade />} />
+              <Route path="/trades" element={<Trades />} />
             </Routes>
           </ThemeProvider>
         </FilterProvider>
