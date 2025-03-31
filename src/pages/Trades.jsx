@@ -24,14 +24,29 @@ const Trades = () => {
         console.log("Fetching trades for user:", user.uid); // Debug log
         const tradesCollection = collection(db, "users", user.uid, "trades");
         const tradesSnapshot = await getDocs(tradesCollection);
-        const tradesList = tradesSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        const tradesList = tradesSnapshot.docs.map((doc) => {
+          const data = doc.data();
+          // Ensure trade object has required fields
+          return {
+            id: doc.id,
+            symbol: data.symbol || "Unknown",
+            instrumentType: data.instrumentType || "Unknown",
+            date: data.date || "",
+            quantity: data.quantity || 0,
+            entryPrice: data.entryPrice || 0,
+            exitPrice: data.exitPrice || 0,
+            pnl: data.pnl || 0,
+            result: data.result || "Unknown",
+            playbook: data.playbook || "",
+            ...data, // Include any additional fields
+          };
+        });
 
         console.log("Fetched trades:", tradesList); // Debug log
 
+        // Filter trades with safety checks
         const filteredTrades = tradesList.filter((trade) => {
+          if (!trade) return false; // Skip undefined trades
           const matchesSymbol = filters.symbol ? trade.symbol === filters.symbol : true;
           const matchesResult = filters.result ? trade.result === filters.result : true;
           const matchesDate = filters.date ? trade.date === filters.date : true;
