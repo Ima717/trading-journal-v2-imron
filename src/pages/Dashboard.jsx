@@ -204,14 +204,12 @@ const Dashboard = () => {
 
               {/* Charts */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-                <div className="w-full bg-white p-6 rounded-lg shadow-sm">
-                  <h2 className="text-xl font-bold mb-3 text-zinc-800 dark:text-white">📈 P&L Over Time</h2>
+                <div className="w-full">
                   <PerformanceChart data={pnlData} />
                 </div>
-                <div className="w-full bg-white p-6 rounded-lg shadow-sm">
+                <div className="w-full">
                   {tagPerformanceData.length > 0 ? (
                     <>
-                      <h2 className="text-xl font-bold mb-3 text-zinc-800 dark:text-white">📈 Tag Performance</h2>
                       <ChartTagPerformance data={tagPerformanceData} onTagClick={handleTagClick} />
                       {clickedTag && filteredTrades.length === 0 && (
                         <p className="text-sm text-red-500 dark:text-red-400 mt-2">
@@ -226,7 +224,7 @@ const Dashboard = () => {
               </div>
 
               {/* Trade Table */}
-              <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div>
                 {(resultFilter !== "all" || clickedTag) && (
                   <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
                     Showing: {resultFilter !== "all" ? resultFilter : ""}{" "}
