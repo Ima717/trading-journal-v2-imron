@@ -1,4 +1,3 @@
-// /src/components/TradeTable.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { doc, deleteDoc } from "firebase/firestore";
@@ -11,7 +10,8 @@ const TradeTable = ({ trades }) => {
   const { user } = useAuth();
   const { triggerRefresh } = useFilters();
 
-  if (!trades || trades.length === 0) {
+  // Early return if no valid trades
+  if (!Array.isArray(trades) || trades.filter(t => t && t.symbol).length === 0) {
     return (
       <div className="bg-white dark:bg-zinc-900 shadow rounded-2xl p-4 mt-10 animate-fade-in">
         <p className="text-center text-gray-500 dark:text-gray-400">
@@ -54,37 +54,39 @@ const TradeTable = ({ trades }) => {
           </tr>
         </thead>
         <tbody>
-          {trades.map((trade, i) => (
-            <tr
-              key={i}
-              className="border-t border-zinc-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors duration-200"
-            >
-              <td className="p-2 text-zinc-800 dark:text-zinc-100">{trade.symbol}</td>
-              <td className="p-2 text-zinc-800 dark:text-zinc-100">{trade.date}</td>
-              <td
-                className={`p-2 ${
-                  trade.pnl >= 0 ? "text-green-600" : "text-red-500"
-                }`}
+          {trades
+            .filter((trade) => trade && trade.symbol) // Prevent undefined trades
+            .map((trade, i) => (
+              <tr
+                key={trade.id || i}
+                className="border-t border-zinc-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors duration-200"
               >
-                ${trade.pnl}
-              </td>
-              <td className="p-2 capitalize text-zinc-800 dark:text-zinc-100">{trade.result}</td>
-              <td className="p-2 text-zinc-600 dark:text-zinc-300">{trade.notes}</td>
-              <td className="p-2 whitespace-nowrap">
-                <button
-                  onClick={() => handleEdit(trade.id)}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded mr-2 transition-colors duration-200"
+                <td className="p-2 text-zinc-800 dark:text-zinc-100">{trade.symbol}</td>
+                <td className="p-2 text-zinc-800 dark:text-zinc-100">{trade.date}</td>
+                <td
+                  className={`p-2 ${
+                    trade.pnl >= 0 ? "text-green-600" : "text-red-500"
+                  }`}
                 >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(trade.id)}
-                  className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded transition-colors duration-200"
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
+                  ${trade.pnl}
+                </td>
+                <td className="p-2 capitalize text-zinc-800 dark:text-zinc-100">{trade.result}</td>
+                <td className="p-2 text-zinc-600 dark:text-zinc-300">{trade.notes || "-"}</td>
+                <td className="p-2 whitespace-nowrap">
+                  <button
+                    onClick={() => handleEdit(trade.id)}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded mr-2 transition-colors duration-200"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(trade.id)}
+                    className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded transition-colors duration-200"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
           ))}
         </tbody>
       </table>
