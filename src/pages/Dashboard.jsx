@@ -7,21 +7,13 @@ import { useAuth } from "../context/AuthContext";
 import { useFilters } from "../context/FilterContext";
 import { useTheme } from "../context/ThemeContext";
 import dayjs from "dayjs";
+import { CircularProgressbar } from "react-circular-progressbar";
 
-import AnalyticsOverview from "../components/AnalyticsOverview";
 import TradeTable from "../components/TradeTable";
 import ChartTagPerformance from "../components/ChartTagPerformance";
 import PerformanceChart from "../components/PerformanceChart";
-import CalendarWidget from "../components/CalendarWidget"; // New import
-import TotalTrades from "../components/TotalTrades";
-import WinRate from "../components/WinRate";
-import AvgPnL from "../components/AvgPnL";
-import ProfitFactor from "../components/ProfitFactor";
-import DayWinPercent from "../components/DayWinPercent";
-import AvgWinLoss from "../components/AvgWinLoss";
-import IMAIScore from "../components/IMAIScore";
-import CurrentStreak from "../components/CurrentStreak";
-import WinLossStreaks from "../components/WinLossStreaks";
+import CalendarWidget from "../components/CalendarWidget";
+import StatCard from "../components/StatCard";
 import { getPnLOverTime } from "../utils/calculations";
 import ErrorBoundary from "../components/ErrorBoundary";
 import ResultFilter from "../components/ResultFilter";
@@ -117,6 +109,70 @@ const Dashboard = () => {
     setResultFilter("all");
   };
 
+  // Calculate stats
+  const netPnL = filteredTrades.reduce((sum, trade) => sum + (trade.pnl || 0), 0);
+  const totalTrades = filteredTrades.length;
+  const wins = filteredTrades.filter((t) => t.pnl > 0);
+  const losses = filteredTrades.filter((t) => t.pnl < 0);
+  const winRate = totalTrades ? (wins.length / totalTrades) * 100 : 0;
+  const tradingDays = [...new Set(filteredTrades.map((t) => t.date))];
+  const winningDays = tradingDays.filter((day) => {
+    const dayTrades = filteredTrades.filter((t) => t.date === day);
+    const dayPnL = dayTrades.reduce((sum, t) => sum + t.pnl, 0);
+    return dayPnL > 0;
+  });
+  const dayWinPercent = tradingDays.length
+    ? (winningDays.length / tradingDays.length) * 100
+    : 0;
+  const avgWin = wins.length
+    ? wins.reduce((sum, t) => sum + t.pnl, 0) / wins.length
+    : 0;
+  const avgLoss = losses.length
+    ? Math.abs(losses.reduce((sum, t) => sum + t.pnl, 0) / losses.length)
+    : 0;
+  const expectancy = (winRate / 100 * avgWin) - ((100 - winRate) / 100 * Math.abs(avgLoss));
+  const grossProfit = wins.reduce((sum, t) => sum + t.pnl, 0);
+  const grossLoss = Math.abs(losses.reduce((sum, t) => sum + t.pnl, 0));
+  const profitFactor = grossLoss !== 0 ? grossProfit / grossLoss : 0;
+  let dayStreak = 0;
+  const tradingDaysSorted = [...new Set(filteredTrades.map((t) => t.date))].sort();
+  for (let i = tradingDaysSorted.length - 1; i >= 0; i--) {
+    const dayTrades = filteredTrades.filter((t) => t.date === tradingDaysSorted[i]);
+    const dayPnL = dayTrades.reduce((sum, t) => sum + t.pnl, 0);
+    if (dayPnL <= 0) break;
+    dayStreak++;
+  }
+  let tradeStreak = 0;
+  for (let i = filteredTrades.length - 1; i >= 0; i--) {
+    if (filteredTrades[i].pnl <= 0) break;
+    tradeStreak++;
+  }
+  let longestWinStreak = 0;
+  let longestLossStreak = 0;
+  let currentWinStreak = 0;
+  let currentLossStreak = 0;
+  filteredTrades.forEach((trade) => {
+    if (trade.pnl >= 0) {
+      currentWinStreak++;
+      currentLossStreak = 0;
+      longestWinStreak = Math.max(longestWinStreak, currentWinStreak);
+    } else {
+      currentLossStreak++;
+      currentWinStreak = 0;
+      longestLossStreak = Math.max(longestLossStreak, currentLossStreak);
+    }
+  });
+  const maxDrawdown = filteredTrades.length
+    ? Math.min(...filteredTrades.map((t) => t.pnl))
+    : 0;
+  const avgDrawdown = losses.length
+    ? Math.abs(losses.reduce((sum, t) => sum + t.pnl, 0) / losses.length)
+    : 0;
+  const zellaScore = Math.min(
+    (winRate * 0.4 + profitFactor * 10 * 0.3 + dayWinPercent * 0.3),
+    100
+  ).toFixed(2);
+
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-100 p-6 font-inter">
@@ -173,33 +229,63 @@ const Dashboard = () => {
             <>
               {/* Stat Cards and Calendar */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                <div className="w-full bg-white p-6 rounded-lg shadow-sm">
-                  <TotalTrades />
+                <StatCard
+                  title="Net P&L"
+                  value={`$${netPnL.toFixed(2)}`}
+                  color={netPnL >= 0 ? "text-green-600" : "text-red-500"}
+                  tooltip="Sum of profits - losses"
+                />
+                <StatCard title="Total Trades" value={totalTrades} />
+                <StatCard title="Trade Win %" value={`${winRate.toFixed(2)}%`} />
+                <StatCard title="Day Win %" value={`${dayWinPercent.toFixed(2)}%`} />
+                <StatCard
+                  title="Avg Win Trade"
+                  value={`$${avgWin.toFixed(2)}`}
+                  color="text-green-600"
+                />
+                <StatCard
+                  title="Avg Loss Trade"
+                  value={`$${avgLoss.toFixed(2)}`}
+                  color="text-red-500"
+                />
+                <StatCard
+                  title="Trade Expectancy"
+                  value={`$${expectancy.toFixed(2)}`}
+                  tooltip="(Win % * Avg Win) - (Loss % * Avg Loss)"
+                />
+                <StatCard
+                  title="Profit Factor"
+                  value={profitFactor.toFixed(2)}
+                  color={profitFactor >= 1 ? "text-green-600" : "text-red-500"}
+                  tooltip="Gross Profit / Gross Loss"
+                />
+                <div className="bg-white p-6 rounded-lg shadow-sm w-full flex flex-col justify-center items-center">
+                  <h3 className="text-sm text-gray-600">Zella Score</h3>
+                  <div className="mt-2 w-24 h-24">
+                    <CircularProgressbar
+                      value={zellaScore}
+                      text={`${zellaScore}`}
+                      styles={{
+                        path: { stroke: "#007bff" },
+                        text: { fill: "#343a40", fontSize: "24px" },
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="w-full bg-white p-6 rounded-lg shadow-sm">
-                  <WinRate />
-                </div>
-                <div className="w-full bg-white p-6 rounded-lg shadow-sm">
-                  <AvgPnL />
-                </div>
-                <div className="w-full bg-white p-6 rounded-lg shadow-sm">
-                  <ProfitFactor />
-                </div>
-                <div className="w-full bg-white p-6 rounded-lg shadow-sm">
-                  <DayWinPercent />
-                </div>
-                <div className="w-full bg-white p-6 rounded-lg shadow-sm">
-                  <IMAIScore />
-                </div>
-                <div className="w-full bg-white p-6 rounded-lg shadow-sm">
-                  <CurrentStreak />
-                </div>
-                <div className="w-full bg-white p-6 rounded-lg shadow-sm">
-                  <AvgWinLoss />
-                </div>
-                <div className="w-full bg-white p-6 rounded-lg shadow-sm">
-                  <WinLossStreaks />
-                </div>
+                <StatCard title="Current Day Streak" value={dayStreak} color="text-green-600" />
+                <StatCard title="Current Trade Streak" value={tradeStreak} color="text-green-600" />
+                <StatCard
+                  title="Max Drawdown"
+                  value={`$${maxDrawdown.toFixed(2)}`}
+                  color="text-red-500"
+                />
+                <StatCard
+                  title="Avg Drawdown"
+                  value={`$${avgDrawdown.toFixed(2)}`}
+                  color="text-red-500"
+                />
+                <StatCard title="Longest Win Streak" value={longestWinStreak} color="text-green-600" />
+                <StatCard title="Longest Loss Streak" value={longestLossStreak} color="text-red-500" />
                 <div className="w-full bg-white p-6 rounded-lg shadow-sm">
                   <CalendarWidget />
                 </div>
