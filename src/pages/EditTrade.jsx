@@ -24,9 +24,13 @@ const EditTrade = () => {
     exitPrice: "",
     fees: "",
     commissions: "",
+    adjustedCost: "",
+    zellaScale: "",
     pnl: 0,
+    grossPnL: 0,
+    netROI: 0,
     tags: "",
-    tradeNote: "", // Replacing "notes"
+    tradeNote: "",
     dailyJournal: "",
     playbook: "",
     tradeRating: 0,
@@ -86,7 +90,10 @@ const EditTrade = () => {
   // Fetch trade data on mount
   useEffect(() => {
     const fetchTrade = async () => {
-      if (!user || !id) return;
+      if (!user || !id) {
+        setError("User or trade ID not found.");
+        return;
+      }
 
       try {
         const tradeRef = doc(db, "users", user.uid, "trades", id);
@@ -103,7 +110,11 @@ const EditTrade = () => {
             exitPrice: tradeData.exitPrice || "",
             fees: tradeData.fees || "",
             commissions: tradeData.commissions || "",
+            adjustedCost: tradeData.adjustedCost || "",
+            zellaScale: tradeData.zellaScale || "",
             pnl: tradeData.pnl || 0,
+            grossPnL: tradeData.grossPnL || 0,
+            netROI: tradeData.netROI || 0,
             tags: tradeData.tags ? tradeData.tags.join(", ") : "",
             tradeNote: tradeData.tradeNote || tradeData.notes || "",
             dailyJournal: tradeData.dailyJournal || "",
@@ -133,7 +144,7 @@ const EditTrade = () => {
     fetchTrade();
   }, [user, id]);
 
-  // Calculate PnL, MAE, and MFE automatically
+  // Calculate PnL, MAE, MFE, Gross P&L, Net ROI, etc.
   useEffect(() => {
     const calculateMetrics = () => {
       const entryPrice = parseFloat(formData.entryPrice) || 0;
@@ -141,81 +152,95 @@ const EditTrade = () => {
       const quantity = parseFloat(formData.quantity) || 0;
       const fees = parseFloat(formData.fees) || 0;
       const commissions = parseFloat(formData.commissions) || 0;
+      const adjustedCost = parseFloat(formData.adjustedCost) || (entryPrice * quantity * 100);
 
-      let calculatedPnL = 0;
+      let grossPnL = 0;
       if (formData.instrumentType === "option") {
-        calculatedPnL = ((exitPrice - entryPrice) * quantity * 100) - fees - commissions;
+        grossPnL = (exitPrice - entryPrice) * quantity * 100;
       } else if (formData.instrumentType === "future") {
         const tickData = futuresTickValues[formData.symbol] || { tickSize: 0.25, tickValue: 12.50 };
         const ticks = (exitPrice - entryPrice) / tickData.tickSize;
-        calculatedPnL = ticks * tickData.tickValue * quantity;
+        grossPnL = ticks * tickData.tickValue * quantity;
       }
+
+      const netPnL = grossPnL - fees - commissions;
+      const netROI = adjustedCost !== 0 ? (netPnL / adjustedCost) * 100 : 0;
 
       const priceDiff = exitPrice - entryPrice;
       const maeValue = priceDiff < 0 ? Math.abs(priceDiff) : 0;
       const mfeValue = priceDiff > 0 ? priceDiff : 0;
 
-      setFormData((prev) => ({ ...prev, pnl: calculatedPnL.toFixed(2) }));
+      setFormData((prev) => ({
+        ...prev,
+        grossPnL: grossPnL.toFixed(2),
+        netROI: netROI.toFixed(2),
+        pnl: netPnL.toFixed(2),
+      }));
       setMae(maeValue.toFixed(2));
       setMfe(mfeValue.toFixed(2));
     };
 
     calculateMetrics();
-  }, [formData.entryPrice, formData.exitPrice, formData.quantity, formData.fees, formData.commissions, formData.instrumentType, formData.symbol]);
+  }, [formData.entryPrice, formData.exitPrice, formData.quantity, formData.fees, formData.commissions, formData.instrumentType, formData.symbol, formData.adjustedCost]);
 
   // Setup TradingView chart
   useEffect(() => {
     if (!chartContainerRef.current || !formData.symbol || !formData.date) return;
 
-    const chart = createChart(chartContainerRef.current, {
-      width: chartContainerRef.current.clientWidth,
-      height: 300,
-      layout: {
-        background: { color: "#ffffff" },
-        textColor: "#333",
-      },
-      grid: {
-        vertLines: { color: "#f0f0f0" },
-        horzLines: { color: "#f0f0f0" },
-      },
-      timeScale: {
-        timeVisible: true,
-        secondsVisible: false,
-      },
-    });
+    try {
+      const chart = createChart(chartContainerRef.current, {
+        width: chartContainerRef.current.clientWidth,
+        height: 300,
+        layout: {
+          backgroundColor: "#ffffff",
+          textColor: "#333",
+        },
+        grid: {
+          vertLines: { color: "#f0f0f0" },
+          horzLines: { color: "#f0f0f0" },
+        },
+        timeScale: {
+          timeVisible: true,
+          secondsVisible: false,
+        },
+      });
 
-    const candlestickSeries = chart.addCandlestickSeries();
+      const candlestickSeries = chart.addCandlestickSeries();
 
-    const mockData = [
-      { time: new Date(formData.date).getTime() / 1000 - 3600, open: formData.entryPrice * 0.98, high: formData.entryPrice * 1.02, low: formData.entryPrice * 0.95, close: formData.entryPrice },
-      { time: new Date(formData.date).getTime() / 1000, open: formData.entryPrice, high: Math.max(formData.entryPrice, formData.exitPrice) * 1.01, low: Math.min(formData.entryPrice, formData.exitPrice) * 0.99, close: formData.exitPrice },
-      { time: new Date(formData.date).getTime() / 1000 + 3600, open: formData.exitPrice, high: formData.exitPrice * 1.02, low: formData.exitPrice * 0.98, close: formData.exitPrice * 1.01 },
-    ];
+      const mockData = [
+        { time: new Date(formData.date).getTime() / 1000 - 3600, open: parseFloat(formData.entryPrice) * 0.98, high: parseFloat(formData.entryPrice) * 1.02, low: parseFloat(formData.entryPrice) * 0.95, close: parseFloat(formData.entryPrice) },
+        { time: new Date(formData.date).getTime() / 1000, open: parseFloat(formData.entryPrice), high: Math.max(parseFloat(formData.entryPrice), parseFloat(formData.exitPrice)) * 1.01, low: Math.min(parseFloat(formData.entryPrice), parseFloat(formData.exitPrice)) * 0.99, close: parseFloat(formData.exitPrice) },
+        { time: new Date(formData.date).getTime() / 1000 + 3600, open: parseFloat(formData.exitPrice), high: parseFloat(formData.exitPrice) * 1.02, low: parseFloat(formData.exitPrice) * 0.98, close: parseFloat(formData.exitPrice) * 1.01 },
+      ];
 
-    candlestickSeries.setData(mockData);
+      candlestickSeries.setData(mockData);
 
-    candlestickSeries.setMarkers([
-      {
-        time: new Date(formData.date).getTime() / 1000,
-        position: "belowBar",
-        color: "green",
-        shape: "arrowUp",
-        text: "Entry",
-      },
-      {
-        time: new Date(formData.date).getTime() / 1000,
-        position: "aboveBar",
-        color: "red",
-        shape: "arrowDown",
-        text: "Exit",
-      },
-    ]);
+      candlestickSeries.setMarkers([
+        {
+          time: new Date(formData.date).getTime() / 1000,
+          position: "belowBar",
+          color: "green",
+          shape: "arrowUp",
+          text: "Entry",
+        },
+        {
+          time: new Date(formData.date).getTime() / 1000,
+          position: "aboveBar",
+          color: "red",
+          shape: "arrowDown",
+          text: "Exit",
+        },
+      ]);
 
-    chart.timeScale().fitContent();
+      chart.timeScale().fitContent();
 
-    return () => {
-      chart.remove();
-    };
+      return () => {
+        chart.remove();
+      };
+    } catch (err) {
+      console.error("Error setting up chart:", err);
+      setError("Failed to load chart: " + err.message);
+    }
   }, [formData.symbol, formData.date, formData.entryPrice, formData.exitPrice]);
 
   const handleChange = (e) => {
@@ -292,7 +317,11 @@ const EditTrade = () => {
         exitPrice: parseFloat(formData.exitPrice) || 0,
         fees: parseFloat(formData.fees) || 0,
         commissions: parseFloat(formData.commissions) || 0,
+        adjustedCost: parseFloat(formData.adjustedCost) || 0,
+        zellaScale: formData.zellaScale,
         pnl: parseFloat(formData.pnl) || 0,
+        grossPnL: parseFloat(formData.grossPnL) || 0,
+        netROI: parseFloat(formData.netROI) || 0,
         result: parseFloat(formData.pnl) >= 0 ? "win" : "loss",
         tags: formData.tags ? formData.tags.split(",").map((tag) => tag.trim()) : [],
         tradeNote: formData.tradeNote,
@@ -469,6 +498,17 @@ const EditTrade = () => {
                 />
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Adjusted Cost</label>
+                <input
+                  type="number"
+                  name="adjustedCost"
+                  value={formData.adjustedCost}
+                  onChange={handleChange}
+                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                  placeholder="Enter adjusted cost"
+                />
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">MAE</label>
                 <input
                   type="text"
@@ -487,13 +527,42 @@ const EditTrade = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">P&L</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Gross P&L (Auto-Calculated)</label>
+                <input
+                  type="text"
+                  value={formData.grossPnL}
+                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-gray-100 dark:bg-zinc-700 text-gray-900 dark:text-gray-100"
+                  readOnly
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Net P&L (Auto-Calculated)</label>
                 <input
                   type="text"
                   name="pnl"
                   value={formData.pnl}
                   className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-gray-100 dark:bg-zinc-700 text-gray-900 dark:text-gray-100"
                   readOnly
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Net ROI (Auto-Calculated, %)</label>
+                <input
+                  type="text"
+                  value={formData.netROI}
+                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-gray-100 dark:bg-zinc-700 text-gray-900 dark:text-gray-100"
+                  readOnly
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Zella Scale</label>
+                <input
+                  type="text"
+                  name="zellaScale"
+                  value={formData.zellaScale}
+                  onChange={handleChange}
+                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                  placeholder="e.g., A+, B-, etc."
                 />
               </div>
 
