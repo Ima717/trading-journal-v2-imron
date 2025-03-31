@@ -121,7 +121,7 @@ const Dashboard = () => {
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-100 p-6 font-inter">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center mb-8">
+          <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center mb-6">
             <h1 className="text-2xl font-bold text-zinc-800 dark:text-white mb-2 sm:mb-0">
               📊 Welcome to IMAI Dashboard
             </h1>
@@ -172,38 +172,38 @@ const Dashboard = () => {
           ) : (
             <>
               {/* Stat Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-                <div className="max-w-[300px] w-full bg-white p-6 rounded-lg shadow-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                <div className="w-full bg-white p-6 rounded-lg shadow-sm">
                   <TotalTrades />
                 </div>
-                <div className="max-w-[300px] w-full bg-white p-6 rounded-lg shadow-sm">
+                <div className="w-full bg-white p-6 rounded-lg shadow-sm">
                   <WinRate />
                 </div>
-                <div className="max-w-[300px] w-full bg-white p-6 rounded-lg shadow-sm">
+                <div className="w-full bg-white p-6 rounded-lg shadow-sm">
                   <AvgPnL />
                 </div>
-                <div className="max-w-[300px] w-full bg-white p-6 rounded-lg shadow-sm">
+                <div className="w-full bg-white p-6 rounded-lg shadow-sm">
                   <ProfitFactor />
                 </div>
-                <div className="max-w-[300px] w-full bg-white p-6 rounded-lg shadow-sm">
+                <div className="w-full bg-white p-6 rounded-lg shadow-sm">
                   <DayWinPercent />
                 </div>
-                <div className="max-w-[300px] w-full bg-white p-6 rounded-lg shadow-sm">
+                <div className="w-full bg-white p-6 rounded-lg shadow-sm">
                   <IMAIScore />
                 </div>
-                <div className="max-w-[300px] w-full bg-white p-6 rounded-lg shadow-sm">
+                <div className="w-full bg-white p-6 rounded-lg shadow-sm">
                   <CurrentStreak />
                 </div>
-                <div className="max-w-[300px] w-full bg-white p-6 rounded-lg shadow-sm">
+                <div className="w-full bg-white p-6 rounded-lg shadow-sm">
                   <AvgWinLoss />
                 </div>
-                <div className="max-w-[300px] w-full bg-white p-6 rounded-lg shadow-sm">
+                <div className="w-full bg-white p-6 rounded-lg shadow-sm">
                   <WinLossStreaks />
                 </div>
               </div>
 
               {/* Charts */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
                 <div className="w-full bg-white p-6 rounded-lg shadow-sm">
                   <h2 className="text-xl font-bold mb-3 text-zinc-800 dark:text-white">📈 P&L Over Time</h2>
                   <PerformanceChart data={pnlData} />
