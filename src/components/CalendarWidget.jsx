@@ -31,7 +31,7 @@ const CalendarWidget = () => {
 
   const handleDateSelect = (value) => {
     const formatted = dayjs(value).format("YYYY-MM-DD");
-    setDateRange({ start> formatted, end: formatted });
+    setDateRange({ start: formatted, end: formatted });
   };
 
   const tileClassName = ({ date, view }) => {
