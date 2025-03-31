@@ -7,7 +7,6 @@ import { useAuth } from "../context/AuthContext";
 import { useFilters } from "../context/FilterContext";
 import { createChart } from "lightweight-charts";
 import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
 
 const EditTrade = () => {
   const { user } = useAuth();
