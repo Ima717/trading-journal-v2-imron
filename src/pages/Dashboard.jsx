@@ -8,6 +8,7 @@ import { useFilters } from "../context/FilterContext";
 import { useTheme } from "../context/ThemeContext";
 import dayjs from "dayjs";
 import { CircularProgressbar } from "react-circular-progressbar";
+import { motion } from "framer-motion";
 
 import TradeTable from "../components/TradeTable";
 import ChartTagPerformance from "../components/ChartTagPerformance";
@@ -259,17 +260,43 @@ const Dashboard = () => {
                   color={profitFactor >= 1 ? "text-green-600" : "text-red-500"}
                   tooltip="Gross Profit / Gross Loss"
                 />
-                <div className="bg-white p-6 rounded-lg shadow-sm w-full flex flex-col justify-center items-center">
-                  <h3 className="text-sm text-gray-600">Zella Score</h3>
-                  <div className="mt-2 w-24 h-24">
+                <div className="bg-white p-6 rounded-lg shadow-sm w-full flex flex-col justify-center items-center relative overflow-hidden">
+                  <h3 className="text-sm text-gray-600 mb-3">Zella Score</h3>
+                  <div className="w-28 h-28 relative">
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 0.5, ease: "easeOut" }}
+                      className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-200 to-blue-300 opacity-50 blur-xl"
+                    />
                     <CircularProgressbar
                       value={zellaScore}
                       text={`${zellaScore}`}
                       styles={{
-                        path: { stroke: "#007bff" },
-                        text: { fill: "#343a40", fontSize: "24px" },
+                        path: {
+                          stroke: `url(#zellaGradient)`,
+                          strokeWidth: 10,
+                          transition: "stroke-dashoffset 1s ease 0s",
+                        },
+                        trail: {
+                          stroke: "#e5e7eb",
+                          strokeWidth: 10,
+                        },
+                        text: {
+                          fill: "#343a40",
+                          fontSize: "24px",
+                          fontWeight: "bold",
+                        },
                       }}
                     />
+                    <svg style={{ height: 0, width: 0 }}>
+                      <defs>
+                        <linearGradient id="zellaGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" style={{ stopColor: "#007bff", stopOpacity: 1 }} />
+                          <stop offset="100%" style={{ stopColor: "#00c4ff", stopOpacity: 1 }} />
+                        </linearGradient>
+                      </defs>
+                    </svg>
                   </div>
                 </div>
                 <StatCard title="Current Day Streak" value={dayStreak} color="text-green-600" />
