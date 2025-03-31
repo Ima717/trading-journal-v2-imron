@@ -1,4 +1,3 @@
-// src/pages/Trades.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
@@ -21,12 +20,14 @@ const Trades = () => {
       }
 
       try {
-        console.log("Fetching trades for user:", user.uid); // Debug log
+        console.log("Fetching trades for user:", user.uid);
         const tradesCollection = collection(db, "users", user.uid, "trades");
         const tradesSnapshot = await getDocs(tradesCollection);
+
         const tradesList = tradesSnapshot.docs.map((doc) => {
           const data = doc.data();
-          // Ensure trade object has required fields
+          if (!data || typeof data !== "object") return null;
+
           return {
             id: doc.id,
             symbol: data.symbol || "Unknown",
@@ -38,15 +39,22 @@ const Trades = () => {
             pnl: data.pnl || 0,
             result: data.result || "Unknown",
             playbook: data.playbook || "",
-            ...data, // Include any additional fields
+            notes: data.notes || "",
+            ...data,
           };
         });
 
-        console.log("Fetched trades:", tradesList); // Debug log
+        // Remove invalid entries (null, undefined)
+        const validTrades = tradesList.filter((t) => t && t.symbol);
 
-        // Filter trades with safety checks
-        const filteredTrades = tradesList.filter((trade) => {
-          if (!trade) return false; // Skip undefined trades
+        // Optional debug: show malformed ones
+        const invalidTrades = tradesList.filter((t) => !t || !t.symbol);
+        if (invalidTrades.length > 0) {
+          console.warn("Invalid trades skipped:", invalidTrades);
+        }
+
+        // Filter with safety
+        const filteredTrades = validTrades.filter((trade) => {
           const matchesSymbol = filters.symbol ? trade.symbol === filters.symbol : true;
           const matchesResult = filters.result ? trade.result === filters.result : true;
           const matchesDate = filters.date ? trade.date === filters.date : true;
@@ -79,7 +87,7 @@ const Trades = () => {
     try {
       const tradeRef = doc(db, "users", user.uid, "trades", id);
       await deleteDoc(tradeRef);
-      setTrades(trades.filter((trade) => trade.id !== id));
+      setTrades((prev) => prev.filter((trade) => trade.id !== id));
       triggerRefresh();
     } catch (err) {
       console.error("Error deleting trade:", err);
@@ -101,7 +109,9 @@ const Trades = () => {
         </div>
         <div className="bg-white dark:bg-zinc-900 shadow rounded-2xl p-4 sm:p-6">
           {error && <p className="text-red-500 dark:text-red-400 mb-4">{error}</p>}
-          {trades.length === 0 && !error && <p className="text-gray-500 dark:text-gray-400">No trades found.</p>}
+          {trades.length === 0 && !error && (
+            <p className="text-gray-500 dark:text-gray-400">No trades found.</p>
+          )}
           {trades.length > 0 && (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
