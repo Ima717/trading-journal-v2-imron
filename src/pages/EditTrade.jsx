@@ -6,6 +6,8 @@ import { db } from "../utils/firebase";
 import { useAuth } from "../context/AuthContext";
 import { useFilters } from "../context/FilterContext";
 import { createChart } from "lightweight-charts";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 const EditTrade = () => {
   const { user } = useAuth();
@@ -24,7 +26,8 @@ const EditTrade = () => {
     commissions: "",
     pnl: 0,
     tags: "",
-    notes: "",
+    tradeNote: "", // Replacing "notes"
+    dailyJournal: "",
     playbook: "",
     tradeRating: 0,
     optionDetails: {
@@ -39,6 +42,7 @@ const EditTrade = () => {
       margin: "",
     },
   });
+  const [activeTab, setActiveTab] = useState("tradeNote");
   const [mae, setMae] = useState(0);
   const [mfe, setMfe] = useState(0);
   const [error, setError] = useState(null);
@@ -101,7 +105,8 @@ const EditTrade = () => {
             commissions: tradeData.commissions || "",
             pnl: tradeData.pnl || 0,
             tags: tradeData.tags ? tradeData.tags.join(", ") : "",
-            notes: tradeData.notes || "",
+            tradeNote: tradeData.tradeNote || tradeData.notes || "",
+            dailyJournal: tradeData.dailyJournal || "",
             playbook: tradeData.playbook || "",
             tradeRating: tradeData.tradeRating || 0,
             optionDetails: tradeData.optionDetails || {
@@ -137,7 +142,6 @@ const EditTrade = () => {
       const fees = parseFloat(formData.fees) || 0;
       const commissions = parseFloat(formData.commissions) || 0;
 
-      // Calculate PnL
       let calculatedPnL = 0;
       if (formData.instrumentType === "option") {
         calculatedPnL = ((exitPrice - entryPrice) * quantity * 100) - fees - commissions;
@@ -147,10 +151,9 @@ const EditTrade = () => {
         calculatedPnL = ticks * tickData.tickValue * quantity;
       }
 
-      // Calculate MAE/MFE (simplified: assuming linear price movement between entry and exit)
       const priceDiff = exitPrice - entryPrice;
-      const maeValue = priceDiff < 0 ? Math.abs(priceDiff) : 0; // MAE is the max loss
-      const mfeValue = priceDiff > 0 ? priceDiff : 0; // MFE is the max gain
+      const maeValue = priceDiff < 0 ? Math.abs(priceDiff) : 0;
+      const mfeValue = priceDiff > 0 ? priceDiff : 0;
 
       setFormData((prev) => ({ ...prev, pnl: calculatedPnL.toFixed(2) }));
       setMae(maeValue.toFixed(2));
@@ -183,7 +186,6 @@ const EditTrade = () => {
 
     const candlestickSeries = chart.addCandlestickSeries();
 
-    // Mock candlestick data (replace with real data in production)
     const mockData = [
       { time: new Date(formData.date).getTime() / 1000 - 3600, open: formData.entryPrice * 0.98, high: formData.entryPrice * 1.02, low: formData.entryPrice * 0.95, close: formData.entryPrice },
       { time: new Date(formData.date).getTime() / 1000, open: formData.entryPrice, high: Math.max(formData.entryPrice, formData.exitPrice) * 1.01, low: Math.min(formData.entryPrice, formData.exitPrice) * 0.99, close: formData.exitPrice },
@@ -192,7 +194,6 @@ const EditTrade = () => {
 
     candlestickSeries.setData(mockData);
 
-    // Add entry and exit markers
     candlestickSeries.setMarkers([
       {
         time: new Date(formData.date).getTime() / 1000,
@@ -294,7 +295,8 @@ const EditTrade = () => {
         pnl: parseFloat(formData.pnl) || 0,
         result: parseFloat(formData.pnl) >= 0 ? "win" : "loss",
         tags: formData.tags ? formData.tags.split(",").map((tag) => tag.trim()) : [],
-        notes: formData.notes,
+        tradeNote: formData.tradeNote,
+        dailyJournal: formData.dailyJournal,
         playbook: formData.playbook,
         tradeRating: formData.tradeRating,
       };
@@ -371,48 +373,49 @@ const EditTrade = () => {
           </button>
         </div>
         <div className="bg-white dark:bg-zinc-900 shadow rounded-2xl p-4 sm:p-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Symbol</label>
-              <select
-                name="symbol"
-                value={formData.symbol}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                required
-              >
-                <option value="">Select Symbol</option>
-                {symbols.map((symbol) => (
-                  <option key={symbol} value={symbol}>{symbol}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Instrument Type</label>
-              <select
-                name="instrumentType"
-                value={formData.instrumentType}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                required
-              >
-                <option value="option">Option</option>
-                <option value="future">Future</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label>
-              <input
-                type="date"
-                name="date"
-                value={formData.date}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                required
-              />
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-6">
+            {/* Left Column: Trade Stats */}
+            <div className="w-full sm:w-1/2 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Symbol</label>
+                <select
+                  name="symbol"
+                  value={formData.symbol}
+                  onChange={handleChange}
+                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                  required
+                >
+                  <option value="">Select Symbol</option>
+                  {symbols.map((symbol) => (
+                    <option key={symbol} value={symbol}>{symbol}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Instrument Type</label>
+                <select
+                  name="instrumentType"
+                  value={formData.instrumentType}
+                  onChange={handleChange}
+                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                  required
+                >
+                  <option value="option">Option</option>
+                  <option value="future">Future</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label>
+                <input
+                  type="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleChange}
+                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                  required
+                />
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Quantity</label>
                 <input
                   type="number"
@@ -423,9 +426,7 @@ const EditTrade = () => {
                   required
                 />
               </div>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Entry Price</label>
                 <input
                   type="number"
@@ -436,7 +437,7 @@ const EditTrade = () => {
                   required
                 />
               </div>
-              <div className="flex-1">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Exit Price</label>
                 <input
                   type="number"
@@ -447,9 +448,7 @@ const EditTrade = () => {
                   required
                 />
               </div>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Fees</label>
                 <input
                   type="number"
@@ -459,7 +458,7 @@ const EditTrade = () => {
                   className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
                 />
               </div>
-              <div className="flex-1">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Commissions</label>
                 <input
                   type="number"
@@ -469,10 +468,8 @@ const EditTrade = () => {
                   className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
                 />
               </div>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">MAE (Auto-Calculated)</label>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">MAE</label>
                 <input
                   type="text"
                   value={mae}
@@ -480,8 +477,8 @@ const EditTrade = () => {
                   readOnly
                 />
               </div>
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">MFE (Auto-Calculated)</label>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">MFE</label>
                 <input
                   type="text"
                   value={mfe}
@@ -489,234 +486,261 @@ const EditTrade = () => {
                   readOnly
                 />
               </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">P&L (Auto-Calculated)</label>
-              <input
-                type="text"
-                name="pnl"
-                value={formData.pnl}
-                className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-gray-100 dark:bg-zinc-700 text-gray-900 dark:text-gray-100"
-                readOnly
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Trade Chart</label>
-              <div ref={chartContainerRef} className="mt-1 border border-gray-300 dark:border-zinc-700 rounded-md"></div>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">P&L</label>
+                <input
+                  type="text"
+                  name="pnl"
+                  value={formData.pnl}
+                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-gray-100 dark:bg-zinc-700 text-gray-900 dark:text-gray-100"
+                  readOnly
+                />
+              </div>
 
-            {formData.instrumentType === "option" && (
-              <div className="space-y-4 border-t border-gray-200 dark:border-zinc-700 pt-4">
-                <h3 className="text-lg font-semibold text-zinc-800 dark:text-white">Option Details</h3>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Option Type</label>
-                  <select
-                    name="optionDetails.type"
-                    value={formData.optionDetails.type}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                  >
-                    <option value="call">Call</option>
-                    <option value="put">Put</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Strike Price</label>
-                  <input
-                    type="number"
-                    name="optionDetails.strikePrice"
-                    value={formData.optionDetails.strikePrice}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Expiration Date</label>
-                  <input
-                    type="date"
-                    name="optionDetails.expirationDate"
-                    value={formData.optionDetails.expirationDate}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                  />
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Multi-Leg Options</h4>
-                  {formData.optionDetails.legs.map((leg, index) => (
-                    <div key={index} className="flex flex-col sm:flex-row gap-2 mt-2">
-                      <select
-                        name={`leg.${index}.type`}
-                        value={leg.type}
-                        onChange={handleChange}
-                        className="block w-full sm:w-1/3 border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                      >
-                        <option value="call">Call</option>
-                        <option value="put">Put</option>
-                      </select>
-                      <input
-                        type="number"
-                        name={`leg.${index}.strikePrice`}
-                        value={leg.strikePrice}
-                        onChange={handleChange}
-                        placeholder="Strike Price"
-                        className="block w-full sm:w-1/3 border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                      />
-                      <input
-                        type="number"
-                        name={`leg.${index}.quantity`}
-                        value={leg.quantity}
-                        onChange={handleChange}
-                        placeholder="Quantity"
-                        className="block w-full sm:w-1/3 border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                      />
-                      {formData.optionDetails.legs.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeLeg(index)}
-                          className="text-red-500 hover:text-red-600 mt-2 sm:mt-0"
+              {formData.instrumentType === "option" && (
+                <div className="space-y-4 border-t border-gray-200 dark:border-zinc-700 pt-4">
+                  <h3 className="text-lg font-semibold text-zinc-800 dark:text-white">Option Details</h3>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Option Type</label>
+                    <select
+                      name="optionDetails.type"
+                      value={formData.optionDetails.type}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                    >
+                      <option value="call">Call</option>
+                      <option value="put">Put</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Strike Price</label>
+                    <input
+                      type="number"
+                      name="optionDetails.strikePrice"
+                      value={formData.optionDetails.strikePrice}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Expiration Date</label>
+                    <input
+                      type="date"
+                      name="optionDetails.expirationDate"
+                      value={formData.optionDetails.expirationDate}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Multi-Leg Options</h4>
+                    {formData.optionDetails.legs.map((leg, index) => (
+                      <div key={index} className="flex flex-col sm:flex-row gap-2 mt-2">
+                        <select
+                          name={`leg.${index}.type`}
+                          value={leg.type}
+                          onChange={handleChange}
+                          className="block w-full sm:w-1/3 border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
                         >
-                          Remove
-                        </button>
-                      )}
-                    </div>
+                          <option value="call">Call</option>
+                          <option value="put">Put</option>
+                        </select>
+                        <input
+                          type="number"
+                          name={`leg.${index}.strikePrice`}
+                          value={leg.strikePrice}
+                          onChange={handleChange}
+                          placeholder="Strike Price"
+                          className="block w-full sm:w-1/3 border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                        />
+                        <input
+                          type="number"
+                          name={`leg.${index}.quantity`}
+                          value={leg.quantity}
+                          onChange={handleChange}
+                          placeholder="Quantity"
+                          className="block w-full sm:w-1/3 border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                        />
+                        {formData.optionDetails.legs.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeLeg(index)}
+                            className="text-red-500 hover:text-red-600 mt-2 sm:mt-0"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={addLeg}
+                      className="mt-2 text-blue-500 hover:text-blue-600"
+                    >
+                      Add Leg
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {formData.instrumentType === "future" && (
+                <div className="space-y-4 border-t border-gray-200 dark:border-zinc-700 pt-4">
+                  <h3 className="text-lg font-semibold text-zinc-800 dark:text-white">Future Details</h3>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Contract Type</label>
+                    <input
+                      type="text"
+                      name="futureDetails.contractType"
+                      value={formData.futureDetails.contractType}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                      placeholder="e.g., ES (E-mini S&P 500)"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Contract Size</label>
+                    <input
+                      type="number"
+                      name="futureDetails.contractSize"
+                      value={formData.futureDetails.contractSize}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Margin</label>
+                    <input
+                      type="number"
+                      name="futureDetails.margin"
+                      value={formData.futureDetails.margin}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Right Column: Chart, Notes, Tags, Playbook, Rating */}
+            <div className="w-full sm:w-1/2 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Trade Chart</label>
+                <div ref={chartContainerRef} className="mt-1 border border-gray-300 dark:border-zinc-700 rounded-md"></div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
+                <div className="flex gap-2 mb-2">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("tradeNote")}
+                    className={`px-4 py-2 rounded ${activeTab === "tradeNote" ? "bg-blue-500 text-white" : "bg-gray-200 dark:bg-zinc-700 text-gray-800 dark:text-gray-200"}`}
+                  >
+                    Trade Note
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("dailyJournal")}
+                    className={`px-4 py-2 rounded ${activeTab === "dailyJournal" ? "bg-blue-500 text-white" : "bg-gray-200 dark:bg-zinc-700 text-gray-800 dark:text-gray-200"}`}
+                  >
+                    Daily Journal
+                  </button>
+                </div>
+                <ReactQuill
+                  value={activeTab === "tradeNote" ? formData.tradeNote : formData.dailyJournal}
+                  onChange={(value) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      [activeTab]: value,
+                    }))
+                  }
+                  theme="snow"
+                  className="bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tags (comma-separated or select predefined)</label>
+                <input
+                  type="text"
+                  name="tags"
+                  value={formData.tags}
+                  onChange={handleChange}
+                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                  placeholder="e.g., Scalp, Breakout"
+                />
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {predefinedTags.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => {
+                        const tags = formData.tags ? formData.tags.split(",").map((t) => t.trim()) : [];
+                        if (!tags.includes(tag)) {
+                          setFormData((prev) => ({ ...prev, tags: [...tags, tag].join(", ") }));
+                        }
+                      }}
+                      className="bg-gray-200 dark:bg-zinc-700 text-gray-800 dark:text-gray-200 px-2 py-1 rounded text-sm"
+                    >
+                      {tag}
+                    </button>
                   ))}
-                  <button
-                    type="button"
-                    onClick={addLeg}
-                    className="mt-2 text-blue-500 hover:text-blue-600"
-                  >
-                    Add Leg
-                  </button>
                 </div>
               </div>
-            )}
-
-            {formData.instrumentType === "future" && (
-              <div className="space-y-4 border-t border-gray-200 dark:border-zinc-700 pt-4">
-                <h3 className="text-lg font-semibold text-zinc-800 dark:text-white">Future Details</h3>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Contract Type</label>
-                  <input
-                    type="text"
-                    name="futureDetails.contractType"
-                    value={formData.futureDetails.contractType}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                    placeholder="e.g., ES (E-mini S&P 500)"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Contract Size</label>
-                  <input
-                    type="number"
-                    name="futureDetails.contractSize"
-                    value={formData.futureDetails.contractSize}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Margin</label>
-                  <input
-                    type="number"
-                    name="futureDetails.margin"
-                    value={formData.futureDetails.margin}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                  />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Playbook</label>
+                <select
+                  name="playbook"
+                  value={formData.playbook}
+                  onChange={handleChange}
+                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                >
+                  <option value="">Select Playbook</option>
+                  {playbooks.map((playbook) => (
+                    <option key={playbook} value={playbook}>{playbook}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Trade Rating</label>
+                <div className="flex gap-1 mt-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => handleRatingChange(star)}
+                      className={`text-2xl ${formData.tradeRating >= star ? "text-yellow-400" : "text-gray-300"}`}
+                    >
+                      ★
+                    </button>
+                  ))}
                 </div>
               </div>
-            )}
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tags (comma-separated or select predefined)</label>
-              <input
-                type="text"
-                name="tags"
-                value={formData.tags}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                placeholder="e.g., Scalp, Breakout"
-              />
-              <div className="mt-2 flex flex-wrap gap-2">
-                {predefinedTags.map((tag) => (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() => {
-                      const tags = formData.tags ? formData.tags.split(",").map((t) => t.trim()) : [];
-                      if (!tags.includes(tag)) {
-                        setFormData((prev) => ({ ...prev, tags: [...tags, tag].join(", ") }));
-                      }
-                    }}
-                    className="bg-gray-200 dark:bg-zinc-700 text-gray-800 dark:text-gray-200 px-2 py-1 rounded text-sm"
-                  >
-                    {tag}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Playbook</label>
-              <select
-                name="playbook"
-                value={formData.playbook}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-              >
-                <option value="">Select Playbook</option>
-                {playbooks.map((playbook) => (
-                  <option key={playbook} value={playbook}>{playbook}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Trade Rating</label>
-              <div className="flex gap-1 mt-1">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    type="button"
-                    onClick={() => handleRatingChange(star)}
-                    className={`text-2xl ${formData.tradeRating >= star ? "text-yellow-400" : "text-gray-300"}`}
-                  >
-                    ★
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
-              <textarea
-                name="notes"
-                value={formData.notes}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-              />
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <button
-                type="submit"
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded w-full sm:w-auto"
-              >
-                Save
-              </button>
-              <button
-                type="button"
-                onClick={handleDelete}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded w-full sm:w-auto"
-              >
-                Delete
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate("/trades")}
-                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded w-full sm:w-auto"
-              >
-                Cancel
-              </button>
             </div>
           </form>
+
+          {/* Buttons Below */}
+          <div className="mt-6 flex flex-col sm:flex-row gap-2">
+            <button
+              type="submit"
+              onClick={handleSubmit}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded w-full sm:w-auto"
+            >
+              Save
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded w-full sm:w-auto"
+            >
+              Delete
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/trades")}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded w-full sm:w-auto"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       </div>
     </div>
