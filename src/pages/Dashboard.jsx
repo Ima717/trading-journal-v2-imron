@@ -260,9 +260,9 @@ const Dashboard = () => {
                   color={profitFactor >= 1 ? "text-green-600" : "text-red-500"}
                   tooltip="Gross Profit / Gross Loss"
                 />
-                <div className="bg-white p-6 rounded-lg shadow-sm w-full flex flex-col justify-center items-center relative overflow-hidden">
+                <div className="bg-white p-6 rounded-lg shadow-sm w-full flex flex-col justify-center items-center relative">
                   <h3 className="text-sm text-gray-600 mb-3">Zella Score</h3>
-                  <div className="w-28 h-28 relative">
+                  <div className="w-32 h-32 relative flex items-center justify-center">
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
@@ -286,6 +286,13 @@ const Dashboard = () => {
                           fill: "#343a40",
                           fontSize: "24px",
                           fontWeight: "bold",
+                          transform: "translate(-50%, -50%)",
+                          dominantBaseline: "middle",
+                          textAnchor: "middle",
+                        },
+                        root: {
+                          width: "100%",
+                          height: "100%",
                         },
                       }}
                     />
