@@ -19,16 +19,28 @@ const EditTrade = () => {
     symbol: "",
     instrumentType: "option",
     date: "",
+    side: "long",
+    optionsTraded: "",
     quantity: "",
     entryPrice: "",
     exitPrice: "",
     fees: "",
     commissions: "",
-    adjustedCost: "",
-    zellaScale: "",
+    netRoi: 0,
+    grossPnl: 0,
+    adjustedCost: 0,
+    zellaScale: { mae: 0, mfe: 0 },
+    profitTarget: "",
+    stopLoss: "",
+    initialTarget: "",
+    tradeRisk: "",
+    plannedRMultiple: "",
+    realizedRMultiple: "",
+    averageEntry: "",
+    averageExit: "",
+    entryTime: "",
+    exitTime: "",
     pnl: 0,
-    grossPnL: 0,
-    netROI: 0,
     tags: "",
     tradeNote: "",
     dailyJournal: "",
@@ -46,10 +58,11 @@ const EditTrade = () => {
       margin: "",
     },
   });
-  const [activeTab, setActiveTab] = useState("tradeNote");
   const [mae, setMae] = useState(0);
   const [mfe, setMfe] = useState(0);
+  const [activeTab, setActiveTab] = useState("tradeNote");
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const symbols = [
     "SPY", "QQQ", "IWM", "AAPL", "MSFT", "NVDA", "TSLA", "GOOGL", "AMZN", "META",
@@ -91,30 +104,45 @@ const EditTrade = () => {
   useEffect(() => {
     const fetchTrade = async () => {
       if (!user || !id) {
-        setError("User or trade ID not found.");
+        setError("User or trade ID not found. Please sign in or check the trade ID.");
+        setLoading(false);
         return;
       }
 
       try {
+        console.log("Fetching trade with ID:", id, "for user:", user.uid);
         const tradeRef = doc(db, "users", user.uid, "trades", id);
         const tradeSnap = await getDoc(tradeRef);
 
         if (tradeSnap.exists()) {
           const tradeData = tradeSnap.data();
+          console.log("Trade data fetched:", tradeData);
           setFormData({
             symbol: tradeData.symbol || "",
             instrumentType: tradeData.instrumentType || "option",
             date: tradeData.date || "",
+            side: tradeData.side || "long",
+            optionsTraded: tradeData.optionsTraded || "",
             quantity: tradeData.quantity || "",
             entryPrice: tradeData.entryPrice || "",
             exitPrice: tradeData.exitPrice || "",
             fees: tradeData.fees || "",
             commissions: tradeData.commissions || "",
-            adjustedCost: tradeData.adjustedCost || "",
-            zellaScale: tradeData.zellaScale || "",
+            netRoi: tradeData.netRoi || 0,
+            grossPnl: tradeData.grossPnl || 0,
+            adjustedCost: tradeData.adjustedCost || 0,
+            zellaScale: tradeData.zellaScale || { mae: 0, mfe: 0 },
+            profitTarget: tradeData.profitTarget || "",
+            stopLoss: tradeData.stopLoss || "",
+            initialTarget: tradeData.initialTarget || "",
+            tradeRisk: tradeData.tradeRisk || "",
+            plannedRMultiple: tradeData.plannedRMultiple || "",
+            realizedRMultiple: tradeData.realizedRMultiple || "",
+            averageEntry: tradeData.averageEntry || "",
+            averageExit: tradeData.averageExit || "",
+            entryTime: tradeData.entryTime || "",
+            exitTime: tradeData.exitTime || "",
             pnl: tradeData.pnl || 0,
-            grossPnL: tradeData.grossPnL || 0,
-            netROI: tradeData.netROI || 0,
             tags: tradeData.tags ? tradeData.tags.join(", ") : "",
             tradeNote: tradeData.tradeNote || tradeData.notes || "",
             dailyJournal: tradeData.dailyJournal || "",
@@ -133,18 +161,20 @@ const EditTrade = () => {
             },
           });
         } else {
-          setError("Trade not found.");
+          setError("Trade not found. It may have been deleted or the ID is incorrect.");
         }
       } catch (err) {
         console.error("Error fetching trade:", err);
-        setError("Failed to load trade. Please try again.");
+        setError(`Failed to load trade: ${err.message}`);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchTrade();
   }, [user, id]);
 
-  // Calculate PnL, MAE, MFE, Gross P&L, Net ROI, etc.
+  // Calculate PnL, MAE, MFE, Net ROI, Gross P&L, Adjusted Cost, Zella Scale
   useEffect(() => {
     const calculateMetrics = () => {
       const entryPrice = parseFloat(formData.entryPrice) || 0;
@@ -152,95 +182,107 @@ const EditTrade = () => {
       const quantity = parseFloat(formData.quantity) || 0;
       const fees = parseFloat(formData.fees) || 0;
       const commissions = parseFloat(formData.commissions) || 0;
-      const adjustedCost = parseFloat(formData.adjustedCost) || (entryPrice * quantity * 100);
 
-      let grossPnL = 0;
+      // Calculate Gross P&L
+      let grossPnl = 0;
       if (formData.instrumentType === "option") {
-        grossPnL = (exitPrice - entryPrice) * quantity * 100;
+        grossPnl = (exitPrice - entryPrice) * quantity * 100;
       } else if (formData.instrumentType === "future") {
         const tickData = futuresTickValues[formData.symbol] || { tickSize: 0.25, tickValue: 12.50 };
         const ticks = (exitPrice - entryPrice) / tickData.tickSize;
-        grossPnL = ticks * tickData.tickValue * quantity;
+        grossPnl = ticks * tickData.tickValue * quantity;
       }
 
-      const netPnL = grossPnL - fees - commissions;
-      const netROI = adjustedCost !== 0 ? (netPnL / adjustedCost) * 100 : 0;
+      // Calculate Net P&L
+      const netPnl = grossPnl - fees - commissions;
 
+      // Calculate Adjusted Cost
+      const adjustedCost = entryPrice * quantity * (formData.instrumentType === "option" ? 100 : 1);
+
+      // Calculate Net ROI
+      const netRoi = adjustedCost !== 0 ? (netPnl / adjustedCost) * 100 : 0;
+
+      // Calculate MAE/MFE (simplified: assuming linear price movement between entry and exit)
       const priceDiff = exitPrice - entryPrice;
-      const maeValue = priceDiff < 0 ? Math.abs(priceDiff) : 0;
-      const mfeValue = priceDiff > 0 ? priceDiff : 0;
+      const maeValue = priceDiff < 0 ? Math.abs(priceDiff) : 0; // MAE is the max loss
+      const mfeValue = priceDiff > 0 ? priceDiff : 0; // MFE is the max gain
+
+      // Calculate Zella Scale (simplified: using MAE/MFE as a ratio)
+      const zellaScale = {
+        mae: maeValue,
+        mfe: mfeValue,
+      };
 
       setFormData((prev) => ({
         ...prev,
-        grossPnL: grossPnL.toFixed(2),
-        netROI: netROI.toFixed(2),
-        pnl: netPnL.toFixed(2),
+        netRoi: netRoi.toFixed(2),
+        grossPnl: grossPnl.toFixed(2),
+        adjustedCost: adjustedCost.toFixed(2),
+        zellaScale,
+        pnl: netPnl.toFixed(2),
       }));
       setMae(maeValue.toFixed(2));
       setMfe(mfeValue.toFixed(2));
     };
 
     calculateMetrics();
-  }, [formData.entryPrice, formData.exitPrice, formData.quantity, formData.fees, formData.commissions, formData.instrumentType, formData.symbol, formData.adjustedCost]);
+  }, [formData.entryPrice, formData.exitPrice, formData.quantity, formData.fees, formData.commissions, formData.instrumentType, formData.symbol]);
 
   // Setup TradingView chart
   useEffect(() => {
     if (!chartContainerRef.current || !formData.symbol || !formData.date) return;
 
-    try {
-      const chart = createChart(chartContainerRef.current, {
-        width: chartContainerRef.current.clientWidth,
-        height: 300,
-        layout: {
-          backgroundColor: "#ffffff",
-          textColor: "#333",
-        },
-        grid: {
-          vertLines: { color: "#f0f0f0" },
-          horzLines: { color: "#f0f0f0" },
-        },
-        timeScale: {
-          timeVisible: true,
-          secondsVisible: false,
-        },
-      });
+    const chart = createChart(chartContainerRef.current, {
+      width: chartContainerRef.current.clientWidth,
+      height: 300,
+      layout: {
+        background: { color: "#ffffff" },
+        textColor: "#333",
+      },
+      grid: {
+        vertLines: { color: "#f0f0f0" },
+        horzLines: { color: "#f0f0f0" },
+      },
+      timeScale: {
+        timeVisible: true,
+        secondsVisible: false,
+      },
+    });
 
-      const candlestickSeries = chart.addCandlestickSeries();
+    const candlestickSeries = chart.addCandlestickSeries();
 
-      const mockData = [
-        { time: new Date(formData.date).getTime() / 1000 - 3600, open: parseFloat(formData.entryPrice) * 0.98, high: parseFloat(formData.entryPrice) * 1.02, low: parseFloat(formData.entryPrice) * 0.95, close: parseFloat(formData.entryPrice) },
-        { time: new Date(formData.date).getTime() / 1000, open: parseFloat(formData.entryPrice), high: Math.max(parseFloat(formData.entryPrice), parseFloat(formData.exitPrice)) * 1.01, low: Math.min(parseFloat(formData.entryPrice), parseFloat(formData.exitPrice)) * 0.99, close: parseFloat(formData.exitPrice) },
-        { time: new Date(formData.date).getTime() / 1000 + 3600, open: parseFloat(formData.exitPrice), high: parseFloat(formData.exitPrice) * 1.02, low: parseFloat(formData.exitPrice) * 0.98, close: parseFloat(formData.exitPrice) * 1.01 },
-      ];
+    // Mock candlestick data (replace with real data in production)
+    const mockData = [
+      { time: new Date(formData.date).getTime() / 1000 - 3600, open: parseFloat(formData.entryPrice) * 0.98, high: parseFloat(formData.entryPrice) * 1.02, low: parseFloat(formData.entryPrice) * 0.95, close: parseFloat(formData.entryPrice) },
+      { time: new Date(formData.date).getTime() / 1000, open: parseFloat(formData.entryPrice), high: Math.max(parseFloat(formData.entryPrice), parseFloat(formData.exitPrice)) * 1.01, low: Math.min(parseFloat(formData.entryPrice), parseFloat(formData.exitPrice)) * 0.99, close: parseFloat(formData.exitPrice) },
+      { time: new Date(formData.date).getTime() / 1000 + 3600, open: parseFloat(formData.exitPrice), high: parseFloat(formData.exitPrice) * 1.02, low: parseFloat(formData.exitPrice) * 0.98, close: parseFloat(formData.exitPrice) * 1.01 },
+    ];
 
-      candlestickSeries.setData(mockData);
+    candlestickSeries.setData(mockData);
 
-      candlestickSeries.setMarkers([
-        {
-          time: new Date(formData.date).getTime() / 1000,
-          position: "belowBar",
-          color: "green",
-          shape: "arrowUp",
-          text: "Entry",
-        },
-        {
-          time: new Date(formData.date).getTime() / 1000,
-          position: "aboveBar",
-          color: "red",
-          shape: "arrowDown",
-          text: "Exit",
-        },
-      ]);
+    // Add entry and exit markers
+    candlestickSeries.setMarkers([
+      {
+        time: new Date(formData.date).getTime() / 1000,
+        position: "belowBar",
+        color: "green",
+        shape: "arrowUp",
+        text: "Entry",
+      },
+      {
+        time: new Date(formData.date).getTime() / 1000,
+        position: "aboveBar",
+        color: "red",
+        shape: "arrowDown",
+        text: "Exit",
+      },
+    ]);
 
-      chart.timeScale().fitContent();
+    chart.timeScale().fitContent();
 
-      return () => {
-        chart.remove();
-      };
-    } catch (err) {
-      console.error("Error setting up chart:", err);
-      setError("Failed to load chart: " + err.message);
-    }
+    return () => {
+      chart.remove();
+    };
   }, [formData.symbol, formData.date, formData.entryPrice, formData.exitPrice]);
 
   const handleChange = (e) => {
@@ -275,6 +317,10 @@ const EditTrade = () => {
     }
   };
 
+  const handleNotesChange = (value, field) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
   const addLeg = () => {
     setFormData((prev) => ({
       ...prev,
@@ -304,7 +350,10 @@ const EditTrade = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!user || !id) return;
+    if (!user || !id) {
+      setError("User or trade ID not found. Please sign in or check the trade ID.");
+      return;
+    }
 
     try {
       const tradeRef = doc(db, "users", user.uid, "trades", id);
@@ -312,16 +361,28 @@ const EditTrade = () => {
         symbol: formData.symbol,
         instrumentType: formData.instrumentType,
         date: formData.date,
+        side: formData.side,
+        optionsTraded: parseInt(formData.optionsTraded) || 0,
         quantity: parseFloat(formData.quantity) || 0,
         entryPrice: parseFloat(formData.entryPrice) || 0,
         exitPrice: parseFloat(formData.exitPrice) || 0,
         fees: parseFloat(formData.fees) || 0,
         commissions: parseFloat(formData.commissions) || 0,
+        netRoi: parseFloat(formData.netRoi) || 0,
+        grossPnl: parseFloat(formData.grossPnl) || 0,
         adjustedCost: parseFloat(formData.adjustedCost) || 0,
         zellaScale: formData.zellaScale,
+        profitTarget: parseFloat(formData.profitTarget) || 0,
+        stopLoss: parseFloat(formData.stopLoss) || 0,
+        initialTarget: parseFloat(formData.initialTarget) || 0,
+        tradeRisk: parseFloat(formData.tradeRisk) || 0,
+        plannedRMultiple: parseFloat(formData.plannedRMultiple) || 0,
+        realizedRMultiple: parseFloat(formData.realizedRMultiple) || 0,
+        averageEntry: parseFloat(formData.averageEntry) || 0,
+        averageExit: parseFloat(formData.averageExit) || 0,
+        entryTime: formData.entryTime,
+        exitTime: formData.exitTime,
         pnl: parseFloat(formData.pnl) || 0,
-        grossPnL: parseFloat(formData.grossPnL) || 0,
-        netROI: parseFloat(formData.netROI) || 0,
         result: parseFloat(formData.pnl) >= 0 ? "win" : "loss",
         tags: formData.tags ? formData.tags.split(",").map((tag) => tag.trim()) : [],
         tradeNote: formData.tradeNote,
@@ -354,12 +415,15 @@ const EditTrade = () => {
       navigate("/trades");
     } catch (err) {
       console.error("Error updating trade:", err);
-      setError("Failed to update trade. Please try again.");
+      setError(`Failed to update trade: ${err.message}`);
     }
   };
 
   const handleDelete = async () => {
-    if (!user || !id) return;
+    if (!user || !id) {
+      setError("User or trade ID not found. Please sign in or check the trade ID.");
+      return;
+    }
     if (!window.confirm("Are you sure you want to delete this trade?")) return;
 
     try {
@@ -369,9 +433,19 @@ const EditTrade = () => {
       navigate("/trades");
     } catch (err) {
       console.error("Error deleting trade:", err);
-      setError("Failed to delete trade. Please try again.");
+      setError(`Failed to delete trade: ${err.message}`);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:bg-gradient-to-br dark:from-zinc-900 dark:to-zinc-800 p-4 sm:p-6">
+        <div className="max-w-5xl mx-auto">
+          <p className="text-gray-500 dark:text-gray-400">Loading trade data...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (
@@ -391,184 +465,334 @@ const EditTrade = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:bg-gradient-to-br dark:from-zinc-900 dark:to-zinc-800 p-4 sm:p-6">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-          <h1 className="text-2xl font-bold text-zinc-800 dark:text-white mb-2 sm:mb-0">Edit Trade</h1>
-          <button
-            onClick={() => navigate("/trades")}
-            className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
-          >
-            Back to Trades
-          </button>
+          <h1 className="text-2xl font-bold text-zinc-800 dark:text-white mb-2 sm:mb-0">{formData.symbol} {formData.date}</h1>
+          <div className="flex gap-2">
+            <button
+              onClick={() => navigate("/")}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
+            >
+              Back to Dashboard
+            </button>
+            <button
+              onClick={() => navigate("/trades")}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
+            >
+              Back to Trades
+            </button>
+          </div>
         </div>
-        <div className="bg-white dark:bg-zinc-900 shadow rounded-2xl p-4 sm:p-6">
-          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-6">
-            {/* Left Column: Trade Stats */}
-            <div className="w-full sm:w-1/2 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Symbol</label>
-                <select
-                  name="symbol"
-                  value={formData.symbol}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                  required
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Left Column: Trade Stats */}
+          <div className="lg:w-1/2">
+            <div className="bg-white dark:bg-zinc-900 shadow rounded-2xl p-4 sm:p-6">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Net P&L</label>
+                    <input
+                      type="text"
+                      value={formData.pnl}
+                      className={`mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-gray-100 dark:bg-zinc-700 text-gray-900 dark:text-gray-100 ${formData.pnl >= 0 ? "text-green-600" : "text-red-500"}`}
+                      readOnly
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Side</label>
+                    <select
+                      name="side"
+                      value={formData.side}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                    >
+                      <option value="long">Long</option>
+                      <option value="short">Short</option>
+                    </select>
+                  </div>
+                  {formData.instrumentType === "option" && (
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Options Traded</label>
+                      <input
+                        type="number"
+                        name="optionsTraded"
+                        value={formData.optionsTraded}
+                        onChange={handleChange}
+                        className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Commissions & Fees</label>
+                    <input
+                      type="text"
+                      value={(parseFloat(formData.fees) + parseFloat(formData.commissions)).toFixed(2)}
+                      className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-gray-100 dark:bg-zinc-700 text-gray-900 dark:text-gray-100"
+                      readOnly
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Net ROI</label>
+                    <input
+                      type="text"
+                      value={`${formData.netRoi}%`}
+                      className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-gray-100 dark:bg-zinc-700 text-gray-900 dark:text-gray-100"
+                      readOnly
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Gross P&L</label>
+                    <input
+                      type="text"
+                      value={formData.grossPnl}
+                      className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-gray-100 dark:bg-zinc-700 text-gray-900 dark:text-gray-100"
+                      readOnly
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Adjusted Cost</label>
+                    <input
+                      type="text"
+                      value={formData.adjustedCost}
+                      className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-gray-100 dark:bg-zinc-700 text-gray-900 dark:text-gray-100"
+                      readOnly
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Playbook</label>
+                    <select
+                      name="playbook"
+                      value={formData.playbook}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                    >
+                      <option value="">Select Playbook</option>
+                      {playbooks.map((playbook) => (
+                        <option key={playbook} value={playbook}>{playbook}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Zella Scale (MAE / MFE)</label>
+                    <input
+                      type="text"
+                      value={`${formData.zellaScale.mae} / ${formData.zellaScale.mfe}`}
+                      className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-gray-100 dark:bg-zinc-700 text-gray-900 dark:text-gray-100"
+                      readOnly
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Trade Rating</label>
+                    <div className="flex gap-1 mt-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => handleRatingChange(star)}
+                          className={`text-2xl ${formData.tradeRating >= star ? "text-yellow-400" : "text-gray-300"}`}
+                        >
+                          ★
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Profit Target</label>
+                    <input
+                      type="number"
+                      name="profitTarget"
+                      value={formData.profitTarget}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Stop Loss</label>
+                    <input
+                      type="number"
+                      name="stopLoss"
+                      value={formData.stopLoss}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Initial Target</label>
+                    <input
+                      type="number"
+                      name="initialTarget"
+                      value={formData.initialTarget}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Trade Risk</label>
+                    <input
+                      type="number"
+                      name="tradeRisk"
+                      value={formData.tradeRisk}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Planned R-Multiple</label>
+                    <input
+                      type="number"
+                      name="plannedRMultiple"
+                      value={formData.plannedRMultiple}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Realized R-Multiple</label>
+                    <input
+                      type="number"
+                      name="realizedRMultiple"
+                      value={formData.realizedRMultiple}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Average Entry</label>
+                    <input
+                      type="number"
+                      name="averageEntry"
+                      value={formData.averageEntry}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Average Exit</label>
+                    <input
+                      type="number"
+                      name="averageExit"
+                      value={formData.averageExit}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Entry Time</label>
+                    <input
+                      type="time"
+                      name="entryTime"
+                      value={formData.entryTime}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Exit Time</label>
+                    <input
+                      type="time"
+                      name="exitTime"
+                      value={formData.exitTime}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+          {/* Right Column: Chart and Notes */}
+          <div className="lg:w-1/2 space-y-6">
+            <div className="bg-white dark:bg-zinc-900 shadow rounded-2xl p-4 sm:p-6">
+              <h3 className="text-lg font-semibold text-zinc-800 dark:text-white mb-4">Trade Chart</h3>
+              <div ref={chartContainerRef} className="border border-gray-300 dark:border-zinc-700 rounded-md"></div>
+            </div>
+            <div className="bg-white dark:bg-zinc-900 shadow rounded-2xl p-4 sm:p-6">
+              <div className="flex border-b border-gray-200 dark:border-zinc-700 mb-4">
+                <button
+                  onClick={() => setActiveTab("tradeNote")}
+                  className={`px-4 py-2 font-medium ${activeTab === "tradeNote" ? "border-b-2 border-blue-500 text-blue-500" : "text-gray-500"}`}
                 >
-                  <option value="">Select Symbol</option>
-                  {symbols.map((symbol) => (
-                    <option key={symbol} value={symbol}>{symbol}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Instrument Type</label>
-                <select
-                  name="instrumentType"
-                  value={formData.instrumentType}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                  required
+                  Trade Note
+                </button>
+                <button
+                  onClick={() => setActiveTab("dailyJournal")}
+                  className={`px-4 py-2 font-medium ${activeTab === "dailyJournal" ? "border-b-2 border-blue-500 text-blue-500" : "text-gray-500"}`}
                 >
-                  <option value="option">Option</option>
-                  <option value="future">Future</option>
-                </select>
+                  Daily Journal
+                </button>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label>
-                <input
-                  type="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                  required
+              {activeTab === "tradeNote" ? (
+                <ReactQuill
+                  value={formData.tradeNote}
+                  onChange={(value) => handleNotesChange(value, "tradeNote")}
+                  className="bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Quantity</label>
-                <input
-                  type="number"
-                  name="quantity"
-                  value={formData.quantity}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                  required
+              ) : (
+                <ReactQuill
+                  value={formData.dailyJournal}
+                  onChange={(value) => handleNotesChange(value, "dailyJournal")}
+                  className="bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
                 />
+              )}
+            </div>
+            <div className="bg-white dark:bg-zinc-900 shadow rounded-2xl p-4 sm:p-6">
+              <h3 className="text-lg font-semibold text-zinc-800 dark:text-white mb-4">Tags</h3>
+              <input
+                type="text"
+                name="tags"
+                value={formData.tags}
+                onChange={handleChange}
+                className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                placeholder="e.g., Scalp, Breakout"
+              />
+              <div className="mt-2 flex flex-wrap gap-2">
+                {predefinedTags.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => {
+                      const tags = formData.tags ? formData.tags.split(",").map((t) => t.trim()) : [];
+                      if (!tags.includes(tag)) {
+                        setFormData((prev) => ({ ...prev, tags: [...tags, tag].join(", ") }));
+                      }
+                    }}
+                    className="bg-gray-200 dark:bg-zinc-700 text-gray-800 dark:text-gray-200 px-2 py-1 rounded text-sm"
+                  >
+                    {tag}
+                  </button>
+                ))}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Entry Price</label>
-                <input
-                  type="number"
-                  name="entryPrice"
-                  value={formData.entryPrice}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Exit Price</label>
-                <input
-                  type="number"
-                  name="exitPrice"
-                  value={formData.exitPrice}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Fees</label>
-                <input
-                  type="number"
-                  name="fees"
-                  value={formData.fees}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Commissions</label>
-                <input
-                  type="number"
-                  name="commissions"
-                  value={formData.commissions}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Adjusted Cost</label>
-                <input
-                  type="number"
-                  name="adjustedCost"
-                  value={formData.adjustedCost}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                  placeholder="Enter adjusted cost"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">MAE</label>
-                <input
-                  type="text"
-                  value={mae}
-                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-gray-100 dark:bg-zinc-700 text-gray-900 dark:text-gray-100"
-                  readOnly
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">MFE</label>
-                <input
-                  type="text"
-                  value={mfe}
-                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-gray-100 dark:bg-zinc-700 text-gray-900 dark:text-gray-100"
-                  readOnly
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Gross P&L (Auto-Calculated)</label>
-                <input
-                  type="text"
-                  value={formData.grossPnL}
-                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-gray-100 dark:bg-zinc-700 text-gray-900 dark:text-gray-100"
-                  readOnly
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Net P&L (Auto-Calculated)</label>
-                <input
-                  type="text"
-                  name="pnl"
-                  value={formData.pnl}
-                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-gray-100 dark:bg-zinc-700 text-gray-900 dark:text-gray-100"
-                  readOnly
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Net ROI (Auto-Calculated, %)</label>
-                <input
-                  type="text"
-                  value={formData.netROI}
-                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-gray-100 dark:bg-zinc-700 text-gray-900 dark:text-gray-100"
-                  readOnly
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Zella Scale</label>
-                <input
-                  type="text"
-                  name="zellaScale"
-                  value={formData.zellaScale}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                  placeholder="e.g., A+, B-, etc."
-                />
-              </div>
-
-              {formData.instrumentType === "option" && (
-                <div className="space-y-4 border-t border-gray-200 dark:border-zinc-700 pt-4">
-                  <h3 className="text-lg font-semibold text-zinc-800 dark:text-white">Option Details</h3>
+            </div>
+            {formData.instrumentType === "option" && (
+              <div className="bg-white dark:bg-zinc-900 shadow rounded-2xl p-4 sm:p-6">
+                <h3 className="text-lg font-semibold text-zinc-800 dark:text-white mb-4">Option Details</h3>
+                <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Option Type</label>
                     <select
@@ -650,11 +874,12 @@ const EditTrade = () => {
                     </button>
                   </div>
                 </div>
-              )}
-
-              {formData.instrumentType === "future" && (
-                <div className="space-y-4 border-t border-gray-200 dark:border-zinc-700 pt-4">
-                  <h3 className="text-lg font-semibold text-zinc-800 dark:text-white">Future Details</h3>
+              </div>
+            )}
+            {formData.instrumentType === "future" && (
+              <div className="bg-white dark:bg-zinc-900 shadow rounded-2xl p-4 sm:p-6">
+                <h3 className="text-lg font-semibold text-zinc-800 dark:text-white mb-4">Future Details</h3>
+                <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Contract Type</label>
                     <input
@@ -687,128 +912,28 @@ const EditTrade = () => {
                     />
                   </div>
                 </div>
-              )}
+              </div>
+            )}
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                onClick={handleSubmit}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded w-full sm:w-auto"
+              >
+                Save
+              </button>
+              <button
+                onClick={handleDelete}
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded w-full sm:w-auto"
+              >
+                Delete
+              </button>
+              <button
+                onClick={() => navigate("/trades")}
+                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded w-full sm:w-auto"
+              >
+                Cancel
+              </button>
             </div>
-
-            {/* Right Column: Chart, Notes, Tags, Playbook, Rating */}
-            <div className="w-full sm:w-1/2 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Trade Chart</label>
-                <div ref={chartContainerRef} className="mt-1 border border-gray-300 dark:border-zinc-700 rounded-md"></div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
-                <div className="flex gap-2 mb-2">
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("tradeNote")}
-                    className={`px-4 py-2 rounded ${activeTab === "tradeNote" ? "bg-blue-500 text-white" : "bg-gray-200 dark:bg-zinc-700 text-gray-800 dark:text-gray-200"}`}
-                  >
-                    Trade Note
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("dailyJournal")}
-                    className={`px-4 py-2 rounded ${activeTab === "dailyJournal" ? "bg-blue-500 text-white" : "bg-gray-200 dark:bg-zinc-700 text-gray-800 dark:text-gray-200"}`}
-                  >
-                    Daily Journal
-                  </button>
-                </div>
-                <ReactQuill
-                  value={activeTab === "tradeNote" ? formData.tradeNote : formData.dailyJournal}
-                  onChange={(value) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      [activeTab]: value,
-                    }))
-                  }
-                  theme="snow"
-                  className="bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tags (comma-separated or select predefined)</label>
-                <input
-                  type="text"
-                  name="tags"
-                  value={formData.tags}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                  placeholder="e.g., Scalp, Breakout"
-                />
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {predefinedTags.map((tag) => (
-                    <button
-                      key={tag}
-                      type="button"
-                      onClick={() => {
-                        const tags = formData.tags ? formData.tags.split(",").map((t) => t.trim()) : [];
-                        if (!tags.includes(tag)) {
-                          setFormData((prev) => ({ ...prev, tags: [...tags, tag].join(", ") }));
-                        }
-                      }}
-                      className="bg-gray-200 dark:bg-zinc-700 text-gray-800 dark:text-gray-200 px-2 py-1 rounded text-sm"
-                    >
-                      {tag}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Playbook</label>
-                <select
-                  name="playbook"
-                  value={formData.playbook}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                >
-                  <option value="">Select Playbook</option>
-                  {playbooks.map((playbook) => (
-                    <option key={playbook} value={playbook}>{playbook}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Trade Rating</label>
-                <div className="flex gap-1 mt-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => handleRatingChange(star)}
-                      className={`text-2xl ${formData.tradeRating >= star ? "text-yellow-400" : "text-gray-300"}`}
-                    >
-                      ★
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </form>
-
-          {/* Buttons Below */}
-          <div className="mt-6 flex flex-col sm:flex-row gap-2">
-            <button
-              type="submit"
-              onClick={handleSubmit}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded w-full sm:w-auto"
-            >
-              Save
-            </button>
-            <button
-              type="button"
-              onClick={handleDelete}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded w-full sm:w-auto"
-            >
-              Delete
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate("/trades")}
-              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded w-full sm:w-auto"
-            >
-              Cancel
-            </button>
           </div>
         </div>
       </div>
