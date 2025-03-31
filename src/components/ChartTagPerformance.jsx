@@ -1,4 +1,3 @@
-// /src/components/ChartTagPerformance.jsx
 import React, { useRef, useEffect } from "react";
 import Chart from "chart.js/auto";
 
@@ -24,7 +23,7 @@ const ChartTagPerformance = ({ data, onTagClick }) => {
         labels: labels,
         datasets: [
           {
-            label: "Avg PnL by Tag",
+            label: "Avg P&L by Tag",
             data: avgPnLs,
             backgroundColor: avgPnLs.map((pnl) =>
               pnl >= 0 ? "rgba(34, 197, 94, 0.6)" : "rgba(239, 68, 68, 0.6)"
@@ -47,13 +46,21 @@ const ChartTagPerformance = ({ data, onTagClick }) => {
             beginAtZero: true,
             title: {
               display: true,
-              text: "Avg PnL ($)",
+              text: "Avg P&L ($)",
+              color: "#6b7280",
+            },
+            ticks: {
+              color: "#6b7280",
             },
           },
           x: {
             title: {
               display: true,
               text: "Tags",
+              color: "#6b7280",
+            },
+            ticks: {
+              color: "#6b7280",
             },
           },
         },
@@ -63,7 +70,8 @@ const ChartTagPerformance = ({ data, onTagClick }) => {
           },
           tooltip: {
             callbacks: {
-              label: (context) => `Avg PnL: $${context.raw.toFixed(2)}`,
+              label: (context) => `Avg P&L: $${context.raw.toFixed(2)}`,
+              title: (tooltipItems) => `Tag: ${tooltipItems[0].label}`,
             },
           },
         },
@@ -88,9 +96,9 @@ const ChartTagPerformance = ({ data, onTagClick }) => {
   }, [data, onTagClick]);
 
   return (
-    <div className="bg-white shadow rounded-xl p-4">
-      <h3 className="text-sm text-gray-600 mb-3">📈 Tag Performance</h3>
-      <div className="h-40"> {/* Reduced from h-48 to h-40 */}
+    <div className="bg-white p-6 rounded-lg shadow-sm">
+      <h3 className="text-sm text-gray-600 mb-3">Tag Performance</h3>
+      <div className="h-[400px]">
         <canvas ref={chartRef} />
       </div>
     </div>
