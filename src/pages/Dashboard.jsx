@@ -12,7 +12,7 @@ import AnalyticsOverview from "../components/AnalyticsOverview";
 import TradeTable from "../components/TradeTable";
 import ChartTagPerformance from "../components/ChartTagPerformance";
 import PerformanceChart from "../components/PerformanceChart";
-import DashboardSidebar from "../components/DashboardSidebar";
+import CalendarWidget from "../components/CalendarWidget"; // New import
 import TotalTrades from "../components/TotalTrades";
 import WinRate from "../components/WinRate";
 import AvgPnL from "../components/AvgPnL";
@@ -171,7 +171,7 @@ const Dashboard = () => {
             </div>
           ) : (
             <>
-              {/* Stat Cards */}
+              {/* Stat Cards and Calendar */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                 <div className="w-full bg-white p-6 rounded-lg shadow-sm">
                   <TotalTrades />
@@ -199,6 +199,9 @@ const Dashboard = () => {
                 </div>
                 <div className="w-full bg-white p-6 rounded-lg shadow-sm">
                   <WinLossStreaks />
+                </div>
+                <div className="w-full bg-white p-6 rounded-lg shadow-sm">
+                  <CalendarWidget />
                 </div>
               </div>
 
