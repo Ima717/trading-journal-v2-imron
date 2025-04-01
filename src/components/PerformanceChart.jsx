@@ -1,5 +1,3 @@
-// PerformanceChart.jsx – Enhanced with animations, dark mode, spacing, and modern tooltips
-
 import React, { useRef, useEffect } from "react";
 import Chart from "chart.js/auto";
 
@@ -24,13 +22,13 @@ const PerformanceChart = ({ data }) => {
           {
             label: "P&L Over Time",
             data: data.map((d) => d.pnl),
-            borderColor: "#3b82f6",
-            backgroundColor: "rgba(59, 130, 246, 0.15)",
+            borderColor: "#3b82f6", // Primary color
+            backgroundColor: "rgba(59, 130, 246, 0.15)", // Lighter background for the line
             fill: true,
             tension: 0.35,
             borderWidth: 2,
             pointRadius: 3,
-            pointHoverRadius: 5,
+            pointHoverRadius: 6,
           },
         ],
       },
@@ -80,12 +78,13 @@ const PerformanceChart = ({ data }) => {
             display: false,
           },
           tooltip: {
-            backgroundColor: "#1f2937",
-            titleColor: "#f9fafb",
-            bodyColor: "#f9fafb",
-            padding: 10,
-            borderColor: "#3b82f6",
-            borderWidth: 1,
+            backgroundColor: "#1f2937", // Dark background for tooltip
+            titleColor: "#f9fafb", // White text for title
+            bodyColor: "#f9fafb", // White text for body
+            padding: 12,
+            borderColor: "#3b82f6", // Blue border for the tooltip
+            borderWidth: 1.5,
+            cornerRadius: 6, // Rounded corners for the tooltip
             callbacks: {
               label: (context) => `P&L: $${context.raw.toFixed(2)}`,
             },
@@ -102,7 +101,7 @@ const PerformanceChart = ({ data }) => {
   }, [data]);
 
   return (
-    <div className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-sm">
+    <div className="bg-white dark:bg-zinc-800 p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
       <h3 className="text-sm text-gray-600 dark:text-gray-300 mb-3 font-semibold">
         📈 P&L Over Time
       </h3>
