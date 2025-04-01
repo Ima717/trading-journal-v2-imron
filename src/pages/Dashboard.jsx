@@ -7,7 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import { useFilters } from "../context/FilterContext";
 import { useTheme } from "../context/ThemeContext";
 import dayjs from "dayjs";
-import { Tooltip } from "react-tooltip";
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import { motion } from "framer-motion";
 
 import TradeTabs from "../components/TradeTabs";
@@ -16,8 +16,8 @@ import PerformanceChart from "../components/PerformanceChart";
 import ChartZellaScore from "../components/ChartZellaScore";
 import CalendarWidget from "../components/CalendarWidget";
 import StatCard from "../components/StatCard";
-import DayWinCard from "../components/DayWinCard";
 import AvgWinLoss from "../components/AvgWinLoss";
+import DayWinCard from "../components/DayWinCard";
 import { getPnLOverTime, getZellaScoreOverTime } from "../utils/calculations.js";
 import ErrorBoundary from "../components/ErrorBoundary";
 import ResultFilter from "../components/ResultFilter";
@@ -110,6 +110,12 @@ const Dashboard = () => {
     return () => unsubscribe();
   }, [user, dateRange, resultFilter, tagSearchTerm, clickedTag]);
 
+  const handleTagClick = (tag) => {
+    setClickedTag(tag);
+    setTagSearchTerm("");
+    setResultFilter("all");
+  };
+
   const netPnL = filteredTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
   const totalTrades = filteredTrades.length;
   const wins = filteredTrades.filter((t) => t.pnl > 0);
@@ -135,6 +141,19 @@ const Dashboard = () => {
     return "bg-gradient-to-r from-red-400 to-red-500 text-white";
   };
 
+  const donut = (
+    <CircularProgressbar
+      value={wins.reduce((s, t) => s + t.pnl, 0)}
+      maxValue={wins.reduce((s, t) => s + t.pnl, 0) + Math.abs(losses.reduce((s, t) => s + t.pnl, 0))}
+      strokeWidth={10}
+      styles={buildStyles({
+        pathColor: profitFactor >= 1 ? "#10b981" : "#ef4444",
+        trailColor: "#f87171",
+        strokeLinecap: "round",
+      })}
+    />
+  );
+
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-100 dark:bg-zinc-900 font-inter">
@@ -144,28 +163,16 @@ const Dashboard = () => {
               📊 Welcome to IMAI Dashboard
             </h1>
             <div className="flex flex-wrap gap-2">
-              <Link
-                to="/add-trade"
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
-              >
+              <Link to="/add-trade" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
                 ➕ Add Trade
               </Link>
-              <Link
-                to="/import"
-                className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
-              >
+              <Link to="/import" className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">
                 📤 Import Trades
               </Link>
-              <button
-                onClick={toggleTheme}
-                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
-              >
+              <button onClick={toggleTheme} className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
                 {theme === "light" ? "🌙 Dark Mode" : "☀️ Light Mode"}
               </button>
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
-              >
+              <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
                 🔒 Log Out
               </button>
             </div>
@@ -219,21 +226,14 @@ const Dashboard = () => {
                   title="Profit Factor"
                   value={profitFactor.toFixed(2)}
                   tooltip="Gross Profit / Gross Loss"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                <DayWinCard />
-                <AvgWinLoss />
+                >
+                  {donut}
+                </StatCard>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-                <div className="w-full bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-sm">
-                  <CalendarWidget />
-                </div>
-                <div className="w-full">
-                  <PerformanceChart data={pnlData} />
-                </div>
+                <DayWinCard />
+                <AvgWinLoss />
               </div>
 
               <div className="w-full mb-6">
