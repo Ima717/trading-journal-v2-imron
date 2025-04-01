@@ -1,4 +1,4 @@
-// StatCard.jsx — Updated for Net P&L + Win Rate with full fixes
+// StatCard.jsx — Updated with customBg, badge, and tooltip styling
 
 import React from "react";
 import { Tooltip } from "react-tooltip";
@@ -13,24 +13,26 @@ const StatCard = ({
   badge,
   customBg = "",
 }) => {
+  const isWinRate = title === "Trade Win %";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className={`relative p-6 rounded-xl shadow-sm w-full flex flex-col justify-between hover:shadow-md hover:scale-[1.02] transition-all duration-200 group overflow-hidden ${customBg || "bg-white dark:bg-zinc-800"}`}
+      className={`relative p-6 rounded-xl shadow-sm w-full flex flex-col justify-between hover:shadow-md hover:scale-[1.02] transition-all duration-200 group overflow-hidden ${customBg || (isWinRate ? "bg-gradient-to-r from-yellow-300 to-yellow-500 text-white" : "bg-white dark:bg-zinc-800")}`}
     >
       {/* Header Row with Title, Info, and Badge */}
       <div className="flex justify-between items-center mb-1">
         <div className="flex items-center gap-1">
-          <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+          <span className={`text-xs font-medium ${isWinRate ? "text-white" : "text-gray-600 dark:text-gray-400"}`}>
             {title}
           </span>
           {tooltip && (
             <>
               <Info
                 size={14}
-                className="text-gray-400 hover:text-black dark:hover:text-white cursor-pointer"
+                className={`hover:text-black dark:hover:text-white cursor-pointer ${isWinRate ? "text-white" : "text-gray-400"}`}
                 data-tooltip-id={`tooltip-${title}`}
                 data-tooltip-content={tooltip}
               />
@@ -46,7 +48,7 @@ const StatCard = ({
         {badge !== undefined && (
           <>
             <span
-              className="text-xs bg-gray-100 dark:bg-zinc-700 text-gray-800 dark:text-gray-100 px-2 py-0.5 rounded-full font-semibold cursor-default"
+              className={`text-xs px-2 py-0.5 rounded-full font-semibold cursor-default ${isWinRate ? "bg-white text-yellow-600" : "bg-gray-100 dark:bg-zinc-700 text-gray-800 dark:text-gray-100"}`}
               data-tooltip-id={`badge-${title}`}
               data-tooltip-content="Total number of trades"
             >
@@ -66,7 +68,7 @@ const StatCard = ({
 
       {/* Optional corner icon */}
       <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <div className="bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 rounded-md p-1">
+        <div className={`rounded-md p-1 ${isWinRate ? "bg-white text-yellow-500" : "bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300"}`}>
           <BarChart3 size={14} />
         </div>
       </div>
