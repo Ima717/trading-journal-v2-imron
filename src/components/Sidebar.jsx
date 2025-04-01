@@ -1,6 +1,14 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Book, NotebookPen, FileBarChart, User, LogOut } from "lucide-react"; // Removed unused icons
+import {
+  LayoutDashboard,
+  Book,
+  NotebookPen,
+  FileBarChart,
+  User,
+  LogOut,
+  Repeat, // Ensure the Repeat icon is correctly imported
+} from "lucide-react"; // Importing icons from the 'lucide-react' library
 import { motion } from "framer-motion";
 
 const navItems = [
@@ -9,7 +17,7 @@ const navItems = [
   { name: "Trades", path: "/trades", icon: <NotebookPen size={20} /> },
   { name: "Notebook", path: "/notebook", icon: <FileBarChart size={20} /> },
   { name: "Playbooks", path: "/playbooks", icon: <History size={20} /> },
-  { name: "Progress Tracker", path: "/progress", icon: <Repeat size={20} />, badge: "BETA" }, 
+  { name: "Progress Tracker", path: "/progress", icon: <Repeat size={20} />, badge: "BETA" }, // Repeat icon used here
 ];
 
 const Sidebar = () => {
