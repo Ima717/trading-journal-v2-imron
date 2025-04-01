@@ -1,91 +1,98 @@
-// ChartZellaScore.jsx – Line chart for Zella Score over time
+// ChartZellaScore.jsx — Compact Radar Chart + Score Bar
 
-import React, { useRef, useEffect } from "react";
-import Chart from "chart.js/auto";
+import React from "react";
+import { Radar } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { motion } from "framer-motion";
+
+ChartJS.register(
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+  Legend
+);
 
 const ChartZellaScore = ({ data }) => {
-  const chartRef = useRef(null);
-  const chartInstanceRef = useRef(null);
+  if (!data || data.length === 0) return null;
 
-  useEffect(() => {
-    if (!data || data.length === 0) return;
+  const latest = data[data.length - 1];
+  const score = latest.score;
 
-    const ctx = chartRef.current.getContext("2d");
-    if (chartInstanceRef.current) {
-      chartInstanceRef.current.destroy();
-    }
-
-    chartInstanceRef.current = new Chart(ctx, {
-      type: "line",
-      data: {
-        labels: data.map((d) => d.date),
-        datasets: [
-          {
-            label: "Zella Score",
-            data: data.map((d) => d.zellaScore),
-            borderColor: "#6366f1", // Indigo-500
-            backgroundColor: "rgba(99, 102, 241, 0.1)",
-            fill: true,
-            tension: 0.4,
-            pointRadius: 3,
-            pointHoverRadius: 5,
-          },
-        ],
+  // Fake detailed breakdown for radar (you can wire these in later)
+  const radarData = {
+    labels: [
+      "Win %",
+      "Profit Factor",
+      "Avg Win/Loss",
+      "Recovery Factor",
+      "Max Drawdown",
+      "Consistency",
+    ],
+    datasets: [
+      {
+        label: "Zella Metrics",
+        data: [70, 60, 55, 40, 45, 65], // TODO: Replace with real values
+        backgroundColor: "rgba(99, 102, 241, 0.3)",
+        borderColor: "rgba(99, 102, 241, 1)",
+        pointBackgroundColor: "rgba(99, 102, 241, 1)",
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: {
-            title: {
-              display: true,
-              text: "Date",
-              color: "#6b7280",
-            },
-            ticks: {
-              color: "#6b7280",
-            },
-          },
-          y: {
-            beginAtZero: true,
-            max: 100,
-            title: {
-              display: true,
-              text: "Zella Score",
-              color: "#6b7280",
-            },
-            ticks: {
-              color: "#6b7280",
-            },
-          },
-        },
-        plugins: {
-          legend: {
-            display: false,
-          },
-          tooltip: {
-            callbacks: {
-              label: (context) => `Zella Score: ${context.raw.toFixed(2)}`,
-            },
-          },
+    ],
+  };
+
+  const radarOptions = {
+    responsive: true,
+    scales: {
+      r: {
+        beginAtZero: true,
+        max: 100,
+        ticks: { display: false },
+        grid: { color: "#e5e7eb" },
+        pointLabels: {
+          color: "#6b7280",
+          font: { size: 12 },
         },
       },
-    });
-
-    return () => {
-      if (chartInstanceRef.current) {
-        chartInstanceRef.current.destroy();
-      }
-    };
-  }, [data]);
+    },
+    plugins: {
+      legend: { display: false },
+    },
+  };
 
   return (
-    <div className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-sm">
-      <h3 className="text-sm text-gray-600 dark:text-gray-300 mb-3">Zella Score Over Time</h3>
-      <div className="h-[400px]">
-        <canvas ref={chartRef} />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-sm w-full max-w-md mx-auto"
+    >
+      <h3 className="text-sm text-gray-600 dark:text-gray-300 mb-3">Zella Score</h3>
+      <Radar data={radarData} options={radarOptions} className="mb-4" />
+
+      <div className="flex flex-col items-center">
+        <span className="text-xs text-gray-500 dark:text-gray-400 mb-1">Your Zella Score</span>
+        <div className="relative w-full h-3 bg-gray-200 rounded-full">
+          <div
+            className="absolute top-0 h-3 bg-gradient-to-r from-red-400 via-yellow-400 to-green-400 rounded-full"
+            style={{ width: "100%" }}
+          />
+          <div
+            className="absolute top-0 h-3 w-1.5 bg-black rounded-full"
+            style={{ left: `${score}%` }}
+          />
+        </div>
+        <div className="text-xl font-bold mt-2 text-zinc-800 dark:text-white">{score}</div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
