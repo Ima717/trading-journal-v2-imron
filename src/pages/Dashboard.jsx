@@ -1,3 +1,4 @@
+// src/pages/Dashboard.jsx
 import React, { useEffect, useState } from "react";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../utils/firebase";
@@ -9,6 +10,7 @@ import { useTheme } from "../context/ThemeContext";
 import dayjs from "dayjs";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import { motion } from "framer-motion";
+import { Tooltip } from "react-tooltip";
 
 import TradeTabs from "../components/TradeTabs";
 import ChartTagPerformance from "../components/ChartTagPerformance";
@@ -126,14 +128,20 @@ const Dashboard = () => {
     const dayPnL = filteredTrades.filter((t) => t.date === day).reduce((sum, t) => sum + t.pnl, 0);
     return dayPnL > 0;
   });
+  const breakEvenDays = tradingDays.filter((day) => {
+    const dayPnL = filteredTrades.filter((t) => t.date === day).reduce((sum, t) => sum + t.pnl, 0);
+    return dayPnL === 0;
+  });
+  const losingDays = tradingDays.filter((day) => {
+    const dayPnL = filteredTrades.filter((t) => t.date === day).reduce((sum, t) => sum + t.pnl, 0);
+    return dayPnL < 0;
+  });
   const dayWinPercent = tradingDays.length ? (winningDays.length / tradingDays.length) * 100 : 0;
   const avgWin = wins.length ? wins.reduce((sum, t) => sum + t.pnl, 0) / wins.length : 0;
   const avgLoss = losses.length ? Math.abs(losses.reduce((sum, t) => sum + t.pnl, 0) / losses.length) : 0;
   const expectancy = (winRate / 100) * avgWin - ((100 - winRate) / 100) * avgLoss;
   const profitFactor = losses.length ? wins.reduce((s, t) => s + t.pnl, 0) / Math.abs(losses.reduce((s, t) => s + t.pnl, 0)) : 0;
   const zellaScore = Math.min((winRate * 0.4 + profitFactor * 10 * 0.3 + dayWinPercent * 0.3), 100).toFixed(2);
-  const biggestWin = Math.max(...filteredTrades.map((t) => t.pnl || 0));
-  const biggestLoss = Math.min(...filteredTrades.map((t) => t.pnl || 0));
 
   const getWinRateBackground = () => {
     if (winRate > 60) return "bg-gradient-to-r from-green-400 to-green-500 text-white";
@@ -152,6 +160,31 @@ const Dashboard = () => {
         strokeLinecap: "round",
       })}
     />
+  );
+
+  const renderStatCard = (title, value, props = {}) => (
+    <motion.div
+      whileHover={{ scale: 1.03, boxShadow: "0px 5px 15px rgba(0,0,0,0.1)" }}
+      transition={{ duration: 0.2 }}
+    >
+      <StatCard
+        title={
+          <div className="flex items-center gap-2">
+            {title}
+            <span
+              data-tooltip-id={`${title}-tooltip`}
+              data-tooltip-content={props.tooltip}
+              className="cursor-help text-gray-500 dark:text-gray-400"
+            >
+              ⓘ
+            </span>
+            <Tooltip id={`${title}-tooltip`} place="top" />
+          </div>
+        }
+        value={value}
+        {...props}
+      />
+    </motion.div>
   );
 
   return (
@@ -209,31 +242,51 @@ const Dashboard = () => {
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                <StatCard
-                  title="Net P&L"
-                  value={`$${netPnL.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
-                  color={netPnL >= 0 ? "text-green-600" : "text-red-500"}
-                  tooltip="The total realized net profit and loss for all closed trades."
-                  badge={totalTrades}
-                />
-                <StatCard
-                  title="Trade Win %"
-                  value={`${winRate.toFixed(2)}%`}
-                  tooltip="Percentage of all trades that closed with profit."
-                  customBg={getWinRateBackground()}
-                />
-                <StatCard
-                  title="Profit Factor"
-                  value={profitFactor.toFixed(2)}
-                  tooltip="Gross Profit / Gross Loss"
-                >
-                  {donut}
-                </StatCard>
+                {renderStatCard(
+                  "Net P&L",
+                  `$${netPnL.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+                  {
+                    color: netPnL >= 0 ? "text-green-600" : "text-red-500",
+                    tooltip: "The total realized net profit and loss for all closed trades.",
+                    badge: totalTrades,
+                  }
+                )}
+                {renderStatCard(
+                  "Trade Win %",
+                  `${winRate.toFixed(2)}%`,
+                  {
+                    tooltip: "Percentage of all trades that closed with profit.",
+                    customBg: getWinRateBackground(),
+                  }
+                )}
+                {renderStatCard(
+                  "Profit Factor",
+                  profitFactor.toFixed(2),
+                  {
+                    tooltip: "Gross Profit / Gross Loss",
+                    children: donut,
+                  }
+                )}
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-                <DayWinCard />
-                <AvgWinLoss />
+                <motion.div
+                  whileHover={{ scale: 1.03, boxShadow: "0px 5px 15px rgba(0,0,0,0.1)" }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <DayWinCard
+                    winningDays={winningDays.length}
+                    breakEvenDays={breakEvenDays.length}
+                    losingDays={losingDays.length}
+                    totalDays={tradingDays.length}
+                  />
+                </motion.div>
+                <motion.div
+                  whileHover={{ scale: 1.03, boxShadow: "0px 5px 15px rgba(0,0,0,0.1)" }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <AvgWinLoss />
+                </motion.div>
               </div>
 
               <div className="w-full mb-6">
