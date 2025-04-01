@@ -1,5 +1,3 @@
-// StatCard.jsx — Updated for Net P&L + Win Rate with full fixes and donut-style Profit Factor
-
 import React from "react";
 import { Tooltip } from "react-tooltip";
 import { motion } from "framer-motion";
