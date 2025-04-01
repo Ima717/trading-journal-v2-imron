@@ -9,6 +9,7 @@ import { useTheme } from "../context/ThemeContext";
 import dayjs from "dayjs";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import { motion } from "framer-motion";
+import { Tooltip } from "react-tooltip";
 
 import TradeTabs from "../components/TradeTabs";
 import ChartTagPerformance from "../components/ChartTagPerformance";
@@ -125,6 +126,14 @@ const Dashboard = () => {
   const winningDays = tradingDays.filter((day) => {
     const dayPnL = filteredTrades.filter((t) => t.date === day).reduce((sum, t) => sum + t.pnl, 0);
     return dayPnL > 0;
+  });
+  const breakEvenDays = tradingDays.filter((day) => {
+    const dayPnL = filteredTrades.filter((t) => t.date === day).reduce((sum, t) => sum + t.pnl, 0);
+    return dayPnL === 0;
+  });
+  const losingDays = tradingDays.filter((day) => {
+    const dayPnL = filteredTrades.filter((t) => t.date === day).reduce((sum, t) => sum + t.pnl, 0);
+    return dayPnL < 0;
   });
   const dayWinPercent = tradingDays.length ? (winningDays.length / tradingDays.length) * 100 : 0;
   const avgWin = wins.length ? wins.reduce((sum, t) => sum + t.pnl, 0) / wins.length : 0;
