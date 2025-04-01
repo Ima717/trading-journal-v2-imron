@@ -1,4 +1,4 @@
-// StatCard.jsx — Updated for Net P&L + Win Rate with full fixes and dynamic backgrounds
+// StatCard.jsx — Updated for Net P&L + Win Rate with full fixes and donut-style Profit Factor
 
 import React from "react";
 import { Tooltip } from "react-tooltip";
@@ -12,6 +12,7 @@ const StatCard = ({
   tooltip,
   badge,
   customBg = "",
+  children
 }) => {
   return (
     <motion.div
@@ -37,7 +38,7 @@ const StatCard = ({
               <Tooltip
                 id={`tooltip-${title}`}
                 place="top"
-                className="z-[1000] max-w-[220px] whitespace-pre-line text-xs px-2 py-1 rounded shadow-lg bg-gray-800 text-white"
+                className="z-[1000] max-w-[200px] whitespace-pre-line text-xs px-2 py-1 rounded shadow-lg bg-gray-800 text-white"
               />
             </>
           )}
@@ -61,8 +62,12 @@ const StatCard = ({
         )}
       </div>
 
-      {/* Main Value */}
-      <div className={`text-2xl font-bold ${color}`}>{value}</div>
+      {/* Main Value or Custom Chart */}
+      {children ? (
+        <div className="mt-2">{children}</div>
+      ) : (
+        <div className={`text-2xl font-bold ${color}`}>{value}</div>
+      )}
 
       {/* Optional corner icon */}
       <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
