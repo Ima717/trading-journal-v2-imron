@@ -121,12 +121,7 @@ const Dashboard = () => {
   const wins = filteredTrades.filter((t) => t.pnl > 0);
   const losses = filteredTrades.filter((t) => t.pnl < 0);
   const winRate = totalTrades ? (wins.length / totalTrades) * 100 : 0;
-  const tradingDays = [...new Set(filteredTrades.map((t) => t.date))];
-  const winningDays = tradingDays.filter((day) => {
-    const dayPnL = filteredTrades.filter((t) => t.date === day).reduce((sum, t) => sum + t.pnl, 0);
-    return dayPnL > 0;
-  });
-  const dayWinPercent = tradingDays.length ? (winningDays.length / tradingDays.length) * 100 : 0;
+  const dayWinPercent = 0; // now handled inside DayWinCard
   const avgWin = wins.length ? wins.reduce((sum, t) => sum + t.pnl, 0) / wins.length : 0;
   const avgLoss = losses.length ? Math.abs(losses.reduce((sum, t) => sum + t.pnl, 0) / losses.length) : 0;
   const expectancy = (winRate / 100) * avgWin - ((100 - winRate) / 100) * avgLoss;
@@ -234,6 +229,15 @@ const Dashboard = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
                 <DayWinCard />
                 <AvgWinLoss />
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+                <div className="w-full bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-sm">
+                  <CalendarWidget />
+                </div>
+                <div className="w-full">
+                  <PerformanceChart data={pnlData} />
+                </div>
               </div>
 
               <div className="w-full mb-6">
