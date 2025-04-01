@@ -130,6 +130,9 @@ const Dashboard = () => {
   const profitFactor = losses.length ? wins.reduce((s, t) => s + t.pnl, 0) / Math.abs(losses.reduce((s, t) => s + t.pnl, 0)) : 0;
   const zellaScore = Math.min((winRate * 0.4 + profitFactor * 10 * 0.3 + dayWinPercent * 0.3), 100).toFixed(2);
 
+  const biggestWin = Math.max(...filteredTrades.map((t) => t.pnl || 0));
+  const biggestLoss = Math.min(...filteredTrades.map((t) => t.pnl || 0));
+
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-100 dark:bg-zinc-900 font-inter">
@@ -186,6 +189,8 @@ const Dashboard = () => {
                 <StatCard title="Trade Expectancy" value={`$${expectancy.toFixed(2)}`} tooltip="(Win % * Avg Win) - (Loss % * Avg Loss)" />
                 <StatCard title="Profit Factor" value={profitFactor.toFixed(2)} color={profitFactor >= 1 ? "text-green-600" : "text-red-500"} tooltip="Gross Profit / Gross Loss" />
                 <StatCard title="Zella Score" value={zellaScore} tooltip="Overall performance score" />
+                <StatCard title="Biggest Win" value={`$${biggestWin.toFixed(2)}`} color="text-green-600" tooltip="Highest profit from a single trade" />
+                <StatCard title="Biggest Loss" value={`$${biggestLoss.toFixed(2)}`} color="text-red-500" tooltip="Worst loss from a single trade" />
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
