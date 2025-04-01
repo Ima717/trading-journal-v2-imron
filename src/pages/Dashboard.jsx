@@ -262,7 +262,7 @@ const Dashboard = () => {
                 />
                 <div className="bg-white p-6 rounded-lg shadow-sm w-full flex flex-col justify-center items-center relative">
                   <h3 className="text-sm text-gray-600 mb-3">Zella Score</h3>
-                  <div className="w-32 h-32 relative flex items-center justify-center">
+                  <div className="w-36 h-36 relative flex items-center justify-center">
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
@@ -284,7 +284,7 @@ const Dashboard = () => {
                         },
                         text: {
                           fill: "#343a40",
-                          fontSize: "24px",
+                          fontSize: "20px",
                           fontWeight: "bold",
                           transform: "translate(-50%, -50%)",
                           dominantBaseline: "middle",
