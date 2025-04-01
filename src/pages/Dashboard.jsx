@@ -202,9 +202,10 @@ const Dashboard = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                 <StatCard
                   title="Net P&L"
-                  value={`$${netPnL.toFixed(2)}`}
+                  value={`$${netPnL.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
                   color={netPnL >= 0 ? "text-green-600" : "text-red-500"}
-                  tooltip="Sum of profits - losses"
+                  tooltip="The total realized net profit and loss for all closed trades."
+                  badge={totalTrades}
                 />
                 <StatCard title="Total Trades" value={totalTrades} />
                 <StatCard title="Trade Win %" value={`${winRate.toFixed(2)}%`} />
