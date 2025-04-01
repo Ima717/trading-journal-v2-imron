@@ -1,4 +1,4 @@
-// StatCard.jsx — Final version with dynamic backgrounds, tooltip popovers, and corner icon
+// StatCard.jsx — Updated for Net P&L + Win Rate with full fixes and dynamic backgrounds
 
 import React from "react";
 import { Tooltip } from "react-tooltip";
@@ -37,7 +37,7 @@ const StatCard = ({
               <Tooltip
                 id={`tooltip-${title}`}
                 place="top"
-                className="z-[1000] max-w-[180px] whitespace-pre-line text-xs px-2 py-1 rounded shadow-lg bg-gray-800 text-white"
+                className="z-[1000] max-w-[220px] whitespace-pre-line text-xs px-2 py-1 rounded shadow-lg bg-gray-800 text-white"
               />
             </>
           )}
