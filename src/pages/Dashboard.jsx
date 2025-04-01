@@ -16,8 +16,7 @@ import PerformanceChart from "../components/PerformanceChart";
 import ChartZellaScore from "../components/ChartZellaScore";
 import CalendarWidget from "../components/CalendarWidget";
 import StatCard from "../components/StatCard";
-import AvgWinLossCard from "../components/AvgWinLossCard";
-import DayWinGauge from "../components/DayWinGauge";
+import AvgWinLoss from "../components/AvgWinLoss";
 import { getPnLOverTime, getZellaScoreOverTime } from "../utils/calculations.js";
 import ErrorBoundary from "../components/ErrorBoundary";
 import ResultFilter from "../components/ResultFilter";
@@ -231,14 +230,9 @@ const Dashboard = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-                <DayWinGauge
-                  dayWinPercent={dayWinPercent}
-                  totalDays={tradingDays.length}
-                  winDays={winningDays.length}
-                  lossDays={tradingDays.length - winningDays.length}
-                />
-                <AvgWinLossCard avgWin={avgWin} avgLoss={avgLoss} ratio={(avgWin / avgLoss).toFixed(2)} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <StatCard title="Day Win %" value={`${dayWinPercent.toFixed(2)}%`} tooltip="Winning days / Total days" />
+                <AvgWinLoss />
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
