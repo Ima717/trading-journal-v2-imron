@@ -12,7 +12,7 @@ const StatCard = ({
   tooltip,
   badge,
   customBg = "",
-  children
+  children,
 }) => {
   return (
     <motion.div
@@ -38,13 +38,13 @@ const StatCard = ({
               <Tooltip
                 id={`tooltip-${title}`}
                 place="top"
-                className="z-[1000] max-w-[200px] whitespace-pre-line text-xs px-2 py-1 rounded shadow-lg bg-gray-800 text-white"
+                className="z-[1000] max-w-[220px] whitespace-pre-line text-xs px-2 py-1 rounded shadow-lg bg-gray-800 text-white"
               />
             </>
           )}
         </div>
 
-        {badge !== undefined && (
+        {badge !== undefined && title !== "Total Trades" && (
           <>
             <span
               className="text-xs bg-gray-100 dark:bg-zinc-700 text-gray-800 dark:text-gray-100 px-2 py-0.5 rounded-full font-semibold cursor-default"
@@ -64,7 +64,12 @@ const StatCard = ({
 
       {/* Main Value or Custom Chart */}
       {children ? (
-        <div className="mt-2">{children}</div>
+        <div className="mt-2 flex items-center justify-between">
+          <div className={`text-2xl font-bold ${color}`}>{value}</div>
+          <div className="w-10 h-10">
+            {children}
+          </div>
+        </div>
       ) : (
         <div className={`text-2xl font-bold ${color}`}>{value}</div>
       )}
