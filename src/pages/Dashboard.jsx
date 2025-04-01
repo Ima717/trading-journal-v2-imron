@@ -1,5 +1,3 @@
-// Dashboard.jsx – Full Redesign with Clean Layout and Polished Components
-
 import React, { useEffect, useState } from "react";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../utils/firebase";
@@ -138,16 +136,36 @@ const Dashboard = () => {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-100 dark:bg-zinc-900 font-inter">
-        <div className="max-w-screen-xl mx-auto px-4 py-6">
+        <div className="px-4 py-6 w-full">
           <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center mb-6">
-            <h1 className="text-2xl font-bold text-zinc-800 dark:text-white mb-2 sm:mb-0">📊 Welcome to IMAI Dashboard</h1>
+            <h1 className="text-2xl font-bold text-zinc-800 dark:text-white mb-2 sm:mb-0">
+              📊 Welcome to IMAI Dashboard
+            </h1>
             <div className="flex flex-wrap gap-2">
-              <Link to="/add-trade" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">➕ Add Trade</Link>
-              <Link to="/import" className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">📤 Import Trades</Link>
-              <button onClick={toggleTheme} className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+              <Link
+                to="/add-trade"
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+              >
+                ➕ Add Trade
+              </Link>
+              <Link
+                to="/import"
+                className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
+              >
+                📤 Import Trades
+              </Link>
+              <button
+                onClick={toggleTheme}
+                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
+              >
                 {theme === "light" ? "🌙 Dark Mode" : "☀️ Light Mode"}
               </button>
-              <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">🔒 Log Out</button>
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+              >
+                🔒 Log Out
+              </button>
             </div>
           </div>
 
@@ -182,17 +200,53 @@ const Dashboard = () => {
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                <StatCard title="Net P&L" value={`$${netPnL.toFixed(2)}`} color={netPnL >= 0 ? "text-green-600" : "text-red-500"} tooltip="Sum of profits - losses" />
+                <StatCard
+                  title="Net P&L"
+                  value={`$${netPnL.toFixed(2)}`}
+                  color={netPnL >= 0 ? "text-green-600" : "text-red-500"}
+                  tooltip="Sum of profits - losses"
+                />
                 <StatCard title="Total Trades" value={totalTrades} />
                 <StatCard title="Trade Win %" value={`${winRate.toFixed(2)}%`} />
                 <StatCard title="Day Win %" value={`${dayWinPercent.toFixed(2)}%`} />
-                <StatCard title="Avg Win Trade" value={`$${avgWin.toFixed(2)}`} color="text-green-600" />
-                <StatCard title="Avg Loss Trade" value={`$${avgLoss.toFixed(2)}`} color="text-red-500" />
-                <StatCard title="Trade Expectancy" value={`$${expectancy.toFixed(2)}`} tooltip="(Win % * Avg Win) - (Loss % * Avg Loss)" />
-                <StatCard title="Profit Factor" value={profitFactor.toFixed(2)} color={profitFactor >= 1 ? "text-green-600" : "text-red-500"} tooltip="Gross Profit / Gross Loss" />
-                <StatCard title="Zella Score" value={zellaScore} tooltip="Overall performance score" />
-                <StatCard title="Biggest Win" value={`$${biggestWin.toFixed(2)}`} color="text-green-600" tooltip="Highest profit from a single trade" />
-                <StatCard title="Biggest Loss" value={`$${biggestLoss.toFixed(2)}`} color="text-red-500" tooltip="Worst loss from a single trade" />
+                <StatCard
+                  title="Avg Win Trade"
+                  value={`$${avgWin.toFixed(2)}`}
+                  color="text-green-600"
+                />
+                <StatCard
+                  title="Avg Loss Trade"
+                  value={`$${avgLoss.toFixed(2)}`}
+                  color="text-red-500"
+                />
+                <StatCard
+                  title="Trade Expectancy"
+                  value={`$${expectancy.toFixed(2)}`}
+                  tooltip="(Win % * Avg Win) - (Loss % * Avg Loss)"
+                />
+                <StatCard
+                  title="Profit Factor"
+                  value={profitFactor.toFixed(2)}
+                  color={profitFactor >= 1 ? "text-green-600" : "text-red-500"}
+                  tooltip="Gross Profit / Gross Loss"
+                />
+                <StatCard
+                  title="Zella Score"
+                  value={zellaScore}
+                  tooltip="Overall performance score"
+                />
+                <StatCard
+                  title="Biggest Win"
+                  value={`$${biggestWin.toFixed(2)}`}
+                  color="text-green-600"
+                  tooltip="Highest profit from a single trade"
+                />
+                <StatCard
+                  title="Biggest Loss"
+                  value={`$${biggestLoss.toFixed(2)}`}
+                  color="text-red-500"
+                  tooltip="Worst loss from a single trade"
+                />
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
@@ -219,7 +273,9 @@ const Dashboard = () => {
                     )}
                   </>
                 ) : tagSearchTerm ? (
-                  <p className="text-sm text-gray-500 dark:text-gray-400">No tags found for "{tagSearchTerm}".</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    No tags found for "{tagSearchTerm}".
+                  </p>
                 ) : null}
               </div>
 
