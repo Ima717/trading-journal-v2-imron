@@ -9,7 +9,7 @@ const MainLayout = () => {
     <div className="flex min-h-screen">
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       <div
-        className={`flex-1 transition-all duration-300 bg-gray-100 dark:bg-zinc-900 ${
+        className={`flex-1 transition-all duration-300 bg-gray-100 dark:bg-zinc-900 overflow-x-hidden ${
           collapsed ? "ml-[60px]" : "ml-[240px]"
         }`}
       >
