@@ -1,3 +1,5 @@
+// ChartTagPerformance.jsx – Upgraded with hover effects, dark mode, pointer UX, and refined design
+
 import React, { useRef, useEffect } from "react";
 import Chart from "chart.js/auto";
 
@@ -9,7 +11,6 @@ const ChartTagPerformance = ({ data, onTagClick }) => {
     if (!data || data.length === 0) return;
 
     const ctx = chartRef.current.getContext("2d");
-
     if (chartInstanceRef.current) {
       chartInstanceRef.current.destroy();
     }
@@ -20,7 +21,7 @@ const ChartTagPerformance = ({ data, onTagClick }) => {
     chartInstanceRef.current = new Chart(ctx, {
       type: "bar",
       data: {
-        labels: labels,
+        labels,
         datasets: [
           {
             label: "Avg P&L by Tag",
@@ -31,16 +32,21 @@ const ChartTagPerformance = ({ data, onTagClick }) => {
             borderColor: avgPnLs.map((pnl) =>
               pnl >= 0 ? "rgba(34, 197, 94, 1)" : "rgba(239, 68, 68, 1)"
             ),
-            borderWidth: 1,
+            borderWidth: 1.5,
             hoverBackgroundColor: avgPnLs.map((pnl) =>
               pnl >= 0 ? "rgba(34, 197, 94, 0.8)" : "rgba(239, 68, 68, 0.8)"
             ),
+            barThickness: 24,
           },
         ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: {
+          duration: 700,
+          easing: "easeOutQuart",
+        },
         scales: {
           y: {
             beginAtZero: true,
@@ -48,9 +54,15 @@ const ChartTagPerformance = ({ data, onTagClick }) => {
               display: true,
               text: "Avg P&L ($)",
               color: "#6b7280",
+              font: { weight: "bold", family: "Inter" },
             },
             ticks: {
               color: "#6b7280",
+              font: { family: "Inter" },
+            },
+            grid: {
+              color: "#e5e7eb",
+              borderDash: [3, 3],
             },
           },
           x: {
@@ -58,20 +70,29 @@ const ChartTagPerformance = ({ data, onTagClick }) => {
               display: true,
               text: "Tags",
               color: "#6b7280",
+              font: { weight: "bold", family: "Inter" },
             },
             ticks: {
               color: "#6b7280",
+              font: { family: "Inter" },
+            },
+            grid: {
+              display: false,
             },
           },
         },
         plugins: {
-          legend: {
-            display: false,
-          },
+          legend: { display: false },
           tooltip: {
+            backgroundColor: "#1f2937",
+            titleColor: "#f9fafb",
+            bodyColor: "#f9fafb",
+            padding: 10,
+            borderColor: "#10b981",
+            borderWidth: 1,
             callbacks: {
-              label: (context) => `Avg P&L: $${context.raw.toFixed(2)}`,
-              title: (tooltipItems) => `Tag: ${tooltipItems[0].label}`,
+              label: (ctx) => `Avg P&L: $${ctx.raw.toFixed(2)}`,
+              title: (items) => `Tag: ${items[0].label}`,
             },
           },
         },
@@ -96,8 +117,10 @@ const ChartTagPerformance = ({ data, onTagClick }) => {
   }, [data, onTagClick]);
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm">
-      <h3 className="text-sm text-gray-600 mb-3">Tag Performance</h3>
+    <div className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-sm">
+      <h3 className="text-sm text-gray-600 dark:text-gray-300 mb-3 font-semibold">
+        🏷️ Tag Performance
+      </h3>
       <div className="h-[400px]">
         <canvas ref={chartRef} />
       </div>
