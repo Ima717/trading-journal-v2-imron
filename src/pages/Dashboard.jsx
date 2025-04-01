@@ -17,6 +17,7 @@ import ChartZellaScore from "../components/ChartZellaScore";
 import CalendarWidget from "../components/CalendarWidget";
 import StatCard from "../components/StatCard";
 import AvgWinLoss from "../components/AvgWinLoss";
+import DayWinCard from "../components/DayWinCard";
 import { getPnLOverTime, getZellaScoreOverTime } from "../utils/calculations.js";
 import ErrorBoundary from "../components/ErrorBoundary";
 import ResultFilter from "../components/ResultFilter";
@@ -216,32 +217,23 @@ const Dashboard = () => {
                   badge={totalTrades}
                 />
                 <StatCard
+                  title="Trade Win %"
+                  value={`${winRate.toFixed(2)}%`}
+                  tooltip="Percentage of all trades that closed with profit."
+                  customBg={getWinRateBackground()}
+                />
+                <StatCard
                   title="Profit Factor"
                   value={profitFactor.toFixed(2)}
                   tooltip="Gross Profit / Gross Loss"
                 >
                   {donut}
                 </StatCard>
-                <StatCard
-                  title="Trade Win %"
-                  value={`${winRate.toFixed(2)}%`}
-                  tooltip="Percentage of all trades that closed with profit."
-                  customBg={getWinRateBackground()}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <StatCard title="Day Win %" value={`${dayWinPercent.toFixed(2)}%`} tooltip="Winning days / Total days" />
-                <AvgWinLoss />
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-                <div className="w-full bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-sm">
-                  <CalendarWidget />
-                </div>
-                <div className="w-full">
-                  <PerformanceChart data={pnlData} />
-                </div>
+                <DayWinCard />
+                <AvgWinLoss />
               </div>
 
               <div className="w-full mb-6">
