@@ -33,7 +33,17 @@ const StatCard = ({
                 data-tooltip-id={`tooltip-${title}`}
                 data-tooltip-content={tooltip}
               />
-              <Tooltip id={`tooltip-${title}`} place="top" className="z-50" />
+              <Tooltip
+                id={`tooltip-${title}`}
+                place="top"
+                className="z-50"
+                style={{
+                  maxWidth: "250px",
+                  whiteSpace: "normal",
+                  fontSize: "12px",
+                  padding: "8px",
+                }}
+              />
             </>
           )}
         </div>
@@ -47,7 +57,17 @@ const StatCard = ({
             >
               {badge}
             </span>
-            <Tooltip id={`badge-${title}`} place="top" className="z-50" />
+            <Tooltip
+              id={`badge-${title}`}
+              place="top"
+              className="z-50"
+              style={{
+                maxWidth: "200px",
+                whiteSpace: "normal",
+                fontSize: "12px",
+                padding: "6px",
+              }}
+            />
           </>
         )}
       </div>
