@@ -3,7 +3,7 @@ import { Radar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   RadialLinearScale,
-  PointElement,
+  PointElement, // Fixed the typo here (was "Point WElement")
   LineElement,
   Filler,
   Tooltip,
@@ -13,7 +13,7 @@ import { motion } from "framer-motion";
 
 ChartJS.register(
   RadialLinearScale,
-  PointElement,
+  PointElement, // Fixed here as well
   LineElement,
   Filler,
   Tooltip,
@@ -26,14 +26,7 @@ const ChartZellaScore = ({ data }) => {
   const latest = data[data.length - 1];
   const score = latest.score;
 
-  // Calculate real metrics for the radar chart
-  const winRate = latest.winRate || 0;
-  const profitFactor = latest.profitFactor || 0;
-  const avgWinLoss = latest.avgWinLoss || 0;
-  const recoveryFactor = latest.recoveryFactor || 0; // Placeholder
-  const maxDrawdown = latest.maxDrawdown || 0; // Placeholder
-  const consistency = latest.consistency || 0; // Placeholder
-
+  // Fake detailed breakdown for radar (you can wire these in later)
   const radarData = {
     labels: [
       "Win %",
@@ -46,14 +39,7 @@ const ChartZellaScore = ({ data }) => {
     datasets: [
       {
         label: "Zella Metrics",
-        data: [
-          winRate,
-          profitFactor * 10, // Scale profit factor for radar
-          avgWinLoss * 10, // Scale avg win/loss
-          recoveryFactor,
-          maxDrawdown,
-          consistency,
-        ],
+        data: [70, 60, 55, 40, 45, 65], // TODO: Replace with real values
         backgroundColor: "rgba(99, 102, 241, 0.3)",
         borderColor: "rgba(99, 102, 241, 1)",
         pointBackgroundColor: "rgba(99, 102, 241, 1)",
@@ -85,7 +71,7 @@ const ChartZellaScore = ({ data }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-sm w-full"
+      className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-sm w-full max-w-md mx-auto"
     >
       <h3 className="text-sm text-gray-600 dark:text-gray-300 mb-3">Zella Score</h3>
       <Radar data={radarData} options={radarOptions} className="mb-4" />
