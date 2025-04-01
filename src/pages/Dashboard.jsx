@@ -12,7 +12,7 @@ import dayjs from "dayjs";
 import { CircularProgressbar } from "react-circular-progressbar";
 import { motion } from "framer-motion";
 
-import TradeTable from "../components/TradeTable";
+import TradeTabs from "../components/TradeTabs";
 import ChartTagPerformance from "../components/ChartTagPerformance";
 import PerformanceChart from "../components/PerformanceChart";
 import ChartZellaScore from "../components/ChartZellaScore";
@@ -116,7 +116,6 @@ const Dashboard = () => {
     setResultFilter("all");
   };
 
-  // Stat Calculations
   const netPnL = filteredTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
   const totalTrades = filteredTrades.length;
   const wins = filteredTrades.filter((t) => t.pnl > 0);
@@ -133,7 +132,6 @@ const Dashboard = () => {
   const expectancy = (winRate / 100) * avgWin - ((100 - winRate) / 100) * avgLoss;
   const profitFactor = losses.length ? wins.reduce((s, t) => s + t.pnl, 0) / Math.abs(losses.reduce((s, t) => s + t.pnl, 0)) : 0;
   const zellaScore = Math.min((winRate * 0.4 + profitFactor * 10 * 0.3 + dayWinPercent * 0.3), 100).toFixed(2);
-
   const biggestWin = Math.max(...filteredTrades.map((t) => t.pnl || 0));
   const biggestLoss = Math.min(...filteredTrades.map((t) => t.pnl || 0));
 
@@ -225,13 +223,8 @@ const Dashboard = () => {
                 ) : null}
               </div>
 
-              <div>
-                {(resultFilter !== "all" || clickedTag) && (
-                  <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
-                    Showing: {resultFilter !== "all" ? resultFilter : ""} {clickedTag ? `(${clickedTag} trades)` : ""}
-                  </div>
-                )}
-                <TradeTable trades={filteredTrades} />
+              <div className="w-full mb-6">
+                <TradeTabs filteredTrades={filteredTrades} />
               </div>
             </>
           )}
