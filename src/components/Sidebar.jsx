@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { LayoutDashboard, Book, NotebookPen, FileBarChart, History, Repeat, User, LogOut } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -12,9 +12,8 @@ const navItems = [
   { name: "Progress Tracker", path: "/progress", icon: <Repeat size={20} />, badge: "BETA" },
 ];
 
-const Sidebar = () => {
+const Sidebar = ({ collapsed, setCollapsed }) => {
   const location = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
 
   // Animation variants for sidebar items
   const itemVariants = {
