@@ -7,7 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import { useFilters } from "../context/FilterContext";
 import { useTheme } from "../context/ThemeContext";
 import dayjs from "dayjs";
-import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import { CircularProgressbarWithChildren, buildStyles } from "react-circular-progressbar";
 import { motion } from "framer-motion";
 
 import TradeTabs from "../components/TradeTabs";
@@ -140,17 +140,24 @@ const Dashboard = () => {
   };
 
   const donut = (
-    <div className="w-8 h-8">
-      <CircularProgressbar
+    <div
+      className="w-12 h-12 relative group"
+      title={`$${wins.reduce((s, t) => s + t.pnl, 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} Total Profit`}
+    >
+      <CircularProgressbarWithChildren
         value={wins.reduce((s, t) => s + t.pnl, 0)}
         maxValue={wins.reduce((s, t) => s + t.pnl, 0) + Math.abs(losses.reduce((s, t) => s + t.pnl, 0))}
-        strokeWidth={12}
+        strokeWidth={10}
         styles={buildStyles({
           pathColor: profitFactor >= 1 ? "#10b981" : "#ef4444",
           trailColor: "#f87171",
           strokeLinecap: "round",
         })}
-      />
+      >
+        <div className="text-xs font-semibold text-gray-700 group-hover:scale-105 transition-transform">
+          💰
+        </div>
+      </CircularProgressbarWithChildren>
     </div>
   );
 
