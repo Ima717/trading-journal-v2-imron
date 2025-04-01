@@ -7,7 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import { useFilters } from "../context/FilterContext";
 import { useTheme } from "../context/ThemeContext";
 import dayjs from "dayjs";
-import { CircularProgressbarWithChildren, buildStyles } from "react-circular-progressbar";
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import { motion } from "framer-motion";
 
 import TradeTabs from "../components/TradeTabs";
@@ -16,6 +16,8 @@ import PerformanceChart from "../components/PerformanceChart";
 import ChartZellaScore from "../components/ChartZellaScore";
 import CalendarWidget from "../components/CalendarWidget";
 import StatCard from "../components/StatCard";
+import AvgWinLossCard from "../components/AvgWinLossCard";
+import DayWinGauge from "../components/DayWinGauge";
 import { getPnLOverTime, getZellaScoreOverTime } from "../utils/calculations.js";
 import ErrorBoundary from "../components/ErrorBoundary";
 import ResultFilter from "../components/ResultFilter";
@@ -140,25 +142,16 @@ const Dashboard = () => {
   };
 
   const donut = (
-    <div
-      className="w-12 h-12 relative group"
-      title={`$${wins.reduce((s, t) => s + t.pnl, 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} Total Profit`}
-    >
-      <CircularProgressbarWithChildren
-        value={wins.reduce((s, t) => s + t.pnl, 0)}
-        maxValue={wins.reduce((s, t) => s + t.pnl, 0) + Math.abs(losses.reduce((s, t) => s + t.pnl, 0))}
-        strokeWidth={10}
-        styles={buildStyles({
-          pathColor: profitFactor >= 1 ? "#10b981" : "#ef4444",
-          trailColor: "#f87171",
-          strokeLinecap: "round",
-        })}
-      >
-        <div className="text-xs font-semibold text-gray-700 group-hover:scale-105 transition-transform">
-          💰
-        </div>
-      </CircularProgressbarWithChildren>
-    </div>
+    <CircularProgressbar
+      value={wins.reduce((s, t) => s + t.pnl, 0)}
+      maxValue={wins.reduce((s, t) => s + t.pnl, 0) + Math.abs(losses.reduce((s, t) => s + t.pnl, 0))}
+      strokeWidth={10}
+      styles={buildStyles({
+        pathColor: profitFactor >= 1 ? "#10b981" : "#ef4444",
+        trailColor: "#f87171",
+        strokeLinecap: "round",
+      })}
+    />
   );
 
   return (
@@ -236,27 +229,16 @@ const Dashboard = () => {
                   tooltip="Percentage of all trades that closed with profit."
                   customBg={getWinRateBackground()}
                 />
-                <StatCard title="Day Win %" value={`${dayWinPercent.toFixed(2)}%`} />
-                <StatCard title="Avg Win Trade" value={`$${avgWin.toFixed(2)}`} color="text-green-600" />
-                <StatCard title="Avg Loss Trade" value={`$${avgLoss.toFixed(2)}`} color="text-red-500" />
-                <StatCard
-                  title="Trade Expectancy"
-                  value={`$${expectancy.toFixed(2)}`}
-                  tooltip="(Win % * Avg Win) - (Loss % * Avg Loss)"
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+                <DayWinGauge
+                  dayWinPercent={dayWinPercent}
+                  totalDays={tradingDays.length}
+                  winDays={winningDays.length}
+                  lossDays={tradingDays.length - winningDays.length}
                 />
-                <StatCard title="Zella Score" value={zellaScore} tooltip="Overall performance score" />
-                <StatCard
-                  title="Biggest Win"
-                  value={`$${biggestWin.toFixed(2)}`}
-                  color="text-green-600"
-                  tooltip="Highest profit from a single trade"
-                />
-                <StatCard
-                  title="Biggest Loss"
-                  value={`$${biggestLoss.toFixed(2)}`}
-                  color="text-red-500"
-                  tooltip="Worst loss from a single trade"
-                />
+                <AvgWinLossCard avgWin={avgWin} avgLoss={avgLoss} ratio={(avgWin / avgLoss).toFixed(2)} />
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
