@@ -1,4 +1,4 @@
-// StatCard.jsx — Updated with dynamic backgrounds, tooltip, and badge support
+// StatCard.jsx — Updated for Net P&L + Win Rate with full fixes and dynamic backgrounds
 
 import React from "react";
 import { Tooltip } from "react-tooltip";
