@@ -127,14 +127,6 @@ const Dashboard = () => {
     const dayPnL = filteredTrades.filter((t) => t.date === day).reduce((sum, t) => sum + t.pnl, 0);
     return dayPnL > 0;
   });
-  const breakEvenDays = tradingDays.filter((day) => {
-    const dayPnL = filteredTrades.filter((t) => t.date === day).reduce((sum, t) => sum + t.pnl, 0);
-    return dayPnL === 0;
-  });
-  const losingDays = tradingDays.filter((day) => {
-    const dayPnL = filteredTrades.filter((t) => t.date === day).reduce((sum, t) => sum + t.pnl, 0);
-    return dayPnL < 0;
-  });
   const dayWinPercent = tradingDays.length ? (winningDays.length / tradingDays.length) * 100 : 0;
   const avgWin = wins.length ? wins.reduce((sum, t) => sum + t.pnl, 0) / wins.length : 0;
   const avgLoss = losses.length ? Math.abs(losses.reduce((sum, t) => sum + t.pnl, 0) / losses.length) : 0;
@@ -218,31 +210,56 @@ const Dashboard = () => {
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                <StatCard
-                  title="Net P&L"
-                  value={`$${netPnL.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
-                  color={netPnL >= 0 ? "text-green-600" : "text-red-500"}
-                  tooltip="The total realized net profit and loss for all closed trades."
-                  badge={totalTrades}
-                />
-                <StatCard
-                  title="Trade Win %"
-                  value={`${winRate.toFixed(2)}%`}
-                  tooltip="Percentage of all trades that closed with profit."
-                  customBg={getWinRateBackground()}
-                />
-                <StatCard
-                  title="Profit Factor"
-                  value={profitFactor.toFixed(2)}
-                  tooltip="Gross Profit / Gross Loss"
+                <motion.div
+                  whileHover={{ scale: 1.03, boxShadow: "0px 5px 15px rgba(0,0,0,0.1)" }}
+                  transition={{ duration: 0.2 }}
                 >
-                  {donut}
-                </StatCard>
+                  <StatCard
+                    title="Net P&L"
+                    value={`$${netPnL.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+                    color={netPnL >= 0 ? "text-green-600" : "text-red-500"}
+                    tooltip="The total realized net profit and loss for all closed trades."
+                    badge={totalTrades}
+                  />
+                </motion.div>
+                <motion.div
+                  whileHover={{ scale: 1.03, boxShadow: "0px 5px 15px rgba(0,0,0,0.1)" }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <StatCard
+                    title="Trade Win %"
+                    value={`${winRate.toFixed(2)}%`}
+                    tooltip="Percentage of all trades that closed with profit."
+                    customBg={getWinRateBackground()}
+                  />
+                </motion.div>
+                <motion.div
+                  whileHover={{ scale: 1.03, boxShadow: "0px 5px 15px rgba(0,0,0,0.1)" }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <StatCard
+                    title="Profit Factor"
+                    value={profitFactor.toFixed(2)}
+                    tooltip="Gross Profit / Gross Loss"
+                  >
+                    {donut}
+                  </StatCard>
+                </motion.div>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-                <DayWinCard />
-                <AvgWinLoss />
+                <motion.div
+                  whileHover={{ scale: 1.03, boxShadow: "0px 5px 15px rgba(0,0,0,0.1)" }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <DayWinCard />
+                </motion.div>
+                <motion.div
+                  whileHover={{ scale: 1.03, boxShadow: "0px 5px 15px rgba(0,0,0,0.1)" }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <AvgWinLoss />
+                </motion.div>
               </div>
 
               <div className="w-full mb-6">
