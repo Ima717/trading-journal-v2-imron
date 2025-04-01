@@ -1,55 +1,39 @@
-// StatCard.jsx — Upgraded with special styling for Win Rate + tooltips + badges
+// StatCard.jsx — Final Fixed Version with conditional styling only for Trade Win %
 
 import React from "react";
 import { Tooltip } from "react-tooltip";
 import { motion } from "framer-motion";
-import { Info, TrendingUp } from "lucide-react";
+import { Info, BarChart3, TrendingUp } from "lucide-react";
 
-const StatCard = ({
-  title,
-  value,
-  color = "text-gray-900 dark:text-white",
-  tooltip,
-  badge,
-}) => {
-  // Special styling logic for Win Rate
-  const isWinRate = title.toLowerCase().includes("win %");
-  const winRate = parseFloat(value);
-  const bgGradient =
-    winRate >= 70
-      ? "from-green-300 to-green-500"
-      : winRate >= 50
-      ? "from-yellow-300 to-yellow-500"
-      : "from-red-300 to-red-500";
+const StatCard = ({ title, value, color, tooltip, badge }) => {
+  const isWinRateCard = title === "Trade Win %";
+
+  const getBackgroundClass = () => {
+    if (!isWinRateCard) return "bg-white dark:bg-zinc-800";
+    const winRate = parseFloat(value);
+    if (winRate >= 70) return "bg-gradient-to-r from-green-400 to-green-600 text-white";
+    if (winRate >= 50) return "bg-gradient-to-r from-yellow-300 to-yellow-500 text-white";
+    return "bg-gradient-to-r from-red-400 to-red-600 text-white";
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className={`relative p-6 rounded-xl shadow-sm w-full flex flex-col justify-between transition-all duration-200 group overflow-hidden hover:shadow-md hover:scale-[1.02] ${
-        isWinRate ? "bg-gradient-to-br text-white" : "bg-white dark:bg-zinc-800"
-      }`}
+      className={`relative ${getBackgroundClass()} p-6 rounded-xl shadow-sm w-full flex flex-col justify-between hover:shadow-md hover:scale-[1.02] transition-all duration-200 group overflow-hidden`}
     >
       {/* Header Row with Title, Info, and Badge */}
       <div className="flex justify-between items-center mb-1">
         <div className="flex items-center gap-1">
-          <span
-            className={`text-xs font-medium ${
-              isWinRate ? "text-white/80" : "text-gray-600 dark:text-gray-400"
-            }`}
-          >
+          <span className="text-xs font-medium">
             {title}
           </span>
           {tooltip && (
             <>
               <Info
                 size={14}
-                className={`${
-                  isWinRate
-                    ? "text-white/70 hover:text-white"
-                    : "text-gray-400 hover:text-black dark:hover:text-white"
-                } cursor-pointer`}
+                className="opacity-70 hover:opacity-100 cursor-pointer"
                 data-tooltip-id={`tooltip-${title}`}
                 data-tooltip-content={tooltip}
               />
@@ -61,11 +45,7 @@ const StatCard = ({
         {badge !== undefined && (
           <>
             <span
-              className={`text-xs px-2 py-0.5 rounded-full font-semibold cursor-default ${
-                isWinRate
-                  ? "bg-white/10 text-white"
-                  : "bg-gray-100 dark:bg-zinc-700 text-gray-800 dark:text-gray-100"
-              }`}
+              className="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full font-semibold cursor-default"
               data-tooltip-id={`badge-${title}`}
               data-tooltip-content="Total number of trades"
             >
@@ -77,12 +57,12 @@ const StatCard = ({
       </div>
 
       {/* Main Value */}
-      <div className={`text-2xl font-bold ${isWinRate ? "text-white" : color}`}>{value}</div>
+      <div className={`text-2xl font-bold ${color ?? ""}`}>{value}</div>
 
       {/* Optional corner icon */}
-      {isWinRate && (
+      {isWinRateCard && (
         <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <div className="bg-white/10 text-white rounded-md p-1">
+          <div className="bg-white/20 text-white rounded-md p-1">
             <TrendingUp size={14} />
           </div>
         </div>
