@@ -1,3 +1,5 @@
+// PerformanceChart.jsx – Enhanced with animations, dark mode, spacing, and modern tooltips
+
 import React, { useRef, useEffect } from "react";
 import Chart from "chart.js/auto";
 
@@ -22,36 +24,54 @@ const PerformanceChart = ({ data }) => {
           {
             label: "P&L Over Time",
             data: data.map((d) => d.pnl),
-            borderColor: "#007bff", // TradeZella's blue
-            backgroundColor: "rgba(0, 123, 255, 0.2)",
+            borderColor: "#3b82f6",
+            backgroundColor: "rgba(59, 130, 246, 0.15)",
             fill: true,
-            tension: 0.3,
+            tension: 0.35,
+            borderWidth: 2,
+            pointRadius: 3,
+            pointHoverRadius: 5,
           },
         ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: {
+          duration: 800,
+          easing: "easeOutQuart",
+        },
         scales: {
           x: {
+            ticks: {
+              color: "#6b7280",
+              font: { family: "Inter", size: 12 },
+            },
             title: {
               display: true,
               text: "Date",
-              color: "#6b7280", // text-gray-600
+              color: "#9ca3af",
+              font: { family: "Inter", weight: "bold" },
             },
-            ticks: {
-              color: "#6b7280",
+            grid: {
+              display: false,
             },
           },
           y: {
-            beginAtZero: true,
+            beginAtZero: false,
+            ticks: {
+              color: "#6b7280",
+              font: { family: "Inter", size: 12 },
+            },
             title: {
               display: true,
               text: "P&L ($)",
-              color: "#6b7280",
+              color: "#9ca3af",
+              font: { family: "Inter", weight: "bold" },
             },
-            ticks: {
-              color: "#6b7280",
+            grid: {
+              color: "#e5e7eb",
+              borderDash: [3, 3],
             },
           },
         },
@@ -60,6 +80,12 @@ const PerformanceChart = ({ data }) => {
             display: false,
           },
           tooltip: {
+            backgroundColor: "#1f2937",
+            titleColor: "#f9fafb",
+            bodyColor: "#f9fafb",
+            padding: 10,
+            borderColor: "#3b82f6",
+            borderWidth: 1,
             callbacks: {
               label: (context) => `P&L: $${context.raw.toFixed(2)}`,
             },
@@ -76,8 +102,10 @@ const PerformanceChart = ({ data }) => {
   }, [data]);
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm">
-      <h3 className="text-sm text-gray-600 mb-3">P&L Over Time</h3>
+    <div className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-sm">
+      <h3 className="text-sm text-gray-600 dark:text-gray-300 mb-3 font-semibold">
+        📈 P&L Over Time
+      </h3>
       <div className="h-[400px]">
         <canvas ref={chartRef} />
       </div>
