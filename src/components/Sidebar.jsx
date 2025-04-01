@@ -42,9 +42,9 @@ const Sidebar = () => {
             <Link
               key={item.name}
               to={item.path}
-              className={flex items-center gap-3 text-sm px-3 py-2 rounded hover:bg-purple-700 transition-all relative ${
+              className={`flex items-center gap-3 text-sm px-3 py-2 rounded hover:bg-purple-700 transition-all relative ${
                 location.pathname === item.path ? "bg-purple-800" : ""
-              }}
+              }`}
             >
               {item.icon}
               {!collapsed && <span>{item.name}</span>}
