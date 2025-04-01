@@ -7,7 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import { useFilters } from "../context/FilterContext";
 import { useTheme } from "../context/ThemeContext";
 import dayjs from "dayjs";
-import { CircularProgressbar } from "react-circular-progressbar";
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import { motion } from "framer-motion";
 
 import TradeTabs from "../components/TradeTabs";
@@ -139,6 +139,19 @@ const Dashboard = () => {
     return "bg-gradient-to-r from-red-400 to-red-500 text-white";
   };
 
+  const donut = (
+    <CircularProgressbar
+      value={wins.reduce((s, t) => s + t.pnl, 0)}
+      maxValue={wins.reduce((s, t) => s + t.pnl, 0) + Math.abs(losses.reduce((s, t) => s + t.pnl, 0))}
+      strokeWidth={10}
+      styles={buildStyles({
+        pathColor: profitFactor >= 1 ? "#10b981" : "#ef4444",
+        trailColor: "#f87171",
+        strokeLinecap: "round",
+      })}
+    />
+  );
+
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-100 dark:bg-zinc-900 font-inter">
@@ -148,28 +161,16 @@ const Dashboard = () => {
               📊 Welcome to IMAI Dashboard
             </h1>
             <div className="flex flex-wrap gap-2">
-              <Link
-                to="/add-trade"
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
-              >
+              <Link to="/add-trade" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
                 ➕ Add Trade
               </Link>
-              <Link
-                to="/import"
-                className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
-              >
+              <Link to="/import" className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">
                 📤 Import Trades
               </Link>
-              <button
-                onClick={toggleTheme}
-                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
-              >
+              <button onClick={toggleTheme} className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
                 {theme === "light" ? "🌙 Dark Mode" : "☀️ Light Mode"}
               </button>
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
-              >
+              <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
                 🔒 Log Out
               </button>
             </div>
@@ -213,7 +214,6 @@ const Dashboard = () => {
                   tooltip="The total realized net profit and loss for all closed trades."
                   badge={totalTrades}
                 />
-                <StatCard title="Total Trades" value={totalTrades} />
                 <StatCard
                   title="Trade Win %"
                   value={`${winRate.toFixed(2)}%`}
@@ -221,16 +221,8 @@ const Dashboard = () => {
                   customBg={getWinRateBackground()}
                 />
                 <StatCard title="Day Win %" value={`${dayWinPercent.toFixed(2)}%`} />
-                <StatCard
-                  title="Avg Win Trade"
-                  value={`$${avgWin.toFixed(2)}`}
-                  color="text-green-600"
-                />
-                <StatCard
-                  title="Avg Loss Trade"
-                  value={`$${avgLoss.toFixed(2)}`}
-                  color="text-red-500"
-                />
+                <StatCard title="Avg Win Trade" value={`$${avgWin.toFixed(2)}`} color="text-green-600" />
+                <StatCard title="Avg Loss Trade" value={`$${avgLoss.toFixed(2)}`} color="text-red-500" />
                 <StatCard
                   title="Trade Expectancy"
                   value={`$${expectancy.toFixed(2)}`}
@@ -239,14 +231,11 @@ const Dashboard = () => {
                 <StatCard
                   title="Profit Factor"
                   value={profitFactor.toFixed(2)}
-                  color={profitFactor >= 1 ? "text-green-600" : "text-red-500"}
                   tooltip="Gross Profit / Gross Loss"
-                />
-                <StatCard
-                  title="Zella Score"
-                  value={zellaScore}
-                  tooltip="Overall performance score"
-                />
+                >
+                  {donut}
+                </StatCard>
+                <StatCard title="Zella Score" value={zellaScore} tooltip="Overall performance score" />
                 <StatCard
                   title="Biggest Win"
                   value={`$${biggestWin.toFixed(2)}`}
