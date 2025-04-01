@@ -140,16 +140,18 @@ const Dashboard = () => {
   };
 
   const donut = (
-    <CircularProgressbar
-      value={wins.reduce((s, t) => s + t.pnl, 0)}
-      maxValue={wins.reduce((s, t) => s + t.pnl, 0) + Math.abs(losses.reduce((s, t) => s + t.pnl, 0))}
-      strokeWidth={10}
-      styles={buildStyles({
-        pathColor: profitFactor >= 1 ? "#10b981" : "#ef4444",
-        trailColor: "#f87171",
-        strokeLinecap: "round",
-      })}
-    />
+    <div className="w-8 h-8">
+      <CircularProgressbar
+        value={wins.reduce((s, t) => s + t.pnl, 0)}
+        maxValue={wins.reduce((s, t) => s + t.pnl, 0) + Math.abs(losses.reduce((s, t) => s + t.pnl, 0))}
+        strokeWidth={12}
+        styles={buildStyles({
+          pathColor: profitFactor >= 1 ? "#10b981" : "#ef4444",
+          trailColor: "#f87171",
+          strokeLinecap: "round",
+        })}
+      />
+    </div>
   );
 
   return (
@@ -215,6 +217,13 @@ const Dashboard = () => {
                   badge={totalTrades}
                 />
                 <StatCard
+                  title="Profit Factor"
+                  value={profitFactor.toFixed(2)}
+                  tooltip="Gross Profit / Gross Loss"
+                >
+                  {donut}
+                </StatCard>
+                <StatCard
                   title="Trade Win %"
                   value={`${winRate.toFixed(2)}%`}
                   tooltip="Percentage of all trades that closed with profit."
@@ -228,13 +237,6 @@ const Dashboard = () => {
                   value={`$${expectancy.toFixed(2)}`}
                   tooltip="(Win % * Avg Win) - (Loss % * Avg Loss)"
                 />
-                <StatCard
-                  title="Profit Factor"
-                  value={profitFactor.toFixed(2)}
-                  tooltip="Gross Profit / Gross Loss"
-                >
-                  {donut}
-                </StatCard>
                 <StatCard title="Zella Score" value={zellaScore} tooltip="Overall performance score" />
                 <StatCard
                   title="Biggest Win"
