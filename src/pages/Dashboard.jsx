@@ -15,9 +15,10 @@ import { motion } from "framer-motion";
 import TradeTable from "../components/TradeTable";
 import ChartTagPerformance from "../components/ChartTagPerformance";
 import PerformanceChart from "../components/PerformanceChart";
+import ChartZellaScore from "../components/ChartZellaScore";
 import CalendarWidget from "../components/CalendarWidget";
 import StatCard from "../components/StatCard";
-import { getPnLOverTime } from "../utils/calculations";
+import { getPnLOverTime, getZellaScoreOverTime } from "../utils/calculations.js";
 import ErrorBoundary from "../components/ErrorBoundary";
 import ResultFilter from "../components/ResultFilter";
 import SearchFilter from "../components/SearchFilter";
@@ -40,6 +41,7 @@ const Dashboard = () => {
 
   const [tagPerformanceData, setTagPerformanceData] = useState([]);
   const [pnlData, setPnlData] = useState([]);
+  const [zellaTrendData, setZellaTrendData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const handleLogout = async () => {
@@ -70,7 +72,9 @@ const Dashboard = () => {
       (snapshot) => {
         const trades = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         const pnlSeries = getPnLOverTime(trades);
+        const zellaSeries = getZellaScoreOverTime(trades);
         setPnlData(pnlSeries);
+        setZellaTrendData(zellaSeries);
 
         const tagMap = {};
         trades.forEach((trade) => {
@@ -200,6 +204,10 @@ const Dashboard = () => {
                 <div className="w-full">
                   <PerformanceChart data={pnlData} />
                 </div>
+              </div>
+
+              <div className="w-full mb-6">
+                <ChartZellaScore data={zellaTrendData} />
               </div>
 
               <div className="w-full mb-6">
