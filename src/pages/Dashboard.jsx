@@ -133,6 +133,12 @@ const Dashboard = () => {
   const biggestWin = Math.max(...filteredTrades.map((t) => t.pnl || 0));
   const biggestLoss = Math.min(...filteredTrades.map((t) => t.pnl || 0));
 
+  const getWinRateBackground = () => {
+    if (winRate > 60) return "bg-gradient-to-r from-green-400 to-green-500 text-white";
+    if (winRate >= 40) return "bg-gradient-to-r from-yellow-400 to-yellow-500 text-white";
+    return "bg-gradient-to-r from-red-400 to-red-500 text-white";
+  };
+
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-100 dark:bg-zinc-900 font-inter">
@@ -208,7 +214,12 @@ const Dashboard = () => {
                   badge={totalTrades}
                 />
                 <StatCard title="Total Trades" value={totalTrades} />
-                <StatCard title="Trade Win %" value={`${winRate.toFixed(2)}%`} />
+                <StatCard
+                  title="Trade Win %"
+                  value={`${winRate.toFixed(2)}%`}
+                  tooltip="Percentage of all trades that closed with profit."
+                  customBg={getWinRateBackground()}
+                />
                 <StatCard title="Day Win %" value={`${dayWinPercent.toFixed(2)}%`} />
                 <StatCard
                   title="Avg Win Trade"
