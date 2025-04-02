@@ -1,7 +1,23 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Book, NotebookPen, FileBarChart, History, Repeat, User, LogOut, Bell } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  LayoutDashboard,
+  Book,
+  NotebookPen,
+  FileBarChart,
+  History,
+  Repeat,
+  User,
+  LogOut,
+  Bell,
+  Moon,
+  Sun,
+  Upload
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "../context/ThemeContext";
+import { signOut } from "firebase/auth";
+import { auth } from "../utils/firebase";
 
 const navItems = [
   { name: "Dashboard", path: "/", icon: <LayoutDashboard size={20} /> },
@@ -14,6 +30,8 @@ const navItems = [
 
 const Sidebar = ({ collapsed, setCollapsed }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
   const itemVariants = {
     hidden: { opacity: 0, x: -20 },
@@ -22,6 +40,11 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
       x: 0,
       transition: { delay: i * 0.1, duration: 0.3, ease: "easeOut" },
     }),
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate("/signin");
   };
 
   return (
@@ -106,35 +129,33 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
 
       {/* Footer Section */}
       <div className="absolute bottom-4 w-full px-2 border-t border-gray-700 pt-4">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-        >
-          <button
-            className="flex items-center gap-3 text-sm px-3 py-2 rounded hover:bg-indigo-800 text-gray-300 hover:text-indigo-300 w-full text-left transition-all"
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
+          <Link
+            to="/import"
+            className="flex items-center gap-3 text-sm px-3 py-2 rounded hover:bg-indigo-800 text-gray-300 hover:text-indigo-300 transition-all mb-2"
           >
-            <motion.div whileHover={{ scale: 1.1 }} transition={{ duration: 0.2 }}>
-              <Bell size={20} />
-            </motion.div>
-            {!collapsed && <span>Notifications</span>}
+            <Upload size={20} />
+            {!collapsed && <span>Import Trades</span>}
+          </Link>
+          <button
+            onClick={toggleTheme}
+            className="flex items-center gap-3 text-sm px-3 py-2 rounded hover:bg-indigo-800 text-gray-300 hover:text-indigo-300 w-full text-left transition-all mb-2"
+          >
+            {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
+            {!collapsed && <span>{theme === "light" ? "Dark Mode" : "Light Mode"}</span>}
           </button>
           <Link
             to="/settings"
-            className="flex items-center gap-3 text-sm px-3 py-2 rounded hover:bg-indigo-800 text-gray-300 hover:text-indigo-300 transition-all"
+            className="flex items-center gap-3 text-sm px-3 py-2 rounded hover:bg-indigo-800 text-gray-300 hover:text-indigo-300 transition-all mb-2"
           >
-            <motion.div whileHover={{ scale: 1.1 }} transition={{ duration: 0.2 }}>
-              <User size={20} />
-            </motion.div>
+            <User size={20} />
             {!collapsed && <span>Profile</span>}
           </Link>
           <button
-            onClick={() => console.log("logout")}
-            className="flex items-center gap-3 text-sm px-3 py-2 rounded hover:bg-indigo-800 text-gray-300 hover:text-indigo-300 w-full text-left transition-all"
+            onClick={handleLogout}
+            className="flex items-center gap-3 text-sm px-3 py-2 rounded hover:bg-red-700 text-gray-300 hover:text-white w-full text-left transition-all"
           >
-            <motion.div whileHover={{ scale: 1.1 }} transition={{ duration: 0.2 }}>
-              <LogOut size={20} />
-            </motion.div>
+            <LogOut size={20} />
             {!collapsed && <span>Log Out</span>}
           </button>
         </motion.div>
