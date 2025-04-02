@@ -1,86 +1,74 @@
 import React, { useState } from "react";
+import { useFilters } from "../context/FilterContext";
+import { CalendarDays } from "lucide-react";
 import dayjs from "dayjs";
-import clsx from "clsx";
+import { motion, AnimatePresence } from "framer-motion";
 
-const generateDays = (start, end) => {
-  const days = [];
-  let current = start.startOf("month");
-  while (current.isBefore(end.endOf("month"))) {
-    days.push(current);
-    current = current.add(1, "day");
-  }
-  return days;
-};
+const presets = [
+  { label: "Today", range: () => [dayjs(), dayjs()] },
+  { label: "This Week", range: () => [dayjs().startOf("week"), dayjs().endOf("week")] },
+  { label: "This Month", range: () => [dayjs().startOf("month"), dayjs().endOf("month")] },
+  { label: "Last 30 Days", range: () => [dayjs().subtract(30, "day"), dayjs()] },
+  { label: "This Quarter", range: () => {
+    const month = dayjs().month();
+    const startMonth = Math.floor(month / 3) * 3;
+    return [dayjs().month(startMonth).startOf("month"), dayjs().month(startMonth + 2).endOf("month")];
+  }},
+  { label: "YTD", range: () => [dayjs().startOf("year"), dayjs()] },
+];
 
-const TimelineDateRangePicker = ({ onApply, onCancel }) => {
-  const [range, setRange] = useState({ start: null, end: null });
+const TimelineDateRangePicker = () => {
+  const { setDateRange } = useFilters();
+  const [open, setOpen] = useState(false);
 
-  const handleDateClick = (day) => {
-    if (!range.start || (range.start && range.end)) {
-      setRange({ start: day, end: null });
-    } else if (day.isBefore(range.start)) {
-      setRange({ start: day, end: range.start });
-    } else {
-      setRange({ ...range, end: day });
-    }
+  const handlePresetClick = (rangeFn) => {
+    const [start, end] = rangeFn();
+    setDateRange({ start: start.toDate(), end: end.toDate() });
+    setOpen(false);
   };
-
-  const isSelected = (day) => {
-    if (!range.start) return false;
-    if (range.start && !range.end) return day.isSame(range.start, "day");
-    return day.isAfter(range.start.subtract(1, "day")) && day.isBefore(range.end.add(1, "day"));
-  };
-
-  const days = generateDays(dayjs().subtract(2, "month"), dayjs().add(1, "month"));
 
   return (
-    <div className="p-4 w-full max-w-4xl mx-auto bg-white rounded shadow-lg">
-      <div className="flex overflow-x-auto no-scrollbar space-x-2 pb-4">
-        {days.map((day) => (
-          <button
-            key={day.format("YYYY-MM-DD")}
-            onClick={() => handleDateClick(day)}
-            className={clsx(
-              "min-w-[60px] px-3 py-2 rounded-md border text-sm text-gray-700 transition-all",
-              {
-                "bg-purple-600 text-white font-semibold": isSelected(day),
-                "hover:bg-gray-100": !isSelected(day),
-              }
-            )}
-          >
-            <div className="text-xs">{day.format("ddd")}</div>
-            <div>{day.format("D")}</div>
-          </button>
-        ))}
-      </div>
+    <div className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 px-4 py-2 text-sm bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-md shadow hover:bg-gray-100 dark:hover:bg-zinc-700 transition-all"
+      >
+        <CalendarDays className="text-purple-600" size={16} />
+        Date range
+      </button>
 
-      {/* Footer Buttons */}
-      <div className="flex justify-between items-center border-t pt-4 mt-4">
-        <button
-          onClick={() => setRange({ start: null, end: null })}
-          className="text-purple-600 text-sm hover:underline"
-        >
-          Reset
-        </button>
-        <div className="flex gap-2">
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 border rounded hover:bg-gray-50 text-sm"
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25 }}
+            className="absolute right-0 mt-2 z-50 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-md shadow-lg w-64 p-3"
           >
-            Cancel
-          </button>
-          <button
-            onClick={() => {
-              if (range.start && range.end) {
-                onApply({ start: range.start.toDate(), end: range.end.toDate() });
-              }
-            }}
-            className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm"
-          >
-            Apply
-          </button>
-        </div>
-      </div>
+            <div className="flex flex-col gap-1">
+              {presets.map((preset) => (
+                <button
+                  key={preset.label}
+                  onClick={() => handlePresetClick(preset.range)}
+                  className="text-sm text-left px-3 py-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
+                >
+                  {preset.label}
+                </button>
+              ))}
+              <button
+                onClick={() => {
+                  setDateRange({ start: null, end: null });
+                  setOpen(false);
+                }}
+                className="text-xs text-red-500 mt-2 hover:underline"
+              >
+                Reset Date Filter ✕
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
