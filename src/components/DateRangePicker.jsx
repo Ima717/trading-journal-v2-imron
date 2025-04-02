@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import DatePicker from "react-multi-date-picker";
 import transition from "react-element-popper/animations/transition";
 import "react-multi-date-picker/styles/colors/purple.css";
+import { motion, AnimatePresence } from "framer-motion";
 
 const presets = [
   { label: "Today", range: () => [dayjs(), dayjs()] },
@@ -70,53 +71,115 @@ const DateRangePicker = () => {
         <ChevronDown size={16} />
       </button>
 
-      {open && (
-        <div className="absolute top-12 right-0 bg-white border shadow-xl rounded-lg flex z-50 animate-slide-down-fade transition-all duration-300">
-          {/* Calendar Panel */}
-          <div className="p-4">
-            <div className="text-sm font-semibold text-gray-600 mb-2 pl-1">Select Date Range</div>
-            <DatePicker
-              value={value}
-              onChange={onChange}
-              range
-              numberOfMonths={2}
-              format="YYYY-MM-DD"
-              className="purple"
-              animations={[transition({ duration: 300 })]}
-              calendarPosition="bottom-left"
-              style={{
-                border: "none",
-                boxShadow: "none",
-                padding: 0,
-                margin: 0,
-                width: "100%",
-              }}
-            />
-          </div>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+            className="absolute top-12 right-0 bg-white border shadow-xl rounded-lg flex z-50"
+          >
+            {/* Calendar Panel */}
+            <div className="p-4">
+              <div className="flex justify-between mb-2">
+                <span className="text-xs font-semibold text-gray-600">Start Date</span>
+                <span className="text-xs font-semibold text-gray-600">End Date</span>
+              </div>
+              <DatePicker
+                value={value}
+                onChange={onChange}
+                range
+                numberOfMonths={2}
+                format="YYYY-MM-DD"
+                className="purple"
+                animations={[transition({ duration: 300 })]}
+                calendarPosition="bottom-left"
+                style={{
+                  border: "none",
+                  boxShadow: "none",
+                  padding: 0,
+                  margin: 0,
+                  width: "100%",
+                }}
+                rangeHover
+                highlightToday={false}
+                mapDays={({ date, isSameDate, selectedDate }) => {
+                  if (selectedDate && selectedDate.length === 2) {
+                    const [start, end] = selectedDate;
+                    const currentDate = dayjs(date.toDate());
+                    const startDate = dayjs(start.toDate());
+                    const endDate = dayjs(end.toDate());
+                    if (
+                      currentDate.isAfter(startDate.subtract(1, "day")) &&
+                      currentDate.isBefore(endDate.add(1, "day"))
+                    ) {
+                      return {
+                        className: "highlight-range",
+                      };
+                    }
+                  }
+                  return {};
+                }}
+              />
+            </div>
 
-          {/* Divider Line */}
-          <div className="w-[1px] mx-2 bg-gray-200 opacity-60 rounded-full" />
+            {/* Divider Line */}
+            <div className="w-[1px] mx-2 bg-gray-200 opacity-60 rounded-full" />
 
-          {/* Presets */}
-          <div className="p-4 flex flex-col gap-2 w-40">
-            {presets.map((preset) => (
+            {/* Presets */}
+            <div className="p-4 flex flex-col gap-2 w-40">
+              {presets.map((preset) => (
+                <button
+                  key={preset.label}
+                  onClick={() => applyRange(preset.range)}
+                  className="text-left text-sm text-gray-800 hover:text-purple-600 hover:font-medium transition"
+                >
+                  {preset.label}
+                </button>
+              ))}
               <button
-                key={preset.label}
-                onClick={() => applyRange(preset.range)}
-                className="text-left text-sm text-gray-800 hover:text-purple-600 hover:font-medium transition"
+                onClick={resetRange}
+                className="text-xs text-gray-500 underline hover:text-red-600 mt-2"
               >
-                {preset.label}
+                ✕ Reset range
               </button>
-            ))}
-            <button
-              onClick={resetRange}
-              className="text-xs text-gray-500 underline hover:text-red-600 mt-2"
-            >
-              ✕ Reset range
-            </button>
-          </div>
-        </div>
-      )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Custom CSS for Fading Animation */}
+      <style jsx>{`
+        .highlight-range {
+          background-color: rgba(139, 92, 246, 0.2) !important;
+          animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+          from {
+            background-color: rgba(139, 92, 246, 0);
+          }
+          to {
+            background-color: rgba(139, 92, 246, 0.2);
+          }
+        }
+        .rmdp-day-picker {
+          font-family: 'Inter', sans-serif !important;
+          font-size: 14px !important;
+        }
+        .rmdp-day {
+          border-radius: 50% !important;
+        }
+        .rmdp-day.rmdp-selected span {
+          background-color: #8b5cf6 !important;
+          color: white !important;
+        }
+        .rmdp-header {
+          font-size: 14px !important;
+          font-weight: 600 !important;
+          color: #4b5563 !important;
+        }
+      `}</style>
     </div>
   );
 };
