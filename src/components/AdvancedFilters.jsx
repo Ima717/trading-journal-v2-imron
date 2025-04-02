@@ -1,107 +1,104 @@
-import React, { useEffect, useState } from "react";
-import { ChevronDown, Check, AlertTriangle } from "lucide-react";
+import React, { useState } from "react";
+import { ChevronDown, Filter, X, Check } from "lucide-react";
 import { useFilters } from "../context/FilterContext";
-import clsx from "clsx";
 
-const filterCategories = {
-  Result: ["Win", "Loss", "Break-Even"],
-  General: ["Reviewed", "Unreviewed", "Open", "Closed"],
-  Tags: ["Breakout", "Reversal", "News Play", "Overtraded", "Perfect"],
-  "Day & Time": ["Monday", "Tuesday", "Pre-market", "After-hours"],
-  Playbook: ["A+ Setup", "B Setup", "C Setup"],
+const filterOptions = {
+  General: [
+    "Instrument",
+    "Intraday/Multiday",
+    "Open/Closed",
+    "Reviewed/Unreviewed",
+    "Side",
+    "Symbol",
+    "Status",
+    "Trade rating",
+  ],
+  Tags: ["Mistakes", "Successes"],
 };
 
 const AdvancedFilters = () => {
   const [open, setOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("General");
   const [selectedFilters, setSelectedFilters] = useState({});
-  const [error, setError] = useState(false);
   const { setClickedTag } = useFilters();
 
   const toggleFilter = (category, filter) => {
     setSelectedFilters((prev) => {
       const current = prev[category] || [];
-      const exists = current.includes(filter);
-      const updated = exists
+      const updated = current.includes(filter)
         ? current.filter((f) => f !== filter)
         : [...current, filter];
       return { ...prev, [category]: updated };
     });
   };
 
-  const resetAll = () => {
+  const applyFilters = () => {
+    const flatTags = Object.values(selectedFilters).flat();
+    if (flatTags.length > 0) setClickedTag(flatTags[0]); // optional context usage
+    setOpen(false);
+  };
+
+  const resetFilters = () => {
     setSelectedFilters({});
   };
 
-  const applyFilters = () => {
-    setOpen(false);
-    const flatTags = Object.values(selectedFilters).flat();
-    if (flatTags.length) setClickedTag(flatTags[0]);
-  };
-
-  useEffect(() => {
-    // Simulate loading filters (replace with real fetch if needed)
-    try {
-      // e.g., fetch filters here
-      setError(false);
-    } catch (err) {
-      console.error("Failed to load filters", err);
-      setError(true);
-    }
-  }, []);
-
   return (
-    <div className="relative z-40">
+    <div className="relative z-50">
       <button
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1 px-4 py-2 bg-white border rounded shadow-sm hover:bg-gray-100 text-sm font-medium"
       >
-        <span className="text-green-700">🧪</span>
-        <span className="text-gray-700">Filters</span>
+        <Filter size={16} className="text-gray-600" />
+        <span>Filters</span>
         <ChevronDown size={16} />
       </button>
 
       {open && (
-        <div
-          className={clsx(
-            "absolute right-0 top-12 w-[360px] bg-white shadow-xl rounded-lg border p-4 z-50 animate-dropdown"
-          )}
-        >
-          {Object.entries(filterCategories).map(([category, filters]) => (
-            <div key={category} className="mb-4">
-              <div className="font-semibold text-sm mb-2 text-gray-800">{category}</div>
-              <div className="flex flex-wrap gap-2">
-                {filters.map((filter) => {
-                  const isActive = selectedFilters[category]?.includes(filter) || false;
-                  return (
-                    <button
-                      key={filter}
-                      onClick={() => toggleFilter(category, filter)}
-                      className={clsx(
-                        "px-3 py-1 text-xs rounded-full border flex items-center gap-1 transition-all",
-                        isActive
-                          ? "bg-indigo-600 text-white border-indigo-600"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      )}
-                    >
-                      {isActive && <Check size={12} />}
-                      {filter}
-                    </button>
-                  );
-                })}
-              </div>
+        <div className="absolute top-12 right-0 w-[500px] bg-white rounded-lg shadow-xl border z-50 animate-fade-in-down">
+          <div className="flex">
+            {/* Left category section */}
+            <div className="w-1/3 border-r">
+              {Object.keys(filterOptions).map((category) => (
+                <button
+                  key={category}
+                  className={`flex items-center w-full px-4 py-2 text-left text-sm ${
+                    activeCategory === category
+                      ? "bg-purple-100 text-purple-700 font-semibold"
+                      : "hover:bg-gray-100 text-gray-700"
+                  }`}
+                  onClick={() => setActiveCategory(category)}
+                >
+                  {category}
+                </button>
+              ))}
             </div>
-          ))}
 
-          {error && (
-            <div className="text-red-500 text-sm flex items-center gap-2 mt-3">
-              <AlertTriangle size={16} />
-              Failed to load filters. Please try again.
+            {/* Right filter section */}
+            <div className="w-2/3 p-4">
+              {filterOptions[activeCategory].map((filter) => {
+                const isActive = selectedFilters[activeCategory]?.includes(filter);
+                return (
+                  <button
+                    key={filter}
+                    onClick={() => toggleFilter(activeCategory, filter)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm border ${
+                      isActive
+                        ? "bg-indigo-600 text-white border-indigo-600"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    } mb-2 mr-2`}
+                  >
+                    {isActive && <Check size={14} />}
+                    {filter}
+                  </button>
+                );
+              })}
             </div>
-          )}
+          </div>
 
-          <div className="flex justify-between mt-4 border-t pt-3">
+          {/* Bottom controls */}
+          <div className="flex items-center justify-between px-4 py-3 border-t">
             <button
-              onClick={resetAll}
+              onClick={resetFilters}
               className="text-xs text-purple-600 hover:underline"
             >
               Reset all
@@ -115,7 +112,7 @@ const AdvancedFilters = () => {
               </button>
               <button
                 onClick={applyFilters}
-                className="px-3 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700"
+                className="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700"
               >
                 Apply filters
               </button>
