@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { CalendarDays, ChevronDown } from "lucide-react";
 import { useFilters } from "../context/FilterContext";
+import { CalendarDays, ChevronDown } from "lucide-react";
 import dayjs from "dayjs";
 import DatePicker from "react-multi-date-picker";
 import transition from "react-element-popper/animations/transition";
@@ -11,12 +11,22 @@ const presets = [
   { label: "This week", range: () => [dayjs().startOf("week"), dayjs().endOf("week")] },
   { label: "This month", range: () => [dayjs().startOf("month"), dayjs().endOf("month")] },
   { label: "Last 30 days", range: () => [dayjs().subtract(30, "day"), dayjs()] },
-  { label: "Last month", range: () => [dayjs().subtract(1, "month").startOf("month"), dayjs().subtract(1, "month").endOf("month")] },
   {
-    label: "This quarter", range: () => {
+    label: "Last month",
+    range: () => [
+      dayjs().subtract(1, "month").startOf("month"),
+      dayjs().subtract(1, "month").endOf("month"),
+    ],
+  },
+  {
+    label: "This quarter",
+    range: () => {
       const startMonth = Math.floor(dayjs().month() / 3) * 3;
-      return [dayjs().month(startMonth).startOf("month"), dayjs().month(startMonth + 2).endOf("month")];
-    }
+      return [
+        dayjs().month(startMonth).startOf("month"),
+        dayjs().month(startMonth + 2).endOf("month"),
+      ];
+    },
   },
   { label: "YTD", range: () => [dayjs().startOf("year"), dayjs()] },
 ];
@@ -62,7 +72,9 @@ const DateRangePicker = () => {
 
       {open && (
         <div className="absolute top-12 right-0 bg-white border shadow-xl rounded-lg flex z-50 animate-slide-down-fade transition-all duration-300">
+          {/* Calendar Panel */}
           <div className="p-4">
+            <div className="text-sm font-semibold text-gray-600 mb-2 pl-1">Select Date Range</div>
             <DatePicker
               value={value}
               onChange={onChange}
@@ -72,10 +84,20 @@ const DateRangePicker = () => {
               className="purple"
               animations={[transition({ duration: 300 })]}
               calendarPosition="bottom-left"
-              style={{ border: "none", boxShadow: "none" }}
+              style={{
+                border: "none",
+                boxShadow: "none",
+                padding: 0,
+                margin: 0,
+                width: "100%",
+              }}
             />
           </div>
+
+          {/* Divider Line */}
           <div className="w-[1px] mx-2 bg-gray-200 opacity-60 rounded-full" />
+
+          {/* Presets */}
           <div className="p-4 flex flex-col gap-2 w-40">
             {presets.map((preset) => (
               <button
