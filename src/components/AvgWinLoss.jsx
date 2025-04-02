@@ -12,7 +12,9 @@ const AvgWinLoss = () => {
     : 0;
 
   const avgLoss = losingTrades.length
-    ? Math.abs(losingTrades.reduce((sum, t) => sum + t.pnl, 0) / losingTrades.length)
+    ? Math.abs(
+        losingTrades.reduce((sum, t) => sum + t.pnl, 0) / losingTrades.length
+      )
     : 0;
 
   const ratio = avgLoss ? avgWin / avgLoss : 0;
