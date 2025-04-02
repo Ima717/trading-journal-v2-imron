@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { Filter } from "lucide-react";
 import { useFilters } from "../context/FilterContext";
-import { Check, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
-const filterCategories = {
+const categories = {
   General: [
     "Instrument",
     "Intraday/Multiday",
@@ -13,112 +14,134 @@ const filterCategories = {
     "Status",
     "Trade rating",
   ],
-  Tags: ["Mistakes", "Successes"],
+  Tags: ["Mistakes", "Sucesses"],
 };
 
 const AdvancedFilters = () => {
-  const {
-    selectedFilters,
-    setSelectedFilters,
-    triggerRefresh,
-  } = useFilters();
-
+  const { setClickedTag, triggerRefresh } = useFilters();
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("General");
+  const [selected, setSelected] = useState({});
+  const dropdownRef = useRef(null);
 
-  const toggleFilter = (category, filter) => {
-    setSelectedFilters((prev) => {
-      const current = prev[category] || [];
-      const exists = current.includes(filter);
-      const updated = exists
-        ? current.filter((f) => f !== filter)
-        : [...current, filter];
-      return { ...prev, [category]: updated };
+  const toggleFilter = (cat, item) => {
+    setSelected((prev) => {
+      const current = prev[cat] || [];
+      const isActive = current.includes(item);
+      const updated = isActive
+        ? current.filter((f) => f !== item)
+        : [...current, item];
+      return { ...prev, [cat]: updated };
     });
   };
 
+  const resetAll = () => {
+    setSelected({});
+    setClickedTag(null);
+    triggerRefresh(); // Refresh dashboard after reset
+  };
+
   const applyFilters = () => {
-    triggerRefresh(); // refresh analytics when filters applied
+    const flat = Object.values(selected).flat();
+    if (flat.length > 0) setClickedTag(flat[0]);
+    else setClickedTag(null);
     setOpen(false);
   };
 
-  const resetAll = () => {
-    setSelectedFilters({});
-    triggerRefresh(); // refresh analytics after reset
-  };
+  useEffect(() => {
+    const closeOnOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", closeOnOutside);
+    return () => document.removeEventListener("mousedown", closeOnOutside);
+  }, []);
 
   return (
-    <div className="relative z-50">
+    <div className="relative z-50" ref={dropdownRef}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1 px-4 py-2 bg-white border rounded shadow-sm hover:bg-gray-100 text-sm font-medium"
+        className="flex items-center gap-2 px-4 py-2 border rounded shadow-sm hover:bg-gray-100 text-sm font-medium bg-white"
       >
-        <span className="text-sm">Filters</span>
+        <Filter size={16} className="text-purple-600" />
+        <span>Filters</span>
       </button>
 
-      {open && (
-        <div className="absolute top-12 right-0 w-[460px] bg-white shadow-xl rounded-lg border z-50 flex flex-col overflow-hidden">
-          <div className="flex h-full min-h-[260px]">
-            <div className="w-1/3 border-r p-3 bg-gray-50">
-              {Object.keys(filterCategories).map((category) => (
-                <button
-                  key={category}
-                  className={`w-full text-left px-3 py-2 text-sm rounded ${
-                    activeTab === category
-                      ? "bg-purple-100 text-purple-700 font-medium"
-                      : "hover:bg-gray-100 text-gray-700"
-                  }`}
-                  onClick={() => setActiveTab(category)}
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
-            <div className="w-2/3 p-4 flex flex-wrap gap-2">
-              {filterCategories[activeTab].map((filter) => {
-                const isActive = selectedFilters?.[activeTab]?.includes(filter);
-                return (
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25 }}
+            className="absolute top-12 right-0 w-[400px] bg-white border shadow-xl rounded-lg overflow-hidden"
+          >
+            <div className="flex h-[280px]">
+              {/* Sidebar Tabs */}
+              <div className="w-1/3 border-r bg-gray-50">
+                {Object.keys(categories).map((tab) => (
                   <button
-                    key={filter}
-                    onClick={() => toggleFilter(activeTab, filter)}
-                    className={`px-3 py-1 text-sm rounded-full border flex items-center gap-1 transition ${
-                      isActive
-                        ? "bg-purple-600 text-white border-purple-600"
-                        : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`w-full text-left px-4 py-3 text-sm font-medium ${
+                      activeTab === tab
+                        ? "bg-purple-100 text-purple-700"
+                        : "hover:bg-gray-100 text-gray-700"
                     }`}
                   >
-                    {isActive && <Check size={14} />}
-                    {filter}
+                    {tab}
                   </button>
-                );
-              })}
-            </div>
-          </div>
+                ))}
+              </div>
 
-          <div className="flex justify-between items-center px-4 py-3 border-t">
-            <button
-              onClick={resetAll}
-              className="text-sm text-purple-600 hover:underline"
-            >
-              Reset all
-            </button>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setOpen(false)}
-                className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={applyFilters}
-                className="px-4 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700"
-              >
-                Apply filters
-              </button>
+              {/* Filter Checkboxes */}
+              <div className="w-2/3 p-4 flex flex-col gap-2">
+                {categories[activeTab].map((filter) => {
+                  const isActive = selected[activeTab]?.includes(filter);
+                  return (
+                    <button
+                      key={filter}
+                      onClick={() => toggleFilter(activeTab, filter)}
+                      className={`px-3 py-1 text-xs rounded-full border flex items-center gap-1 ${
+                        isActive
+                          ? "bg-indigo-600 text-white border-indigo-600"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      {filter}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+
+            {/* Footer Actions */}
+            <div className="flex justify-between items-center p-3 border-t bg-gray-50">
+              <button
+                onClick={resetAll}
+                className="text-xs text-purple-600 hover:underline"
+              >
+                Reset all
+              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setOpen(false)}
+                  className="text-sm text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={applyFilters}
+                  className="bg-purple-600 text-white text-sm px-4 py-1 rounded hover:bg-purple-700"
+                >
+                  Apply filters
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
