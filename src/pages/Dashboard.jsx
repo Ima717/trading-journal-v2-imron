@@ -22,7 +22,6 @@ import ChartEquityCurve from "../components/ChartEquityCurve";
 import ChartSymbolDistribution from "../components/ChartSymbolDistribution";
 import ChartPnLBySymbol from "../components/ChartPnLBySymbol";
 import AdvancedFilters from "../components/AdvancedFilters";
-import DateRangePicker from "../components/DateRangePicker";
 
 const Dashboard = () => {
   const navigate = useNavigate();
