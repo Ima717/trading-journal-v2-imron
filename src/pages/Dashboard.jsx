@@ -241,11 +241,11 @@ const Dashboard = () => {
               <div className="mb-6">
                 <CalendarWidget />
               </div>
-              <div className="mb-6">
-                <ChartPnLBySymbol />
+               <div className="mb-6">
+                <ChartSymbolDistribution />
               </div>
               <div className="mb-6">
-                <ChartSymbolDistribution />
+                <ChartPnLBySymbol />
               </div>
               {/* Tag Performance */}
               <div className="mb-6">
