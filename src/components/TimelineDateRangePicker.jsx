@@ -1,79 +1,95 @@
 import React, { useState } from "react";
-import { Calendar } from "lucide-react";
-import { useFilters } from "../context/FilterContext";
 import { Popover } from "@headlessui/react";
+import { CalendarIcon } from "lucide-react";
 import { DayPicker } from "react-day-picker";
-import dayjs from "dayjs";
 import "react-day-picker/dist/style.css";
-
-const presets = [
-  { label: "Today", range: () => [dayjs(), dayjs()] },
-  { label: "This week", range: () => [dayjs().startOf("week"), dayjs().endOf("week")] },
-  { label: "This month", range: () => [dayjs().startOf("month"), dayjs().endOf("month")] },
-  { label: "Last 30 days", range: () => [dayjs().subtract(30, "day"), dayjs()] },
-  { label: "Last month", range: () => [dayjs().subtract(1, "month").startOf("month"), dayjs().subtract(1, "month").endOf("month")] },
-  { label: "This quarter", range: () => [dayjs().startOf("quarter"), dayjs().endOf("quarter")] },
-  { label: "YTD", range: () => [dayjs().startOf("year"), dayjs()] }
-];
+import { useFilters } from "../context/FilterContext";
+import dayjs from "dayjs";
+import { addMonths } from "date-fns";
 
 const TimelineDateRangePicker = () => {
-  const { dateRange, setDateRange, triggerRefresh } = useFilters();
-  const [selected, setSelected] = useState([dateRange.start, dateRange.end]);
+  const { dateRange, setDateRange } = useFilters();
+  const [range, setRange] = useState({ from: null, to: null });
+  const [month, setMonth] = useState(new Date());
 
-  const applyRange = (start, end) => {
-    setDateRange({ start: start.toDate(), end: end.toDate() });
-    triggerRefresh();
+  const presets = [
+    { label: "Today", range: [dayjs(), dayjs()] },
+    { label: "This week", range: [dayjs().startOf("week"), dayjs().endOf("week")] },
+    { label: "This month", range: [dayjs().startOf("month"), dayjs().endOf("month")] },
+    { label: "Last 30 days", range: [dayjs().subtract(30, "day"), dayjs()] },
+    { label: "Last month", range: [dayjs().subtract(1, "month").startOf("month"), dayjs().subtract(1, "month").endOf("month")] },
+    { label: "This quarter", range: [dayjs().startOf("quarter"), dayjs().endOf("quarter")] },
+    { label: "YTD", range: [dayjs().startOf("year"), dayjs()] },
+  ];
+
+  const handleStartSelect = (date) => {
+    setRange({ ...range, from: date });
+  };
+
+  const handleEndSelect = (date) => {
+    setRange((prev) => {
+      const newRange = { ...prev, to: date };
+      if (newRange.from && newRange.to) {
+        setDateRange({ start: newRange.from.toISOString(), end: newRange.to.toISOString() });
+      }
+      return newRange;
+    });
+  };
+
+  const applyPreset = (start, end) => {
+    setRange({ from: start.toDate(), to: end.toDate() });
+    setDateRange({ start: start.toISOString(), end: end.toISOString() });
   };
 
   return (
-    <Popover className="relative z-50">
-      <Popover.Button className="flex items-center gap-2 border px-3 py-2 rounded text-sm bg-white hover:bg-gray-100">
-        <Calendar className="text-purple-600" size={16} />
-        {dateRange.start && dateRange.end
-          ? `${dayjs(dateRange.start).format("MMM DD")} - ${dayjs(dateRange.end).format("MMM DD")}`
-          : "Date range"}
+    <Popover className="relative z-40">
+      <Popover.Button className="flex items-center gap-1 px-4 py-2 bg-white border rounded shadow-sm text-sm font-medium hover:bg-gray-100">
+        <CalendarIcon size={16} className="text-purple-600" />
+        <span>Date range</span>
       </Popover.Button>
 
-      <Popover.Panel className="absolute right-0 mt-2 bg-white shadow-xl border rounded-xl w-auto p-4 z-50">
-        <div className="flex gap-6">
-          {/* Calendar Range Picker */}
-          <div className="flex flex-col">
-            <label className="text-xs mb-1 text-gray-500">Start Date</label>
+      <Popover.Panel className="absolute z-50 mt-2 w-[680px] right-0 bg-white border shadow-xl rounded-xl p-4 flex">
+        {/* Dual Calendars */}
+        <div className="flex gap-6 border-r pr-6">
+          {/* Start Date */}
+          <div>
+            <p className="text-sm text-gray-500 mb-1">Start Date</p>
             <DayPicker
-              mode="range"
-              selected={selected}
-              onSelect={(range) => {
-                setSelected(range);
-                if (range?.from && range?.to) {
-                  applyRange(dayjs(range.from), dayjs(range.to));
-                }
-              }}
-              numberOfMonths={2}
-              defaultMonth={selected[0] || new Date()}
-              modifiersClassNames={{
-                selected: 'bg-purple-600 text-white',
-                range_start: 'bg-purple-700 text-white',
-                range_end: 'bg-purple-700 text-white'
-              }}
-              className="border rounded-lg p-2"
+              mode="single"
+              selected={range.from}
+              onSelect={handleStartSelect}
+              month={month}
+              onMonthChange={setMonth}
+              numberOfMonths={1}
+              className="rounded-lg border"
             />
           </div>
 
-          {/* Presets */}
-          <div className="flex flex-col gap-2">
-            {presets.map((preset) => (
-              <button
-                key={preset.label}
-                onClick={() => {
-                  const [start, end] = preset.range();
-                  applyRange(start, end);
-                }}
-                className="text-sm text-left px-2 py-1 hover:bg-gray-100 rounded"
-              >
-                {preset.label}
-              </button>
-            ))}
+          {/* End Date */}
+          <div>
+            <p className="text-sm text-gray-500 mb-1">End Date</p>
+            <DayPicker
+              mode="single"
+              selected={range.to}
+              onSelect={handleEndSelect}
+              month={addMonths(month, 1)}
+              numberOfMonths={1}
+              className="rounded-lg border"
+            />
           </div>
+        </div>
+
+        {/* Presets */}
+        <div className="pl-6">
+          {presets.map((preset) => (
+            <button
+              key={preset.label}
+              onClick={() => applyPreset(preset.range[0], preset.range[1])}
+              className="block w-full text-left text-sm py-1 px-2 rounded hover:bg-gray-100"
+            >
+              {preset.label}
+            </button>
+          ))}
         </div>
       </Popover.Panel>
     </Popover>
