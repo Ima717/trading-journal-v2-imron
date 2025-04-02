@@ -55,7 +55,7 @@ const DayWinCard = () => {
             seg.value > 0 && (
               <div
                 key={i}
-                className={`${seg.color}`}
+                className={seg.color}
                 style={{ width: `${(seg.value / totalDays) * 100}%` }}
               ></div>
             )
