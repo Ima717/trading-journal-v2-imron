@@ -23,6 +23,53 @@ import ErrorBoundary from "../components/ErrorBoundary";
 import ResultFilter from "../components/ResultFilter";
 import SearchFilter from "../components/SearchFilter";
 
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 100,
+      damping: 15,
+    },
+  },
+};
+
+const chartVariants = {
+  hidden: { opacity: 0, y: 50 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut",
+    },
+  },
+};
+
+const headerVariants = {
+  hidden: { opacity: 0, x: -20 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.4,
+    },
+  },
+};
+
 const getSafePnL = (trade) => Number(trade?.pnl) || 0;
 
 const Dashboard = () => {
@@ -126,7 +173,6 @@ const Dashboard = () => {
     setResultFilter("all");
   };
 
-  // Memoized calculations
   const calculations = useMemo(() => {
     const netPnL = filteredTrades.reduce((sum, t) => sum + getSafePnL(t), 0);
     const totalTrades = filteredTrades.length;
@@ -203,7 +249,12 @@ const Dashboard = () => {
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-100 dark:bg-zinc-900 font-inter">
         <div className="max-w-screen-xl mx-auto px-4 py-6 w-full">
-          <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center mb-6">
+          <motion.div 
+            className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center mb-6"
+            variants={headerVariants}
+            initial="hidden"
+            animate="visible"
+          >
             <h1 className="text-2xl font-bold text-zinc-800 dark:text-white mb-2 sm:mb-0">
               📊 Welcome to IMAI Dashboard
             </h1>
@@ -221,7 +272,7 @@ const Dashboard = () => {
                 🔒 Log Out
               </button>
             </div>
-          </div>
+          </motion.div>
 
           <div className="flex flex-wrap gap-4 items-end justify-between mb-6">
             <ResultFilter />
@@ -248,44 +299,82 @@ const Dashboard = () => {
           </div>
 
           {error ? (
-            <div className="text-center py-10 text-red-500 dark:text-red-400">{error}</div>
+            <motion.div 
+              className="text-center py-10 text-red-500 dark:text-red-400"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              {error}
+            </motion.div>
           ) : isLoading ? (
-            <div className="text-center py-10 text-gray-500 dark:text-gray-400">Loading dashboard...</div>
+            <motion.div 
+              className="text-center py-10 text-gray-500 dark:text-gray-400"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              Loading dashboard...
+            </motion.div>
           ) : (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-                <StatCard 
-                  title="Net P&L" 
-                  value={`$${calculations.netPnL.toFixed(2)}`} 
-                  color={calculations.netPnL >= 0 ? "text-green-600" : "text-red-500"} 
-                  badge={calculations.totalTrades} 
-                  tooltip="Total net profit/loss across all trades."
-                />
-                <StatCard 
-                  title="Trade Win %" 
-                  value={`${calculations.winRate.toFixed(2)}%`} 
-                  customBg={getWinRateBackground()} 
-                  tooltip="Winning trades vs total trades."
-                />
-                <StatCard 
-                  title="Profit Factor" 
-                  value={Number.isFinite(calculations.profitFactor) ? calculations.profitFactor.toFixed(2) : "∞"} 
-                  tooltip="Gross profit / gross loss."
-                >
-                  {donut}
-                </StatCard>
-              </div>
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <motion.div 
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6"
+                variants={containerVariants}
+              >
+                <motion.div variants={cardVariants}>
+                  <StatCard 
+                    title="Net P&L" 
+                    value={`$${calculations.netPnL.toFixed(2)}`} 
+                    color={calculations.netPnL >= 0 ? "text-green-600" : "text-red-500"} 
+                    badge={calculations.totalTrades} 
+                    tooltip="Total net profit/loss across all trades."
+                  />
+                </motion.div>
+                <motion.div variants={cardVariants}>
+                  <StatCard 
+                    title="Trade Win %" 
+                    value={`${calculations.winRate.toFixed(2)}%`} 
+                    customBg={getWinRateBackground()} 
+                    tooltip="Winning trades vs total trades."
+                  />
+                </motion.div>
+                <motion.div variants={cardVariants}>
+                  <StatCard 
+                    title="Profit Factor" 
+                    value={Number.isFinite(calculations.profitFactor) ? calculations.profitFactor.toFixed(2) : "∞"} 
+                    tooltip="Gross profit / gross loss."
+                  >
+                    {donut}
+                  </StatCard>
+                </motion.div>
+              </motion.div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                <DayWinCard />
-                <AvgWinLoss />
-              </div>
+              <motion.div 
+                className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6"
+                variants={containerVariants}
+              >
+                <motion.div variants={cardVariants}>
+                  <DayWinCard />
+                </motion.div>
+                <motion.div variants={cardVariants}>
+                  <AvgWinLoss />
+                </motion.div>
+              </motion.div>
 
-              <div className="mb-6">
+              <motion.div 
+                className="mb-6"
+                variants={chartVariants}
+              >
                 <ChartZellaScore data={zellaTrendData} />
-              </div>
+              </motion.div>
 
-              <div className="mb-6">
+              <motion.div 
+                className="mb-6"
+                variants={chartVariants}
+              >
                 {tagPerformanceData.length > 0 ? (
                   <>
                     <ChartTagPerformance data={tagPerformanceData} onTagClick={handleTagClick} />
@@ -300,12 +389,15 @@ const Dashboard = () => {
                     No tags found for "{tagSearchTerm}".
                   </p>
                 ) : null}
-              </div>
+              </motion.div>
 
-              <div className="mb-6">
+              <motion.div 
+                className="mb-6"
+                variants={chartVariants}
+              >
                 <TradeTabs filteredTrades={filteredTrades} />
-              </div>
-            </>
+              </motion.div>
+            </motion.div>
           )}
         </div>
       </div>
