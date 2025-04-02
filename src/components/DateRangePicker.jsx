@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { useFilters } from "../context/FilterContext";
-import { CalendarDays, ChevronDown } from "lucide-react";
+import { CalendarDays, ChevronDown, X } from "lucide-react";
 import dayjs from "dayjs";
 import DatePicker from "react-multi-date-picker";
 import "react-multi-date-picker/styles/colors/purple.css";
-import "react-multi-date-picker/styles/layouts/mobile.css";
 import transition from "react-element-popper/animations/transition";
 
 const presets = [
@@ -43,6 +42,12 @@ const DateRangePicker = () => {
     }
   };
 
+  const resetDates = () => {
+    setValue([]);
+    setDateRange({ start: null, end: null });
+    setOpen(false);
+  };
+
   return (
     <div className="relative z-40">
       <button
@@ -72,6 +77,12 @@ const DateRangePicker = () => {
               calendarPosition="bottom-right"
               style={{ width: "300px", height: "auto" }}
             />
+            <button
+              onClick={resetDates}
+              className="text-xs mt-2 text-red-500 hover:underline"
+            >
+              Reset dates ✕
+            </button>
           </div>
           <div className="flex flex-col p-3 gap-2 w-40">
             {presets.map((preset) => (
