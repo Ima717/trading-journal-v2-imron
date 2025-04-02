@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ChevronDown, Check, AlertTriangle } from "lucide-react";
 import { useFilters } from "../context/FilterContext";
 import clsx from "clsx";
+import { motion, AnimatePresence } from "framer-motion";
 
 const filterCategories = {
   Result: ["Win", "Loss", "Break-Even"],
@@ -60,69 +61,75 @@ const AdvancedFilters = () => {
         <ChevronDown size={16} />
       </button>
 
-      {open && (
-        <div
-          className={clsx(
-            "absolute right-0 top-12 w-[360px] bg-white shadow-xl rounded-lg border p-4 z-50 animate-dropdown"
-          )}
-        >
-          {Object.entries(filterCategories).map(([category, filters]) => (
-            <div key={category} className="mb-4">
-              <div className="font-semibold text-sm mb-2 text-gray-800">{category}</div>
-              <div className="flex flex-wrap gap-2">
-                {filters.map((filter) => {
-                  const isActive = selectedFilters[category]?.includes(filter) || false;
-                  return (
-                    <button
-                      key={filter}
-                      onClick={() => toggleFilter(category, filter)}
-                      className={clsx(
-                        "px-3 py-1 text-xs rounded-full border flex items-center gap-1 transition-all",
-                        isActive
-                          ? "bg-indigo-600 text-white border-indigo-600"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      )}
-                    >
-                      {isActive && <Check size={12} />}
-                      {filter}
-                    </button>
-                  );
-                })}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+            className={clsx(
+              "absolute right-0 top-12 w-[360px] bg-white shadow-xl rounded-lg border p-4 z-50"
+            )}
+          >
+            {Object.entries(filterCategories).map(([category, filters]) => (
+              <div key={category} className="mb-4">
+                <div className="font-semibold text-sm mb-2 text-gray-800">{category}</div>
+                <div className="flex flex-wrap gap-2">
+                  {filters.map((filter) => {
+                    const isActive = selectedFilters[category]?.includes(filter) || false;
+                    return (
+                      <button
+                        key={filter}
+                        onClick={() => toggleFilter(category, filter)}
+                        className={clsx(
+                          "px-3 py-1 text-xs rounded-full border flex items-center gap-1 transition-all",
+                          isActive
+                            ? "bg-indigo-600 text-white border-indigo-600"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        )}
+                      >
+                        {isActive && <Check size={12} />}
+                        {filter}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+
+            {error && (
+              <div className="text-red-500 text-sm flex items-center gap-2 mt-3 p-2 bg-red-50 rounded">
+                <AlertTriangle size={16} />
+                Failed to load filters. Please try again.
+              </div>
+            )}
+
+            <div className="flex justify-between mt-4 border-t pt-3">
+              <button
+                onClick={resetAll}
+                className="text-xs text-purple-600 hover:underline"
+              >
+                Reset all
+              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setOpen(false)}
+                  className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={applyFilters}
+                  className="px-3 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700"
+                >
+                  Apply filters
+                </button>
               </div>
             </div>
-          ))}
-
-          {error && (
-            <div className="text-red-500 text-sm flex items-center gap-2 mt-3">
-              <AlertTriangle size={16} />
-              Failed to load filters. Please try again.
-            </div>
-          )}
-
-          <div className="flex justify-between mt-4 border-t pt-3">
-            <button
-              onClick={resetAll}
-              className="text-xs text-purple-600 hover:underline"
-            >
-              Reset all
-            </button>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setOpen(false)}
-                className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={applyFilters}
-                className="px-3 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700"
-              >
-                Apply filters
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
