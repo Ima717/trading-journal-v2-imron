@@ -107,4 +107,97 @@ const Dashboard = () => {
   const dayWinPercent = tradingDays.length ? (winningDays.length / tradingDays.length) * 100 : 0;
   const avgWin = wins.length ? wins.reduce((sum, t) => sum + t.pnl, 0) / wins.length : 0;
   const avgLoss = losses.length
-    ? Math.abs(losses.reduce((sum
+    ? Math.abs(losses.reduce((sum, t) => sum + t.pnl, 0) / losses.length)
+    : 0;
+  const profitFactor = losses.length
+    ? wins.reduce((s, t) => s + t.pnl, 0) / Math.abs(losses.reduce((s, t) => s + t.pnl, 0))
+    : 0;
+
+  const zellaScore = Math.min(
+    winRate * 0.4 + profitFactor * 10 * 0.3 + dayWinPercent * 0.3,
+    100
+  ).toFixed(2);
+
+  const getWinRateBackground = () => {
+    if (winRate > 60) return "bg-gradient-to-r from-green-400 to-green-500 text-white";
+    if (winRate >= 40) return "bg-gradient-to-r from-yellow-400 to-yellow-500 text-white";
+    return "bg-gradient-to-r from-red-400 to-red-500 text-white";
+  };
+
+  const donut = (
+    <CircularProgressbar
+      value={wins.reduce((s, t) => s + t.pnl, 0)}
+      maxValue={wins.reduce((s, t) => s + t.pnl, 0) + Math.abs(losses.reduce((s, t) => s + t.pnl, 0))}
+      strokeWidth={10}
+      styles={buildStyles({
+        pathColor: profitFactor >= 1 ? "#10b981" : "#ef4444",
+        trailColor: "#f87171",
+        strokeLinecap: "round",
+      })}
+    />
+  );
+
+  const formatDateRange = () => {
+    if (!dateRange.start || !dateRange.end) return null;
+    const start = dayjs(dateRange.start).format("YYYY-MM-DD");
+    const end = dayjs(dateRange.end).format("YYYY-MM-DD");
+    return `Analytics from ${start} till ${end}`;
+  };
+
+  return (
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gray-100 dark:bg-zinc-900 font-inter">
+        <div className="max-w-screen-xl mx-auto px-4 py-6 w-full">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center mb-1">
+            <h1 className="text-2xl font-bold text-zinc-800 dark:text-white mb-2 sm:mb-0">
+              📊 Welcome to IMAI Dashboard
+            </h1>
+            <div className="flex gap-3">
+              <DateRangePicker />
+              <AdvancedFilters />
+            </div>
+          </div>
+
+          {/* Filter subtitle */}
+          {formatDateRange() && (
+            <p className="text-sm text-gray-500 mb-4">{formatDateRange()}</p>
+          )}
+
+          {isLoading ? (
+            <div className="text-center py-10 text-gray-500 dark:text-gray-400">Loading dashboard...</div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                <StatCard title="Net P&L" value={`$${netPnL.toFixed(2)}`} color={netPnL >= 0 ? "text-green-600" : "text-red-500"} badge={totalTrades} tooltip="Total net profit/loss across all trades." />
+                <StatCard title="Trade Win %" value={`${isNaN(winRate) ? "0.00" : winRate.toFixed(2)}%`} customBg={getWinRateBackground()} tooltip="Winning trades vs total trades." />
+                <StatCard title="Profit Factor" value={profitFactor.toFixed(2)} tooltip="Gross profit / gross loss.">{donut}</StatCard>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <DayWinCard />
+                <AvgWinLoss />
+              </div>
+
+              <div className="mb-6"><ChartZellaScore data={zellaTrendData} /></div>
+              <div className="mb-6"><ChartEquityCurve /></div>
+              <div className="mb-6"><CalendarWidget /></div>
+              <div className="mb-6"><ChartSymbolDistribution /></div>
+              <div className="mb-6"><ChartPnLBySymbol /></div>
+
+              <div className="mb-6">
+                {tagPerformanceData.length > 0 ? (
+                  <ChartTagPerformance data={tagPerformanceData} onTagClick={handleTagClick} />
+                ) : null}
+              </div>
+
+              <div className="mb-6"><TradeTabs filteredTrades={filteredTrades} /></div>
+            </>
+          )}
+        </div>
+      </div>
+    </ErrorBoundary>
+  );
+};
+
+export default Dashboard;
