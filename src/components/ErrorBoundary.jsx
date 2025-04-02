@@ -1,4 +1,3 @@
-// /src/components/ErrorBoundary.jsx (Enhanced)
 import React, { Component } from "react";
 
 class ErrorBoundary extends Component {
@@ -24,7 +23,9 @@ class ErrorBoundary extends Component {
           <p className="text-sm text-red-700">
             An error occurred while rendering this section.
           </p>
-          <p className="text-xs text-red-600 mt-2">{this.state.error?.message}</p>
+          <p className="text-xs text-red-600 mt-2">
+            {this.state.error?.message}
+          </p>
           <div className="mt-4 flex gap-2">
             <button
               onClick={this.handleRetry}
