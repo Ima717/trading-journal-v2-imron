@@ -8,7 +8,6 @@ import { useFilters } from "../context/FilterContext";
 import { useTheme } from "../context/ThemeContext";
 import dayjs from "dayjs";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
-import { motion } from "framer-motion";
 
 import TradeTabs from "../components/TradeTabs";
 import ChartTagPerformance from "../components/ChartTagPerformance";
@@ -47,50 +46,52 @@ const Dashboard = () => {
   const [zellaTrendData, setZellaTrendData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate("/signin");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
   useEffect(() => {
     if (!user) return;
 
     setIsLoading(true);
     const q = query(collection(db, "users", user.uid, "trades"));
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const trades = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        const pnlSeries = getPnLOverTime(trades);
-        const zellaSeries = getZellaScoreOverTime(trades);
-        setPnlData(pnlSeries);
-        setZellaTrendData(zellaSeries);
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const trades = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const pnlSeries = getPnLOverTime(trades);
+      const zellaSeries = getZellaScoreOverTime(trades);
+      setPnlData(pnlSeries);
+      setZellaTrendData(zellaSeries);
 
-        const tagMap = {};
-        trades.forEach((trade) => {
-          if (Array.isArray(trade.tags)) {
-            trade.tags.forEach((tag) => {
-              if (!tagMap[tag]) tagMap[tag] = { totalPnL: 0, count: 0 };
-              tagMap[tag].totalPnL += trade.pnl || 0;
-              tagMap[tag].count += 1;
-            });
-          }
-        });
-
-        let formatted = Object.entries(tagMap).map(([tag, val]) => ({
-          tag,
-          avgPnL: parseFloat((val.totalPnL / val.count).toFixed(2)),
-        }));
-
-        if (tagSearchTerm && typeof tagSearchTerm === "string") {
-          formatted = formatted.filter((item) =>
-            item.tag.toLowerCase().includes(tagSearchTerm.toLowerCase())
-          );
+      const tagMap = {};
+      trades.forEach((trade) => {
+        if (Array.isArray(trade.tags)) {
+          trade.tags.forEach((tag) => {
+            if (!tagMap[tag]) tagMap[tag] = { totalPnL: 0, count: 0 };
+            tagMap[tag].totalPnL += trade.pnl || 0;
+            tagMap[tag].count += 1;
+          });
         }
+      });
 
-        setTagPerformanceData(formatted);
-        setIsLoading(false);
-      },
-      (error) => {
-        console.error("Error fetching trades:", error);
-        setIsLoading(false);
+      let formatted = Object.entries(tagMap).map(([tag, val]) => ({
+        tag,
+        avgPnL: parseFloat((val.totalPnL / val.count).toFixed(2)),
+      }));
+
+      if (tagSearchTerm && typeof tagSearchTerm === "string") {
+        formatted = formatted.filter((item) =>
+          item.tag.toLowerCase().includes(tagSearchTerm.toLowerCase())
+        );
       }
-    );
+
+      setTagPerformanceData(formatted);
+      setIsLoading(false);
+    });
 
     return () => unsubscribe();
   }, [user, dateRange, resultFilter, tagSearchTerm, clickedTag]);
@@ -113,9 +114,7 @@ const Dashboard = () => {
   });
   const dayWinPercent = tradingDays.length ? (winningDays.length / tradingDays.length) * 100 : 0;
   const avgWin = wins.length ? wins.reduce((sum, t) => sum + t.pnl, 0) / wins.length : 0;
-  const avgLoss = losses.length
-    ? Math.abs(losses.reduce((sum, t) => sum + t.pnl, 0) / losses.length)
-    : 0;
+  const avgLoss = losses.length ? Math.abs(losses.reduce((sum, t) => sum + t.pnl, 0) / losses.length) : 0;
   const profitFactor = losses.length
     ? wins.reduce((s, t) => s + t.pnl, 0) / Math.abs(losses.reduce((s, t) => s + t.pnl, 0))
     : 0;
@@ -148,14 +147,12 @@ const Dashboard = () => {
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-100 dark:bg-zinc-900 font-inter">
         <div className="max-w-screen-xl mx-auto px-4 py-6 w-full">
-          {/* Header */}
           <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center mb-6">
             <h1 className="text-2xl font-bold text-zinc-800 dark:text-white mb-2 sm:mb-0">
               📊 Welcome to IMAI Dashboard
             </h1>
           </div>
 
-          {/* Filters */}
           <div className="w-full flex flex-col lg:flex-row justify-between gap-4 mb-6">
             <div className="flex flex-wrap gap-3">
               <DateRangePicker />
