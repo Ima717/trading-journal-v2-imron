@@ -14,7 +14,7 @@ import TradeTabs from "../components/TradeTabs";
 import ChartTagPerformance from "../components/ChartTagPerformance";
 import PerformanceChart from "../components/PerformanceChart"; // Optional
 import ChartZellaScore from "../components/ChartZellaScore";
-import CalendarWidget from "../components/CalendarWidget"; // Optional
+import CalendarWidget from "../components/CalendarWidget";
 import StatCard from "../components/StatCard";
 import AvgWinLoss from "../components/AvgWinLoss";
 import DayWinCard from "../components/DayWinCard";
@@ -25,6 +25,7 @@ import SearchFilter from "../components/SearchFilter";
 import ChartEquityCurve from "../components/ChartEquityCurve";
 import ChartSymbolDistribution from "../components/ChartSymbolDistribution";
 import ChartPnLBySymbol from "../components/ChartPnLBySymbol";
+import FilterDropdown from "../components/FilterDropdown"; // NEW
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -46,6 +47,7 @@ const Dashboard = () => {
   const [pnlData, setPnlData] = useState([]);
   const [zellaTrendData, setZellaTrendData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [filters, setFilters] = useState({ tags: [] }); // NEW STATE
 
   const handleLogout = async () => {
     try {
@@ -101,6 +103,10 @@ const Dashboard = () => {
           );
         }
 
+        if (filters.tags.length) {
+          formatted = formatted.filter((item) => filters.tags.includes(item.tag));
+        }
+
         setTagPerformanceData(formatted);
         setIsLoading(false);
       },
@@ -111,7 +117,7 @@ const Dashboard = () => {
     );
 
     return () => unsubscribe();
-  }, [user, dateRange, resultFilter, tagSearchTerm, clickedTag]);
+  }, [user, dateRange, resultFilter, tagSearchTerm, clickedTag, filters]);
 
   const handleTagClick = (tag) => {
     setClickedTag(tag);
@@ -119,7 +125,7 @@ const Dashboard = () => {
     setResultFilter("all");
   };
 
-  // Calculations
+  // === STATS ===
   const netPnL = filteredTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
   const totalTrades = filteredTrades.length;
   const wins = filteredTrades.filter((t) => t.pnl > 0);
@@ -166,15 +172,15 @@ const Dashboard = () => {
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-100 dark:bg-zinc-900 font-inter">
         <div className="max-w-screen-xl mx-auto px-4 py-6 w-full">
-          {/* Header + Action Buttons */}
+          {/* Header */}
           <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center mb-6">
             <h1 className="text-2xl font-bold text-zinc-800 dark:text-white mb-2 sm:mb-0">
               📊 Welcome to IMAI Dashboard
             </h1>
           </div>
 
-          {/* Filters and Tag Search */}
-          <div className="flex flex-wrap gap-4 items-end justify-between mb-6">
+          {/* Filters */}
+          <div className="flex flex-wrap gap-4 items-center mb-6">
             <ResultFilter />
             <SearchFilter
               searchTerm={tagSearchTerm}
@@ -185,17 +191,7 @@ const Dashboard = () => {
                 setClickedTag(null);
               }}
             />
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              <p>{formatDateRange()}</p>
-              {(dateRange.start || dateRange.end) && (
-                <button
-                  onClick={() => setDateRange({ start: null, end: null })}
-                  className="underline text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                >
-                  Reset Date Filter ✕
-                </button>
-              )}
-            </div>
+            <FilterDropdown filters={filters} setFilters={setFilters} />
           </div>
 
           {isLoading ? (
@@ -219,20 +215,19 @@ const Dashboard = () => {
               <div className="mb-6">
                 <ChartZellaScore data={zellaTrendData} />
               </div>
-              {/* Net Cumulative P&L (Equity Curve) */}
               <div className="mb-6">
                 <ChartEquityCurve />
               </div>
-              {/* Calendar Widget */}
               <div className="mb-6">
                 <CalendarWidget />
               </div>
-               <div className="mb-6">
+              <div className="mb-6">
                 <ChartSymbolDistribution />
               </div>
               <div className="mb-6">
                 <ChartPnLBySymbol />
               </div>
+
               {/* Tag Performance */}
               <div className="mb-6">
                 {tagPerformanceData.length > 0 ? (
