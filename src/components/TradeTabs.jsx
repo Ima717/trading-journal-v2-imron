@@ -1,5 +1,3 @@
-// TradeTabs.jsx — Dashboard Bottom Tab Widget for TradeZella-Style Layout
-
 import React, { useState } from "react";
 import TradeTable from "./TradeTable";
 
@@ -43,7 +41,9 @@ const TradeTabs = ({ filteredTrades }) => {
         ))}
       </div>
 
-      <div className="mt-2">{renderContent()}</div>
+      <div className="mt-2">
+        {renderContent()}
+      </div>
     </div>
   );
 };
