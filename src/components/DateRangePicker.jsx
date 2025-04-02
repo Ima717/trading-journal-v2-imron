@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useFilters } from "../context/FilterContext";
-import DatePicker from "react-multi-date-picker";
-import dayjs from "dayjs";
-import transition from "react-element-popper/animations/transition";
 import { CalendarDays, ChevronDown } from "lucide-react";
+import dayjs from "dayjs";
+import DatePicker from "react-multi-date-picker";
+import transition from "react-element-popper/animations/transition";
+import "react-multi-date-picker/styles/colors/purple.css";
 
 const presets = [
   { label: "Today", range: () => [dayjs(), dayjs()] },
@@ -27,17 +28,24 @@ const DateRangePicker = () => {
   const [value, setValue] = useState(
     dateRange.start && dateRange.end ? [new Date(dateRange.start), new Date(dateRange.end)] : []
   );
+  const ref = useRef(null);
 
-  const onApply = (range) => {
-    const [start, end] = range;
-    setDateRange({ start, end });
-    setOpen(false);
-  };
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-  const onPreset = (presetFn) => {
-    const [start, end] = presetFn();
-    setValue([start.toDate(), end.toDate()]);
-    setDateRange({ start: start.toDate(), end: end.toDate() });
+  const applyRange = (range) => {
+    const [start, end] = range();
+    const s = start.toDate();
+    const e = end.toDate();
+    setValue([s, e]);
+    setDateRange({ start: s, end: e });
     setOpen(false);
   };
 
@@ -49,8 +57,13 @@ const DateRangePicker = () => {
     }
   };
 
+  const reset = () => {
+    setValue([]);
+    setDateRange({ start: null, end: null });
+  };
+
   return (
-    <div className="relative z-40">
+    <div className="relative z-50" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1 px-4 py-2 bg-white border rounded shadow-sm hover:bg-gray-100 text-sm font-medium"
@@ -65,9 +78,8 @@ const DateRangePicker = () => {
       </button>
 
       {open && (
-        <div className="absolute top-12 right-0 flex bg-white border shadow-xl rounded-lg overflow-hidden animate-fade-slide-down z-50">
-          <div className="p-4 border-r">
-            <div className="text-xs text-gray-600 font-medium mb-1">Start Date — End Date</div>
+        <div className="absolute top-12 right-0 w-[560px] bg-white border shadow-xl rounded-lg p-4 flex z-50 animate-fade-slide-down">
+          <div className="border-r pr-4">
             <DatePicker
               value={value}
               onChange={onChange}
@@ -76,20 +88,21 @@ const DateRangePicker = () => {
               format="YYYY-MM-DD"
               className="purple"
               animations={[transition({ duration: 300 })]}
-              style={{
-                border: "none",
-                boxShadow: "none",
-                borderRadius: "8px",
-                padding: "4px",
-              }}
+              calendarPosition="bottom-right"
+              style={{ borderRadius: "0.5rem" }}
+              highlightToday={true}
             />
+            <div className="mt-3 text-xs text-gray-500 underline cursor-pointer hover:text-gray-700" onClick={reset}>
+              ✕ Reset range
+            </div>
           </div>
-          <div className="flex flex-col p-4 gap-2 w-48">
+
+          <div className="flex flex-col pl-4 gap-2 w-40">
             {presets.map((preset) => (
               <button
                 key={preset.label}
-                onClick={() => onPreset(preset.range)}
-                className="text-left text-sm hover:bg-purple-100 text-gray-700 px-3 py-1 rounded"
+                onClick={() => applyRange(preset.range)}
+                className="text-left text-sm hover:bg-gray-100 px-3 py-1 rounded"
               >
                 {preset.label}
               </button>
