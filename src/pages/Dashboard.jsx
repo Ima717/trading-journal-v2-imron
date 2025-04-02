@@ -158,10 +158,9 @@ const Dashboard = () => {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center mb-3">
             <h1 className="text-2xl font-bold text-zinc-800 dark:text-white mb-2 sm:mb-0">
-              📊 Welcome to IMAI Dashboard
+              Welcome to IMAI Dashboard
             </h1>
             <div className="flex gap-3">
-              <DateRangePicker />
               <AdvancedFilters />
             </div>
           </div>
