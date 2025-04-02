@@ -9,8 +9,7 @@ export const FilterProvider = ({ children }) => {
   const { user } = useAuth();
 
   const [dateRange, setDateRange] = useState({ start: null, end: null });
-  const [resultFilter, setResultFilter] = useState("all");
-  const [tagSearchTerm, setTagSearchTerm] = useState("");
+  const [selectedFilters, setSelectedFilters] = useState({}); // NEW structure
   const [clickedTag, setClickedTag] = useState(null);
   const [trades, setTrades] = useState([]);
   const [filteredTrades, setFilteredTrades] = useState([]);
@@ -31,8 +30,13 @@ export const FilterProvider = ({ children }) => {
   }, [user, refresh]);
 
   useEffect(() => {
-    let result = [...trades];
+    setFilteredTrades(applyAllFilters(trades));
+  }, [trades, dateRange, selectedFilters, clickedTag]);
 
+  const applyAllFilters = (data) => {
+    let result = [...data];
+
+    // Filter by date range
     if (dateRange.start && dateRange.end) {
       const start = new Date(dateRange.start);
       const end = new Date(dateRange.end);
@@ -42,42 +46,19 @@ export const FilterProvider = ({ children }) => {
       });
     }
 
+    // Filter by clicked tag (optional)
     if (clickedTag) {
       result = result.filter((t) => t.tags?.includes(clickedTag));
     }
 
-    if (resultFilter !== "all") {
-      result = result.filter((t) => {
-        if (resultFilter === "Win") return t.pnl > 0;
-        if (resultFilter === "Loss") return t.pnl < 0;
-        return t.pnl === 0;
-      });
-    }
-
-    setFilteredTrades(result);
-  }, [trades, dateRange, clickedTag, resultFilter]);
-
-  const filterTrades = (tradesToFilter) => {
-    let result = [...tradesToFilter];
-
-    if (dateRange.start && dateRange.end) {
-      const start = new Date(dateRange.start);
-      const end = new Date(dateRange.end);
+    // Filter by selectedFilters
+    for (const [category, values] of Object.entries(selectedFilters)) {
+      if (values.length === 0) continue;
       result = result.filter((trade) => {
-        const tradeDate = new Date(trade.date);
-        return tradeDate >= start && tradeDate <= end;
-      });
-    }
-
-    if (clickedTag) {
-      result = result.filter((t) => t.tags?.includes(clickedTag));
-    }
-
-    if (resultFilter !== "all") {
-      result = result.filter((t) => {
-        if (resultFilter === "Win") return t.pnl > 0;
-        if (resultFilter === "Loss") return t.pnl < 0;
-        return t.pnl === 0;
+        return values.some((val) => {
+          const field = trade[category.toLowerCase().replace(" ", "")]; // normalize field name
+          return field === val || (Array.isArray(field) && field.includes(val));
+        });
       });
     }
 
@@ -89,14 +70,12 @@ export const FilterProvider = ({ children }) => {
       value={{
         dateRange,
         setDateRange,
-        resultFilter,
-        setResultFilter,
-        tagSearchTerm,
-        setTagSearchTerm,
+        selectedFilters,
+        setSelectedFilters,
         clickedTag,
         setClickedTag,
         filteredTrades,
-        filterTrades,
+        applyAllFilters,
         triggerRefresh,
       }}
     >
