@@ -12,7 +12,6 @@ import { motion } from "framer-motion";
 
 import TradeTabs from "../components/TradeTabs";
 import ChartTagPerformance from "../components/ChartTagPerformance";
-import PerformanceChart from "../components/PerformanceChart"; // Optional
 import ChartZellaScore from "../components/ChartZellaScore";
 import CalendarWidget from "../components/CalendarWidget";
 import StatCard from "../components/StatCard";
@@ -25,12 +24,12 @@ import SearchFilter from "../components/SearchFilter";
 import ChartEquityCurve from "../components/ChartEquityCurve";
 import ChartSymbolDistribution from "../components/ChartSymbolDistribution";
 import ChartPnLBySymbol from "../components/ChartPnLBySymbol";
-import FilterDropdown from "../components/FilterDropdown"; // NEW
+import AdvancedFilters from "../components/AdvancedFilters"; // ✅ NEW
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const {
     dateRange,
     setDateRange,
@@ -47,7 +46,6 @@ const Dashboard = () => {
   const [pnlData, setPnlData] = useState([]);
   const [zellaTrendData, setZellaTrendData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filters, setFilters] = useState({ tags: [] }); // NEW STATE
 
   const handleLogout = async () => {
     try {
@@ -103,10 +101,6 @@ const Dashboard = () => {
           );
         }
 
-        if (filters.tags.length) {
-          formatted = formatted.filter((item) => filters.tags.includes(item.tag));
-        }
-
         setTagPerformanceData(formatted);
         setIsLoading(false);
       },
@@ -117,7 +111,7 @@ const Dashboard = () => {
     );
 
     return () => unsubscribe();
-  }, [user, dateRange, resultFilter, tagSearchTerm, clickedTag, filters]);
+  }, [user, dateRange, resultFilter, tagSearchTerm, clickedTag]);
 
   const handleTagClick = (tag) => {
     setClickedTag(tag);
@@ -125,7 +119,7 @@ const Dashboard = () => {
     setResultFilter("all");
   };
 
-  // === STATS ===
+  // Calculations
   const netPnL = filteredTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
   const totalTrades = filteredTrades.length;
   const wins = filteredTrades.filter((t) => t.pnl > 0);
@@ -144,6 +138,7 @@ const Dashboard = () => {
   const profitFactor = losses.length
     ? wins.reduce((s, t) => s + t.pnl, 0) / Math.abs(losses.reduce((s, t) => s + t.pnl, 0))
     : 0;
+
   const zellaScore = Math.min(
     winRate * 0.4 + profitFactor * 10 * 0.3 + dayWinPercent * 0.3,
     100
@@ -180,7 +175,7 @@ const Dashboard = () => {
           </div>
 
           {/* Filters */}
-          <div className="flex flex-wrap gap-4 items-center mb-6">
+          <div className="flex flex-wrap gap-4 items-end justify-between mb-6">
             <ResultFilter />
             <SearchFilter
               searchTerm={tagSearchTerm}
@@ -191,7 +186,7 @@ const Dashboard = () => {
                 setClickedTag(null);
               }}
             />
-            <FilterDropdown filters={filters} setFilters={setFilters} />
+            <AdvancedFilters />
           </div>
 
           {isLoading ? (
@@ -205,13 +200,13 @@ const Dashboard = () => {
                 <StatCard title="Profit Factor" value={profitFactor.toFixed(2)} tooltip="Gross profit / gross loss.">{donut}</StatCard>
               </div>
 
-              {/* Win Day + Avg Win/Loss */}
+              {/* Day Stats */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 <DayWinCard />
                 <AvgWinLoss />
               </div>
 
-              {/* Zella Score */}
+              {/* Charts and Widgets */}
               <div className="mb-6">
                 <ChartZellaScore data={zellaTrendData} />
               </div>
@@ -246,7 +241,6 @@ const Dashboard = () => {
                 ) : null}
               </div>
 
-              {/* Trade Tabs */}
               <div className="mb-6">
                 <TradeTabs filteredTrades={filteredTrades} />
               </div>
