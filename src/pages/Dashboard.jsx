@@ -232,9 +232,6 @@ const Dashboard = () => {
               <div className="mb-6">
                 <ChartZellaScore data={zellaTrendData} />
               </div>
-              <div className="mb-6">
-                <ChartSymbolDistribution />
-              </div>
               {/* Net Cumulative P&L (Equity Curve) */}
               <div className="mb-6">
                 <ChartEquityCurve />
@@ -242,6 +239,9 @@ const Dashboard = () => {
               {/* Calendar Widget */}
               <div className="mb-6">
                 <CalendarWidget />
+              </div>
+              <div className="mb-6">
+                <ChartSymbolDistribution />
               </div>
               {/* Tag Performance */}
               <div className="mb-6">
