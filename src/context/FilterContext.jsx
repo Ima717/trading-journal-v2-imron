@@ -1,4 +1,3 @@
-// /src/context/FilterContext.jsx
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../utils/firebase";
@@ -8,6 +7,7 @@ const FilterContext = createContext();
 
 export const FilterProvider = ({ children }) => {
   const { user } = useAuth();
+
   const [dateRange, setDateRange] = useState({ start: null, end: null });
   const [resultFilter, setResultFilter] = useState("all");
   const [tagSearchTerm, setTagSearchTerm] = useState("");
@@ -16,19 +16,14 @@ export const FilterProvider = ({ children }) => {
   const [filteredTrades, setFilteredTrades] = useState([]);
   const [refresh, setRefresh] = useState(0);
 
-  const triggerRefresh = () => {
-    setRefresh((prev) => prev + 1);
-  };
+  const triggerRefresh = () => setRefresh((prev) => prev + 1);
 
   useEffect(() => {
     const fetchTrades = async () => {
       if (!user) return;
       const ref = collection(db, "users", user.uid, "trades");
       const snapshot = await getDocs(ref);
-      const fetched = snapshot.docs.map((doc) => ({
-        id: doc.id, // Include the document ID
-        ...doc.data(),
-      }));
+      const fetched = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setTrades(fetched);
     };
 
@@ -36,14 +31,14 @@ export const FilterProvider = ({ children }) => {
   }, [user, refresh]);
 
   useEffect(() => {
-    let result = trades;
+    let result = [...trades];
 
     if (dateRange.start && dateRange.end) {
+      const start = new Date(dateRange.start);
+      const end = new Date(dateRange.end);
       result = result.filter((trade) => {
         const tradeDate = new Date(trade.date);
-        const startDate = new Date(dateRange.start);
-        const endDate = new Date(dateRange.end);
-        return tradeDate >= startDate && tradeDate <= endDate;
+        return tradeDate >= start && tradeDate <= end;
       });
     }
 
@@ -52,23 +47,25 @@ export const FilterProvider = ({ children }) => {
     }
 
     if (resultFilter !== "all") {
-      result = result.filter((t) =>
-        resultFilter === "Win" ? t.pnl > 0 : resultFilter === "Loss" ? t.pnl < 0 : t.pnl === 0
-      );
+      result = result.filter((t) => {
+        if (resultFilter === "Win") return t.pnl > 0;
+        if (resultFilter === "Loss") return t.pnl < 0;
+        return t.pnl === 0;
+      });
     }
 
     setFilteredTrades(result);
   }, [trades, dateRange, clickedTag, resultFilter]);
 
   const filterTrades = (tradesToFilter) => {
-    let result = tradesToFilter;
+    let result = [...tradesToFilter];
 
     if (dateRange.start && dateRange.end) {
+      const start = new Date(dateRange.start);
+      const end = new Date(dateRange.end);
       result = result.filter((trade) => {
         const tradeDate = new Date(trade.date);
-        const startDate = new Date(dateRange.start);
-        const endDate = new Date(dateRange.end);
-        return tradeDate >= startDate && tradeDate <= endDate;
+        return tradeDate >= start && tradeDate <= end;
       });
     }
 
@@ -77,9 +74,11 @@ export const FilterProvider = ({ children }) => {
     }
 
     if (resultFilter !== "all") {
-      result = result.filter((t) =>
-        resultFilter === "Win" ? t.pnl > 0 : resultFilter === "Loss" ? t.pnl < 0 : t.pnl === 0
-      );
+      result = result.filter((t) => {
+        if (resultFilter === "Win") return t.pnl > 0;
+        if (resultFilter === "Loss") return t.pnl < 0;
+        return t.pnl === 0;
+      });
     }
 
     return result;
@@ -88,16 +87,16 @@ export const FilterProvider = ({ children }) => {
   return (
     <FilterContext.Provider
       value={{
-        dateRange: dateRange || { start: null, end: null },
+        dateRange,
         setDateRange,
-        resultFilter: resultFilter || "all",
+        resultFilter,
         setResultFilter,
-        tagSearchTerm: tagSearchTerm || "",
+        tagSearchTerm,
         setTagSearchTerm,
-        clickedTag: clickedTag || null,
+        clickedTag,
         setClickedTag,
+        filteredTrades,
         filterTrades,
-        filteredTrades: filteredTrades || [],
         triggerRefresh,
       }}
     >
