@@ -1,13 +1,14 @@
-// /src/components/ResultFilter.jsx
 import React from "react";
 import { useFilters } from "../context/FilterContext";
 
 const ResultFilter = () => {
   const { resultFilter, setResultFilter } = useFilters();
 
+  const filters = ["all", "Win", "Loss", "Break-even"];
+
   return (
     <div className="flex gap-2">
-      {["all", "Win", "Loss", "Break-even"].map((filter) => (
+      {filters.map((filter) => (
         <button
           key={filter}
           onClick={() => setResultFilter(filter)}
