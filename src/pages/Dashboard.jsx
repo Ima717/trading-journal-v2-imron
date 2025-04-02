@@ -24,7 +24,8 @@ import SearchFilter from "../components/SearchFilter";
 import ChartEquityCurve from "../components/ChartEquityCurve";
 import ChartSymbolDistribution from "../components/ChartSymbolDistribution";
 import ChartPnLBySymbol from "../components/ChartPnLBySymbol";
-import AdvancedFilters from "../components/AdvancedFilters"; // ✅ NEW
+import AdvancedFilters from "../components/AdvancedFilters";
+import DateRangePicker from "../components/DateRangePicker"; // New
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -177,6 +178,7 @@ const Dashboard = () => {
           {/* Filters */}
           <div className="flex flex-wrap gap-4 items-end justify-between mb-6">
             <ResultFilter />
+            <DateRangePicker />
             <SearchFilter
               searchTerm={tagSearchTerm}
               onSearchChange={(term) => setTagSearchTerm(term)}
