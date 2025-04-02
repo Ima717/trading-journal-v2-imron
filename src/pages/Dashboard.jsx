@@ -34,7 +34,6 @@ const Dashboard = () => {
     clickedTag,
     setClickedTag,
     filteredTrades,
-    setFilteredTrades, // Added to update filtered trades
     setDateRange,
   } = useFilters();
 
@@ -72,9 +71,6 @@ const Dashboard = () => {
           );
         }
 
-        // Update filtered trades in context
-        setFilteredTrades(trades);
-
         const pnlSeries = getPnLOverTime(trades);
         const zellaSeries = getZellaScoreOverTime(trades);
         setPnlData(pnlSeries);
@@ -106,30 +102,30 @@ const Dashboard = () => {
     );
 
     return () => unsubscribe();
-  }, [user, dateRange, setFilteredTrades]);
+  }, [user, dateRange]);
 
   // Core Calculations
-  const netPnL = filteredTrades.reduce((sum, t) => sum + (Number(t.pnl) || 0), 0);
+  const netPnL = filteredTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
   const totalTrades = filteredTrades.length;
-  const wins = filteredTrades.filter((t) => (Number(t.pnl) || 0) > 0);
-  const losses = filteredTrades.filter((t) => (Number(t.pnl) || 0) < 0);
+  const wins = filteredTrades.filter((t) => t.pnl > 0);
+  const losses = filteredTrades.filter((t) => t.pnl < 0);
 
   const winRate = totalTrades ? ((wins.length / totalTrades) * 100).toFixed(2) : "0.00";
   const tradingDays = [...new Set(filteredTrades.map((t) => t.date))];
   const winningDays = tradingDays.filter((day) => {
-    const dayPnL = filteredTrades.filter((t) => t.date === day).reduce((sum, t) => sum + (Number(t.pnl) || 0), 0);
+    const dayPnL = filteredTrades.filter((t) => t.date === day).reduce((sum, t) => sum + t.pnl, 0);
     return dayPnL > 0;
   });
   const dayWinPercent = tradingDays.length
     ? ((winningDays.length / tradingDays.length) * 100).toFixed(2)
     : "0.00";
 
-  const avgWin = wins.length ? wins.reduce((s, t) => s + (Number(t.pnl) || 0), 0) / wins.length : 0;
+  const avgWin = wins.length ? wins.reduce((s, t) => s + t.pnl, 0) / wins.length : 0;
   const avgLoss = losses.length
-    ? Math.abs(losses.reduce((s, t) => s + (Number(t.pnl) || 0), 0) / losses.length)
+    ? Math.abs(losses.reduce((s, t) => s + t.pnl, 0) / losses.length)
     : 0;
   const profitFactor = losses.length
-    ? (wins.reduce((s, t) => s + (Number(t.pnl) || 0), 0) / Math.abs(losses.reduce((s, t) => s + (Number(t.pnl) || 0), 0))).toFixed(2)
+    ? (wins.reduce((s, t) => s + t.pnl, 0) / Math.abs(losses.reduce((s, t) => s + t.pnl, 0))).toFixed(2)
     : "0.00";
 
   const zellaScore = Math.min(
@@ -145,8 +141,8 @@ const Dashboard = () => {
 
   const donut = (
     <CircularProgressbar
-      value={wins.reduce((s, t) => s + (Number(t.pnl) || 0), 0)}
-      maxValue={wins.reduce((s, t) => s + (Number(t.pnl) || 0), 0) + Math.abs(losses.reduce((s, t) => s + (Number(t.pnl) || 0), 0))}
+      value={wins.reduce((s, t) => s + t.pnl, 0)}
+      maxValue={wins.reduce((s, t) => s + t.pnl, 0) + Math.abs(losses.reduce((s, t) => s + t.pnl, 0))}
       strokeWidth={10}
       styles={buildStyles({
         pathColor: profitFactor >= 1 ? "#10b981" : "#ef4444",
