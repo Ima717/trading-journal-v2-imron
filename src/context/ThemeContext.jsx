@@ -1,13 +1,11 @@
-// /src/context/ThemeContext.jsx
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState("light"); // Default to light mode
+  const [theme, setTheme] = useState("light");
 
   useEffect(() => {
-    // Apply the theme to the document
     if (theme === "dark") {
       document.documentElement.classList.add("dark");
     } else {
@@ -16,7 +14,7 @@ export const ThemeProvider = ({ children }) => {
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
 
   return (
