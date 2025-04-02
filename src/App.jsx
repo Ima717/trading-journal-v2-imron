@@ -32,7 +32,6 @@ function App() {
                 <Route path="/edit-trade/:id" element={<EditTrade />} />
                 <Route path="/trades" element={<Trades />} />
                 <Route path="/import" element={<ImportTrades />} />
-                <Route path="/calendar" element={<CalendarPage />} />
               </Route>
             </Routes>
           </ThemeProvider>
