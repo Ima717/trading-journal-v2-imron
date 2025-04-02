@@ -19,7 +19,6 @@ import AvgWinLoss from "../components/AvgWinLoss";
 import DayWinCard from "../components/DayWinCard";
 import { getPnLOverTime, getZellaScoreOverTime } from "../utils/calculations";
 import ErrorBoundary from "../components/ErrorBoundary";
-import ResultFilter from "../components/ResultFilter";
 import SearchFilter from "../components/SearchFilter";
 import ChartEquityCurve from "../components/ChartEquityCurve";
 import ChartSymbolDistribution from "../components/ChartSymbolDistribution";
@@ -47,24 +46,6 @@ const Dashboard = () => {
   const [pnlData, setPnlData] = useState([]);
   const [zellaTrendData, setZellaTrendData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      navigate("/signin");
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
-  };
-
-  const formatDateRange = () => {
-    if (!dateRange.start || !dateRange.end) return "Showing all data";
-    const start = dayjs(dateRange.start).format("MMM D");
-    const end = dayjs(dateRange.end).format("MMM D");
-    return start === end
-      ? `Showing trades for ${start}`
-      : `Showing trades from ${start} to ${end}`;
-  };
 
   useEffect(() => {
     if (!user) return;
@@ -177,7 +158,6 @@ const Dashboard = () => {
           {/* Filters */}
           <div className="w-full flex flex-col lg:flex-row justify-between gap-4 mb-6">
             <div className="flex flex-wrap gap-3">
-              <ResultFilter />
               <DateRangePicker />
               <AdvancedFilters />
             </div>
