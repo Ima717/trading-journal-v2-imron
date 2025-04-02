@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../utils/firebase";
 import { collection, query, onSnapshot } from "firebase/firestore";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useFilters } from "../context/FilterContext";
 import { useTheme } from "../context/ThemeContext";
@@ -25,7 +25,7 @@ import ChartEquityCurve from "../components/ChartEquityCurve";
 import ChartSymbolDistribution from "../components/ChartSymbolDistribution";
 import ChartPnLBySymbol from "../components/ChartPnLBySymbol";
 import AdvancedFilters from "../components/AdvancedFilters";
-import DateRangePicker from "../components/DateRangePicker"; // New
+import DateRangePicker from "../components/DateRangePicker";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -120,7 +120,6 @@ const Dashboard = () => {
     setResultFilter("all");
   };
 
-  // Calculations
   const netPnL = filteredTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
   const totalTrades = filteredTrades.length;
   const wins = filteredTrades.filter((t) => t.pnl > 0);
@@ -176,9 +175,12 @@ const Dashboard = () => {
           </div>
 
           {/* Filters */}
-          <div className="flex flex-wrap gap-4 items-end justify-between mb-6">
-            <ResultFilter />
-            <DateRangePicker />
+          <div className="w-full flex flex-col lg:flex-row justify-between gap-4 mb-6">
+            <div className="flex flex-wrap gap-3">
+              <ResultFilter />
+              <DateRangePicker />
+              <AdvancedFilters />
+            </div>
             <SearchFilter
               searchTerm={tagSearchTerm}
               onSearchChange={(term) => setTagSearchTerm(term)}
@@ -188,27 +190,23 @@ const Dashboard = () => {
                 setClickedTag(null);
               }}
             />
-            <AdvancedFilters />
           </div>
 
           {isLoading ? (
             <div className="text-center py-10 text-gray-500 dark:text-gray-400">Loading dashboard...</div>
           ) : (
             <>
-              {/* Stat Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                 <StatCard title="Net P&L" value={`$${netPnL.toFixed(2)}`} color={netPnL >= 0 ? "text-green-600" : "text-red-500"} badge={totalTrades} tooltip="Total net profit/loss across all trades." />
                 <StatCard title="Trade Win %" value={`${winRate.toFixed(2)}%`} customBg={getWinRateBackground()} tooltip="Winning trades vs total trades." />
                 <StatCard title="Profit Factor" value={profitFactor.toFixed(2)} tooltip="Gross profit / gross loss.">{donut}</StatCard>
               </div>
 
-              {/* Day Stats */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 <DayWinCard />
                 <AvgWinLoss />
               </div>
 
-              {/* Charts and Widgets */}
               <div className="mb-6">
                 <ChartZellaScore data={zellaTrendData} />
               </div>
@@ -225,7 +223,6 @@ const Dashboard = () => {
                 <ChartPnLBySymbol />
               </div>
 
-              {/* Tag Performance */}
               <div className="mb-6">
                 {tagPerformanceData.length > 0 ? (
                   <>
