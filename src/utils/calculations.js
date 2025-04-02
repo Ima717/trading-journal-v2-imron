@@ -1,5 +1,3 @@
-// calculations.js — Utility functions for analytics
-
 export function getPnLOverTime(trades) {
   const map = {};
   trades.forEach((trade) => {
