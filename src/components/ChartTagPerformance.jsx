@@ -1,5 +1,3 @@
-// ChartTagPerformance.jsx – Upgraded with hover effects, dark mode, pointer UX, and refined design
-
 import React, { useRef, useEffect } from "react";
 import Chart from "chart.js/auto";
 
@@ -104,7 +102,8 @@ const ChartTagPerformance = ({ data, onTagClick }) => {
           }
         },
         onHover: (event, elements) => {
-          event.native.target.style.cursor = elements.length > 0 ? "pointer" : "default";
+          event.native.target.style.cursor =
+            elements.length > 0 ? "pointer" : "default";
         },
       },
     });
