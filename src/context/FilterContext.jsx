@@ -9,8 +9,10 @@ export const FilterProvider = ({ children }) => {
   const { user } = useAuth();
 
   const [dateRange, setDateRange] = useState({ start: null, end: null });
-  const [selectedFilters, setSelectedFilters] = useState({}); // NEW structure
+  const [resultFilter, setResultFilter] = useState("all");
+  const [tagSearchTerm, setTagSearchTerm] = useState("");
   const [clickedTag, setClickedTag] = useState(null);
+  const [selectedFilters, setSelectedFilters] = useState({});
   const [trades, setTrades] = useState([]);
   const [filteredTrades, setFilteredTrades] = useState([]);
   const [refresh, setRefresh] = useState(0);
@@ -30,13 +32,8 @@ export const FilterProvider = ({ children }) => {
   }, [user, refresh]);
 
   useEffect(() => {
-    setFilteredTrades(applyAllFilters(trades));
-  }, [trades, dateRange, selectedFilters, clickedTag]);
+    let result = [...trades];
 
-  const applyAllFilters = (data) => {
-    let result = [...data];
-
-    // Filter by date range
     if (dateRange.start && dateRange.end) {
       const start = new Date(dateRange.start);
       const end = new Date(dateRange.end);
@@ -46,18 +43,63 @@ export const FilterProvider = ({ children }) => {
       });
     }
 
-    // Filter by clicked tag (optional)
     if (clickedTag) {
       result = result.filter((t) => t.tags?.includes(clickedTag));
     }
 
-    // Filter by selectedFilters
-    for (const [category, values] of Object.entries(selectedFilters)) {
-      if (values.length === 0) continue;
+    if (resultFilter !== "all") {
+      result = result.filter((t) => {
+        if (resultFilter === "Win") return t.pnl > 0;
+        if (resultFilter === "Loss") return t.pnl < 0;
+        return t.pnl === 0;
+      });
+    }
+
+    // Apply Advanced Filters
+    if (Object.keys(selectedFilters).length) {
+      Object.entries(selectedFilters).forEach(([category, filters]) => {
+        filters.forEach((filter) => {
+          result = result.filter((trade) =>
+            trade?.[category.toLowerCase()]?.includes(filter)
+          );
+        });
+      });
+    }
+
+    setFilteredTrades(result);
+  }, [trades, dateRange, clickedTag, resultFilter, selectedFilters]);
+
+  const filterTrades = (tradesToFilter) => {
+    let result = [...tradesToFilter];
+
+    if (dateRange.start && dateRange.end) {
+      const start = new Date(dateRange.start);
+      const end = new Date(dateRange.end);
       result = result.filter((trade) => {
-        return values.some((val) => {
-          const field = trade[category.toLowerCase().replace(" ", "")]; // normalize field name
-          return field === val || (Array.isArray(field) && field.includes(val));
+        const tradeDate = new Date(trade.date);
+        return tradeDate >= start && tradeDate <= end;
+      });
+    }
+
+    if (clickedTag) {
+      result = result.filter((t) => t.tags?.includes(clickedTag));
+    }
+
+    if (resultFilter !== "all") {
+      result = result.filter((t) => {
+        if (resultFilter === "Win") return t.pnl > 0;
+        if (resultFilter === "Loss") return t.pnl < 0;
+        return t.pnl === 0;
+      });
+    }
+
+    // Apply Advanced Filters again if needed
+    if (Object.keys(selectedFilters).length) {
+      Object.entries(selectedFilters).forEach(([category, filters]) => {
+        filters.forEach((filter) => {
+          result = result.filter((trade) =>
+            trade?.[category.toLowerCase()]?.includes(filter)
+          );
         });
       });
     }
@@ -70,12 +112,16 @@ export const FilterProvider = ({ children }) => {
       value={{
         dateRange,
         setDateRange,
-        selectedFilters,
-        setSelectedFilters,
+        resultFilter,
+        setResultFilter,
+        tagSearchTerm,
+        setTagSearchTerm,
         clickedTag,
         setClickedTag,
+        selectedFilters,
+        setSelectedFilters,
         filteredTrades,
-        applyAllFilters,
+        filterTrades,
         triggerRefresh,
       }}
     >
