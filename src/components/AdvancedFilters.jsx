@@ -53,7 +53,6 @@ const AdvancedFilters = () => {
   };
 
   const applyFilters = () => {
-    // Update global filters, if needed.
     setOpen(false);
     triggerRefresh();
   };
@@ -91,7 +90,7 @@ const AdvancedFilters = () => {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
             className="absolute top-12 right-0 w-[400px] bg-white shadow-2xl border rounded-xl overflow-hidden z-50"
             role="dialog"
             aria-label="Advanced filters"
@@ -117,10 +116,11 @@ const AdvancedFilters = () => {
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeTab}
-                    initial={{ opacity: 0, x: 20 }}
+                    initial={{ opacity: 0, x: 15 }}
                     animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.2 }}
+                    exit={{ opacity: 0, x: -15 }}
+                    transition={{ duration: 0.15, ease: "easeInOut" }}
+                    layout
                     className="space-y-2"
                   >
                     {filterConfig[activeTab].map((item) => {
