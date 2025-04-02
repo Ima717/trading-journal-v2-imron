@@ -23,6 +23,7 @@ import ErrorBoundary from "../components/ErrorBoundary";
 import ResultFilter from "../components/ResultFilter";
 import SearchFilter from "../components/SearchFilter";
 import ChartEquityCurve from "../components/ChartEquityCurve";
+import ChartSymbolDistribution from "../components/ChartSymbolDistribution";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -230,6 +231,9 @@ const Dashboard = () => {
               {/* Zella Score */}
               <div className="mb-6">
                 <ChartZellaScore data={zellaTrendData} />
+              </div>
+              <div className="mb-6">
+                <ChartSymbolDistribution />
               </div>
               {/* Net Cumulative P&L (Equity Curve) */}
               <div className="mb-6">
