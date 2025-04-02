@@ -75,9 +75,9 @@ const AdvancedFilters = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.25 }}
-            className="absolute top-12 right-0 w-[400px] bg-white border shadow-xl rounded-lg overflow-hidden"
+            className="absolute top-12 right-0 w-[420px] bg-white border shadow-xl rounded-lg overflow-hidden"
           >
-            <div className="flex h-[280px]">
+            <div className="flex h-[300px]">
               {/* Sidebar Tabs */}
               <div className="w-1/3 border-r bg-gray-50">
                 {Object.keys(categories).map((tab) => (
@@ -95,15 +95,22 @@ const AdvancedFilters = () => {
                 ))}
               </div>
 
-              {/* Filter Checkboxes */}
-              <div className="w-2/3 p-4 flex flex-col gap-2">
+              {/* Filter Options with transition animation */}
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+                className="w-2/3 p-4 flex flex-col gap-2 overflow-y-auto"
+              >
                 {categories[activeTab].map((filter) => {
                   const isActive = selected[activeTab]?.includes(filter);
                   return (
                     <button
                       key={filter}
                       onClick={() => toggleFilter(activeTab, filter)}
-                      className={`px-3 py-1 text-xs rounded-full border flex items-center gap-1 ${
+                      className={`px-3 py-1 text-xs rounded-full border flex items-center gap-1 whitespace-nowrap ${
                         isActive
                           ? "bg-indigo-600 text-white border-indigo-600"
                           : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -113,7 +120,7 @@ const AdvancedFilters = () => {
                     </button>
                   );
                 })}
-              </div>
+              </motion.div>
             </div>
 
             {/* Footer Actions */}
