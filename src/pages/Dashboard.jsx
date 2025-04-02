@@ -22,6 +22,7 @@ import { getPnLOverTime, getZellaScoreOverTime } from "../utils/calculations";
 import ErrorBoundary from "../components/ErrorBoundary";
 import ResultFilter from "../components/ResultFilter";
 import SearchFilter from "../components/SearchFilter";
+import ChartEquityCurve from "../components/ChartEquityCurve";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -229,6 +230,10 @@ const Dashboard = () => {
               {/* Zella Score */}
               <div className="mb-6">
                 <ChartZellaScore data={zellaTrendData} />
+              </div>
+              {/* Net Cumulative P&L (Equity Curve) */}
+              <div className="mb-6">
+                <ChartEquityCurve />
               </div>
               {/* Calendar Widget */}
               <div className="mb-6">
