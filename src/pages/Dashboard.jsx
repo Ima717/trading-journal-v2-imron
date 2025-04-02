@@ -171,20 +171,6 @@ const Dashboard = () => {
             <h1 className="text-2xl font-bold text-zinc-800 dark:text-white mb-2 sm:mb-0">
               📊 Welcome to IMAI Dashboard
             </h1>
-            <div className="flex flex-wrap gap-2">
-              <Link to="/add-trade" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
-                ➕ Add Trade
-              </Link>
-              <Link to="/import" className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">
-                📤 Import Trades
-              </Link>
-              <button onClick={toggleTheme} className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
-                {theme === "light" ? "🌙 Dark Mode" : "☀️ Light Mode"}
-              </button>
-              <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
-                🔒 Log Out
-              </button>
-            </div>
           </div>
 
           {/* Filters and Tag Search */}
