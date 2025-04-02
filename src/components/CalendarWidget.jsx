@@ -10,7 +10,7 @@ const CalendarWidget = () => {
   const endOfMonth = today.endOf("month");
 
   const daysInMonth = endOfMonth.date();
-  const startWeekday = startOfMonth.day(); // 0 (Sun) to 6 (Sat)
+  const startWeekday = startOfMonth.day();
   const totalCells = startWeekday + daysInMonth;
   const currentMonth = today.format("MMMM YYYY");
 
@@ -25,7 +25,8 @@ const CalendarWidget = () => {
     if (trade.pnl > 0) dayStats[date].wins += 1;
   });
 
-  const handleDayClick = (day) => {
+  const handleDayClick = (e, day) => {
+    e.preventDefault();
     const clickedDate = dayjs().date(day).format("YYYY-MM-DD");
     setDateRange({ start: clickedDate, end: clickedDate });
   };
@@ -41,21 +42,19 @@ const CalendarWidget = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-sm"
+      className="bg-white dark:bg-zinc-800 p-4 rounded-lg shadow-sm"
     >
-      <h3 className="text-sm font-semibold text-zinc-800 dark:text-white mb-4">
+      <h3 className="text-sm font-semibold text-zinc-800 dark:text-white mb-3">
         📅 Trading Calendar — {currentMonth}
       </h3>
 
-      {/* Weekday Labels */}
-      <div className="grid grid-cols-7 gap-2 text-xs text-center font-medium text-zinc-500 mb-2">
+      <div className="grid grid-cols-7 gap-1 text-[11px] text-center font-medium text-zinc-500 mb-2">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
           <div key={d}>{d}</div>
         ))}
       </div>
 
-      {/* Calendar Grid */}
-      <div className="grid grid-cols-7 gap-2">
+      <div className="grid grid-cols-7 gap-1">
         {Array.from({ length: totalCells }).map((_, idx) => {
           const day = idx - startWeekday + 1;
           const isBlank = day <= 0;
@@ -65,13 +64,12 @@ const CalendarWidget = () => {
             : 0;
 
           return (
-            <div
+            <button
               key={idx}
-              onClick={() => stats && handleDayClick(day)}
-              className={`rounded-md h-16 flex flex-col items-center justify-center text-[11px] cursor-pointer transition-all duration-200
-                ${isBlank ? "" : stats ? getColor(stats.pnl) : "bg-gray-200"}
-                ${stats ? "text-white font-semibold" : "text-zinc-600"}
-              `}
+              onClick={(e) => stats && handleDayClick(e, day)}
+              className={`rounded-md h-14 w-full flex flex-col items-center justify-center text-[10px] cursor-pointer transition-all duration-200 ${
+                isBlank ? "bg-transparent" : stats ? getColor(stats.pnl) : "bg-gray-200"
+              } ${stats ? "text-white font-semibold" : "text-zinc-600"}`}
             >
               {!isBlank && (
                 <>
@@ -84,7 +82,7 @@ const CalendarWidget = () => {
                   )}
                 </>
               )}
-            </div>
+            </button>
           );
         })}
       </div>
