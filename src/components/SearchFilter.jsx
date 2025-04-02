@@ -1,4 +1,3 @@
-// /src/components/SearchFilter.jsx (Enhanced)
 import React, { useState, useEffect, useRef } from "react";
 import { useFilters } from "../context/FilterContext";
 
@@ -8,11 +7,9 @@ const SearchFilter = ({ searchTerm, onSearchChange, selectedTag, onClear }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Mock tag suggestions (in a real app, this could come from Firestore or a tag list)
-  const allTags = ["Scalp", "Swing", "Day Trade", "Long Term", "Momentum", "Breakout"]; // Replace with actual tags from your data
+  const allTags = ["Scalp", "Swing", "Day Trade", "Long Term", "Momentum", "Breakout"];
 
   useEffect(() => {
-    // Filter tags based on search term
     if (tagSearchTerm) {
       const filteredSuggestions = allTags.filter((tag) =>
         tag.toLowerCase().includes(tagSearchTerm.toLowerCase())
@@ -25,7 +22,6 @@ const SearchFilter = ({ searchTerm, onSearchChange, selectedTag, onClear }) => {
     }
   }, [tagSearchTerm]);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
