@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { ChevronDown, X, Check } from "lucide-react";
 import { useFilters } from "../context/FilterContext";
+import { Check, Filter } from "lucide-react";
 
 const filterCategories = {
-  Result: ["All", "Win", "Loss", "Break-Even"],
+  Result: ["Win", "Loss", "Break-Even"],
   General: ["Reviewed", "Unreviewed", "Open", "Closed"],
   Tags: ["Breakout", "Reversal", "News Play", "Overtraded", "Perfect"],
   "Day & Time": ["Monday", "Tuesday", "Pre-market", "After-hours"],
@@ -13,13 +13,12 @@ const filterCategories = {
 const AdvancedFilters = () => {
   const [open, setOpen] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState({});
-  const { setResultFilter, setClickedTag } = useFilters();
+  const { setClickedTag } = useFilters();
 
   const toggleFilter = (category, filter) => {
     setSelectedFilters((prev) => {
       const current = prev[category] || [];
-      const exists = current.includes(filter);
-      const updated = exists
+      const updated = current.includes(filter)
         ? current.filter((f) => f !== filter)
         : [...current, filter];
       return { ...prev, [category]: updated };
@@ -28,22 +27,11 @@ const AdvancedFilters = () => {
 
   const resetAll = () => {
     setSelectedFilters({});
-    setResultFilter("all");
-    setClickedTag(null);
-    setOpen(false);
   };
 
   const applyFilters = () => {
     const flatTags = Object.values(selectedFilters).flat();
-
-    if (selectedFilters.Result?.length === 1) {
-      setResultFilter(selectedFilters.Result[0].toLowerCase());
-    }
-
-    if (selectedFilters.Tags?.length) {
-      setClickedTag(selectedFilters.Tags[0]);
-    }
-
+    if (flatTags.length) setClickedTag(flatTags[0]);
     setOpen(false);
   };
 
@@ -51,21 +39,21 @@ const AdvancedFilters = () => {
     <div className="relative z-50">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1 px-4 py-2 bg-white border rounded shadow-sm hover:bg-gray-100 text-sm font-medium"
+        className="flex items-center gap-1 px-4 py-2 border rounded shadow-sm hover:bg-gray-100 text-sm font-medium bg-white"
       >
-        <span className="text-purple-600">🧪</span>
-        <span>Filters</span>
-        <ChevronDown size={16} />
+        <Filter size={16} className="text-green-600" />
+        <span className="text-gray-700">Filters</span>
       </button>
 
       {open && (
-        <div className="absolute top-12 right-0 w-[360px] bg-white shadow-xl rounded-lg border p-4 z-50">
+        <div className="absolute top-12 left-0 w-[350px] max-h-[80vh] overflow-y-auto bg-white shadow-xl rounded-lg border p-4 z-50">
           {Object.entries(filterCategories).map(([category, filters]) => (
             <div key={category} className="mb-4">
               <div className="font-semibold text-sm mb-2 text-gray-800">{category}</div>
               <div className="flex flex-wrap gap-2">
                 {filters.map((filter) => {
-                  const isActive = selectedFilters[category]?.includes(filter) || false;
+                  const isActive =
+                    selectedFilters[category]?.includes(filter) || false;
                   return (
                     <button
                       key={filter}
@@ -85,8 +73,11 @@ const AdvancedFilters = () => {
             </div>
           ))}
 
-          <div className="flex justify-between mt-4 border-t pt-3">
-            <button onClick={resetAll} className="text-xs text-purple-600 hover:underline">
+          <div className="flex justify-between items-center mt-4 border-t pt-3">
+            <button
+              onClick={resetAll}
+              className="text-xs text-purple-600 hover:underline"
+            >
               Reset all
             </button>
             <div className="flex gap-2">
