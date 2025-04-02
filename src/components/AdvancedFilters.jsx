@@ -152,9 +152,6 @@ const AdvancedFilters = () => {
                 Reset all
               </button>
               <div className="flex gap-2">
-                <button onClick={savePreset} className="text-xs text-gray-500 hover:text-gray-800">
-                  Save Preset
-                </button>
                 <button onClick={() => setOpen(false)} className="text-sm text-gray-600 hover:text-gray-800">
                   Cancel
                 </button>
