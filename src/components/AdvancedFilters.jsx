@@ -16,7 +16,8 @@ const AdvancedFilters = () => {
   const [activeTab, setActiveTab] = useState("General");
   const [selected, setSelected] = useState({});
   const [presets, setPresets] = useState([]);
-  const { triggerRefresh } = useFilters();
+
+  const { setSelectedFilters, triggerRefresh } = useFilters();
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -47,10 +48,12 @@ const AdvancedFilters = () => {
 
   const resetAll = () => {
     setSelected({});
+    setSelectedFilters({}); // reset global
     triggerRefresh();
   };
 
   const applyFilters = () => {
+    setSelectedFilters(selected); // 🔥 sync with global
     setOpen(false);
     triggerRefresh();
   };
