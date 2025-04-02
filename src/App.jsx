@@ -8,7 +8,6 @@ import EditTrade from "./pages/EditTrade";
 import Trades from "./pages/Trades";
 import Test from "./pages/Test";
 import ImportTrades from "./pages/ImportTrades";
-import CalendarPage from "./pages/CalendarPage";
 import { AuthProvider } from "./context/AuthContext";
 import { FilterProvider } from "./context/FilterContext";
 import { ThemeProvider } from "./context/ThemeContext";
