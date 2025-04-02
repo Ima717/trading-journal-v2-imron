@@ -230,7 +230,10 @@ const Dashboard = () => {
               <div className="mb-6">
                 <ChartZellaScore data={zellaTrendData} />
               </div>
-
+              {/* Calendar Widget */}
+              <div className="mb-6">
+                <CalendarWidget />
+              </div>
               {/* Tag Performance */}
               <div className="mb-6">
                 {tagPerformanceData.length > 0 ? (
