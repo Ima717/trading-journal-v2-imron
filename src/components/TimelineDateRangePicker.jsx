@@ -1,16 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Popover } from "@headlessui/react";
 import { CalendarIcon } from "lucide-react";
 import { DayPicker } from "react-day-picker";
-import "react-day-picker/dist/style.css";
+import { motion, AnimatePresence } from "framer-motion";
 import { useFilters } from "../context/FilterContext";
+import "react-day-picker/dist/style.css";
 import dayjs from "dayjs";
-import { addMonths } from "date-fns";
 
 const TimelineDateRangePicker = () => {
-  const { dateRange, setDateRange } = useFilters();
-  const [range, setRange] = useState({ from: null, to: null });
-  const [month, setMonth] = useState(new Date());
+  const { setDateRange } = useFilters();
+  const [range, setRange] = useState({ from: undefined, to: undefined });
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const presets = [
     { label: "Today", range: [dayjs(), dayjs()] },
@@ -22,77 +23,87 @@ const TimelineDateRangePicker = () => {
     { label: "YTD", range: [dayjs().startOf("year"), dayjs()] },
   ];
 
-  const handleStartSelect = (date) => {
-    setRange({ ...range, from: date });
-  };
-
-  const handleEndSelect = (date) => {
-    setRange((prev) => {
-      const newRange = { ...prev, to: date };
-      if (newRange.from && newRange.to) {
-        setDateRange({ start: newRange.from.toISOString(), end: newRange.to.toISOString() });
-      }
-      return newRange;
-    });
+  const handleRangeSelect = (selectedRange) => {
+    setRange(selectedRange);
+    if (selectedRange?.from && selectedRange?.to) {
+      setDateRange({
+        start: selectedRange.from.toISOString(),
+        end: selectedRange.to.toISOString(),
+      });
+    }
   };
 
   const applyPreset = (start, end) => {
-    setRange({ from: start.toDate(), to: end.toDate() });
-    setDateRange({ start: start.toISOString(), end: end.toISOString() });
+    const newRange = { from: start.toDate(), to: end.toDate() };
+    setRange(newRange);
+    setDateRange({
+      start: start.toISOString(),
+      end: end.toISOString(),
+    });
+    setOpen(false);
   };
 
   return (
-    <Popover className="relative z-40">
-      <Popover.Button className="flex items-center gap-1 px-4 py-2 bg-white border rounded shadow-sm text-sm font-medium hover:bg-gray-100">
-        <CalendarIcon size={16} className="text-purple-600" />
-        <span>Date range</span>
-      </Popover.Button>
-
-      <Popover.Panel className="absolute z-50 mt-2 w-[680px] right-0 bg-white border shadow-xl rounded-xl p-4 flex">
-        {/* Dual Calendars */}
-        <div className="flex gap-6 border-r pr-6">
-          {/* Start Date */}
-          <div>
-            <p className="text-sm text-gray-500 mb-1">Start Date</p>
-            <DayPicker
-              mode="single"
-              selected={range.from}
-              onSelect={handleStartSelect}
-              month={month}
-              onMonthChange={setMonth}
-              numberOfMonths={1}
-              className="rounded-lg border"
-            />
-          </div>
-
-          {/* End Date */}
-          <div>
-            <p className="text-sm text-gray-500 mb-1">End Date</p>
-            <DayPicker
-              mode="single"
-              selected={range.to}
-              onSelect={handleEndSelect}
-              month={addMonths(month, 1)}
-              numberOfMonths={1}
-              className="rounded-lg border"
-            />
-          </div>
-        </div>
-
-        {/* Presets */}
-        <div className="pl-6">
-          {presets.map((preset) => (
-            <button
-              key={preset.label}
-              onClick={() => applyPreset(preset.range[0], preset.range[1])}
-              className="block w-full text-left text-sm py-1 px-2 rounded hover:bg-gray-100"
+    <div className="relative z-40" ref={dropdownRef}>
+      <Popover>
+        {({ open: popoverOpen }) => (
+          <>
+            <Popover.Button
+              onClick={() => setOpen(!open)}
+              className="flex items-center gap-1 px-4 py-2 bg-white border rounded shadow-sm text-sm font-medium hover:bg-gray-100 relative"
             >
-              {preset.label}
-            </button>
-          ))}
-        </div>
-      </Popover.Panel>
-    </Popover>
+              <CalendarIcon size={16} className="text-purple-600" />
+              <span>Date range</span>
+            </Popover.Button>
+
+            <AnimatePresence>
+              {open && (
+                <Popover.Panel static>
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.25 }}
+                    className="absolute top-12 right-0 w-[600px] bg-white shadow-2xl border rounded-xl overflow-hidden z-50 flex p-4"
+                  >
+                    {/* Calendar */}
+                    <div className="w-2/3 pr-4 border-r">
+                      <p className="text-sm text-gray-500 mb-2">Select Date Range</p>
+                      <DayPicker
+                        mode="range"
+                        selected={range}
+                        onSelect={handleRangeSelect}
+                        numberOfMonths={1}
+                        className="p-2 rounded-md"
+                        modifiersClassNames={{
+                          selected: "bg-purple-600 text-white",
+                          range_start: "bg-purple-600 text-white",
+                          range_end: "bg-purple-600 text-white",
+                          range_middle: "bg-purple-200 text-purple-700",
+                        }}
+                      />
+                    </div>
+
+                    {/* Presets */}
+                    <div className="w-1/3 pl-4 flex flex-col gap-2">
+                      {presets.map((preset) => (
+                        <button
+                          key={preset.label}
+                          onClick={() => applyPreset(preset.range[0], preset.range[1])}
+                          className="text-left text-sm px-3 py-1.5 rounded-md hover:bg-gray-100 transition-all"
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                </Popover.Panel>
+              )}
+            </AnimatePresence>
+          </>
+        )}
+      </Popover>
+    </div>
   );
 };
 
