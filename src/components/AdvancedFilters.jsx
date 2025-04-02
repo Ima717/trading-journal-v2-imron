@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { ChevronDown, Filter, X, Check } from "lucide-react";
 import { useFilters } from "../context/FilterContext";
+import { Check, X } from "lucide-react";
 
-const filterOptions = {
+const filterCategories = {
   General: [
     "Instrument",
     "Intraday/Multiday",
@@ -17,15 +17,20 @@ const filterOptions = {
 };
 
 const AdvancedFilters = () => {
+  const {
+    selectedFilters,
+    setSelectedFilters,
+    triggerRefresh,
+  } = useFilters();
+
   const [open, setOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState("General");
-  const [selectedFilters, setSelectedFilters] = useState({});
-  const { setClickedTag } = useFilters();
+  const [activeTab, setActiveTab] = useState("General");
 
   const toggleFilter = (category, filter) => {
     setSelectedFilters((prev) => {
       const current = prev[category] || [];
-      const updated = current.includes(filter)
+      const exists = current.includes(filter);
+      const updated = exists
         ? current.filter((f) => f !== filter)
         : [...current, filter];
       return { ...prev, [category]: updated };
@@ -33,13 +38,13 @@ const AdvancedFilters = () => {
   };
 
   const applyFilters = () => {
-    const flatTags = Object.values(selectedFilters).flat();
-    if (flatTags.length > 0) setClickedTag(flatTags[0]); // optional context usage
+    triggerRefresh(); // refresh analytics when filters applied
     setOpen(false);
   };
 
-  const resetFilters = () => {
+  const resetAll = () => {
     setSelectedFilters({});
+    triggerRefresh(); // refresh analytics after reset
   };
 
   return (
@@ -48,44 +53,39 @@ const AdvancedFilters = () => {
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1 px-4 py-2 bg-white border rounded shadow-sm hover:bg-gray-100 text-sm font-medium"
       >
-        <Filter size={16} className="text-gray-600" />
-        <span>Filters</span>
-        <ChevronDown size={16} />
+        <span className="text-sm">Filters</span>
       </button>
 
       {open && (
-        <div className="absolute top-12 right-0 w-[500px] bg-white rounded-lg shadow-xl border z-50 animate-fade-in-down">
-          <div className="flex">
-            {/* Left category section */}
-            <div className="w-1/3 border-r">
-              {Object.keys(filterOptions).map((category) => (
+        <div className="absolute top-12 right-0 w-[460px] bg-white shadow-xl rounded-lg border z-50 flex flex-col overflow-hidden">
+          <div className="flex h-full min-h-[260px]">
+            <div className="w-1/3 border-r p-3 bg-gray-50">
+              {Object.keys(filterCategories).map((category) => (
                 <button
                   key={category}
-                  className={`flex items-center w-full px-4 py-2 text-left text-sm ${
-                    activeCategory === category
-                      ? "bg-purple-100 text-purple-700 font-semibold"
+                  className={`w-full text-left px-3 py-2 text-sm rounded ${
+                    activeTab === category
+                      ? "bg-purple-100 text-purple-700 font-medium"
                       : "hover:bg-gray-100 text-gray-700"
                   }`}
-                  onClick={() => setActiveCategory(category)}
+                  onClick={() => setActiveTab(category)}
                 >
                   {category}
                 </button>
               ))}
             </div>
-
-            {/* Right filter section */}
-            <div className="w-2/3 p-4">
-              {filterOptions[activeCategory].map((filter) => {
-                const isActive = selectedFilters[activeCategory]?.includes(filter);
+            <div className="w-2/3 p-4 flex flex-wrap gap-2">
+              {filterCategories[activeTab].map((filter) => {
+                const isActive = selectedFilters?.[activeTab]?.includes(filter);
                 return (
                   <button
                     key={filter}
-                    onClick={() => toggleFilter(activeCategory, filter)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm border ${
+                    onClick={() => toggleFilter(activeTab, filter)}
+                    className={`px-3 py-1 text-sm rounded-full border flex items-center gap-1 transition ${
                       isActive
-                        ? "bg-indigo-600 text-white border-indigo-600"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    } mb-2 mr-2`}
+                        ? "bg-purple-600 text-white border-purple-600"
+                        : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                    }`}
                   >
                     {isActive && <Check size={14} />}
                     {filter}
@@ -95,11 +95,10 @@ const AdvancedFilters = () => {
             </div>
           </div>
 
-          {/* Bottom controls */}
-          <div className="flex items-center justify-between px-4 py-3 border-t">
+          <div className="flex justify-between items-center px-4 py-3 border-t">
             <button
-              onClick={resetFilters}
-              className="text-xs text-purple-600 hover:underline"
+              onClick={resetAll}
+              className="text-sm text-purple-600 hover:underline"
             >
               Reset all
             </button>
@@ -112,7 +111,7 @@ const AdvancedFilters = () => {
               </button>
               <button
                 onClick={applyFilters}
-                className="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700"
+                className="px-4 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700"
               >
                 Apply filters
               </button>
