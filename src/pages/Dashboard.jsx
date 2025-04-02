@@ -22,6 +22,7 @@ import ChartEquityCurve from "../components/ChartEquityCurve";
 import ChartSymbolDistribution from "../components/ChartSymbolDistribution";
 import ChartPnLBySymbol from "../components/ChartPnLBySymbol";
 import AdvancedFilters from "../components/AdvancedFilters";
+import TimelineDateRangePicker from "../components/TimelineDateRangePicker"; // NEW
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -60,7 +61,6 @@ const Dashboard = () => {
       (snapshot) => {
         let trades = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-        // Filter by date range
         if (dateRange.start && dateRange.end) {
           const start = dayjs(dateRange.start);
           const end = dayjs(dateRange.end);
@@ -103,12 +103,10 @@ const Dashboard = () => {
     return () => unsubscribe();
   }, [user, dateRange]);
 
-  // Core Calculations
   const netPnL = filteredTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
   const totalTrades = filteredTrades.length;
   const wins = filteredTrades.filter((t) => t.pnl > 0);
   const losses = filteredTrades.filter((t) => t.pnl < 0);
-
   const winRate = totalTrades ? ((wins.length / totalTrades) * 100).toFixed(2) : "0.00";
   const tradingDays = [...new Set(filteredTrades.map((t) => t.date))];
   const winningDays = tradingDays.filter((day) => {
@@ -118,7 +116,6 @@ const Dashboard = () => {
   const dayWinPercent = tradingDays.length
     ? ((winningDays.length / tradingDays.length) * 100).toFixed(2)
     : "0.00";
-
   const avgWin = wins.length ? wins.reduce((s, t) => s + t.pnl, 0) / wins.length : 0;
   const avgLoss = losses.length
     ? Math.abs(losses.reduce((s, t) => s + t.pnl, 0) / losses.length)
@@ -161,11 +158,12 @@ const Dashboard = () => {
               Welcome to IMAI Dashboard
             </h1>
             <div className="flex gap-3">
+              <TimelineDateRangePicker />
               <AdvancedFilters />
             </div>
           </div>
 
-          {/* Date Range Info */}
+          {/* Date Range Summary */}
           {dateRange.start && dateRange.end && (
             <div className="text-sm text-gray-500 mb-6">
               Analytics from <strong>{dayjs(dateRange.start).format("YYYY-MM-DD")}</strong> till{" "}
@@ -173,11 +171,9 @@ const Dashboard = () => {
             </div>
           )}
 
-          {/* Main Analytics */}
+          {/* Analytics Section */}
           {isLoading ? (
-            <div className="text-center py-10 text-gray-500 dark:text-gray-400">
-              Loading dashboard...
-            </div>
+            <div className="text-center py-10 text-gray-500 dark:text-gray-400">Loading dashboard...</div>
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
