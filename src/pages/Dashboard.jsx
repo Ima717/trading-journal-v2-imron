@@ -24,6 +24,7 @@ import ResultFilter from "../components/ResultFilter";
 import SearchFilter from "../components/SearchFilter";
 import ChartEquityCurve from "../components/ChartEquityCurve";
 import ChartSymbolDistribution from "../components/ChartSymbolDistribution";
+import ChartPnLBySymbol from "../components/ChartPnLBySymbol";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -239,6 +240,9 @@ const Dashboard = () => {
               {/* Calendar Widget */}
               <div className="mb-6">
                 <CalendarWidget />
+              </div>
+              <div className="mb-6">
+                <ChartPnLBySymbol />
               </div>
               <div className="mb-6">
                 <ChartSymbolDistribution />
