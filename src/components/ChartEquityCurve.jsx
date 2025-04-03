@@ -1,4 +1,3 @@
-// ChartEquityCurve.jsx
 import React, { useState, useEffect } from "react";
 import { Line } from "react-chartjs-2";
 import {
@@ -23,11 +22,9 @@ ChartJS.register(
 );
 
 const ChartEquityCurve = ({ data }) => {
-  // Sample fallback data
   const sampleLabels = ["Mar 15", "Mar 19", "Mar 23", "Mar 27", "Apr 1"];
   const sampleData = [-100, 200, -400, -800, -850];
 
-  // State for dynamic trend indicator and data
   const [latestTrend, setLatestTrend] = useState("neutral");
   const [chartDataPoints, setChartDataPoints] = useState(data?.map((d) => d.pnl) || sampleData);
 
@@ -36,13 +33,12 @@ const ChartEquityCurve = ({ data }) => {
     setChartDataPoints(points);
 
     if (points.length >= 2) {
-      const lastValue = points[points.length - 1];
-      const secondLastValue = points[points.length - 2];
-      setLatestTrend(lastValue > secondLastValue ? "up" : lastValue < secondLastValue ? "down" : "neutral");
+      const last = points[points.length - 1];
+      const secondLast = points[points.length - 2];
+      setLatestTrend(last > secondLast ? "up" : last < secondLast ? "down" : "neutral");
     }
   }, [data]);
 
-  // Chart data with dynamic gradient based on positivity/negativity
   const chartData = {
     labels: data?.map((d) => d.date) || sampleLabels,
     datasets: [
@@ -50,23 +46,22 @@ const ChartEquityCurve = ({ data }) => {
         label: "Net Cumulative P&L",
         data: chartDataPoints,
         fill: true,
-        backgroundColor: (context) => {
-          const ctx = context.chart.ctx;
-          const gradient = ctx.createLinearGradient(0, 0, 0, 350);
-          const lastValue = chartDataPoints[chartDataPoints.length - 1];
-          if (lastValue > 0) {
-            gradient.addColorStop(0, "rgba(34, 197, 94, 0.15)"); // Slight green for positive
-            gradient.addColorStop(1, "rgba(34, 197, 94, 0.05)"); // Fade to transparent
-          } else if (lastValue < 0) {
-            gradient.addColorStop(0, "rgba(239, 68, 68, 0.15)"); // Slight red for negative
-            gradient.addColorStop(1, "rgba(239, 68, 68, 0.05)"); // Fade to transparent
+        backgroundColor: (ctx) => {
+          const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, 350);
+          const last = chartDataPoints[chartDataPoints.length - 1];
+          if (last > 0) {
+            gradient.addColorStop(0, "rgba(34, 197, 94, 0.15)");
+            gradient.addColorStop(1, "rgba(34, 197, 94, 0.05)");
+          } else if (last < 0) {
+            gradient.addColorStop(0, "rgba(239, 68, 68, 0.15)");
+            gradient.addColorStop(1, "rgba(239, 68, 68, 0.05)");
           } else {
-            gradient.addColorStop(0, "rgba(209, 213, 219, 0.1)"); // Neutral gray
-            gradient.addColorStop(1, "rgba(209, 213, 219, 0.05)"); // Fade to transparent
+            gradient.addColorStop(0, "rgba(209, 213, 219, 0.1)");
+            gradient.addColorStop(1, "rgba(209, 213, 219, 0.05)");
           }
           return gradient;
         },
-        borderColor: "#22c55e", // Default green line (can be dynamic if needed)
+        borderColor: "#22c55e",
         tension: 0.4,
         pointRadius: 4,
         pointHoverRadius: 6,
@@ -78,7 +73,6 @@ const ChartEquityCurve = ({ data }) => {
     ],
   };
 
-  // Chart options
   const options = {
     responsive: true,
     maintainAspectRatio: false,
@@ -93,8 +87,8 @@ const ChartEquityCurve = ({ data }) => {
         displayColors: false,
         callbacks: {
           label: (context) => `P&L: $${context.parsed.y.toFixed(2)}`,
-          title: (tooltipItems) => tooltipItems[0].label,
-          afterBody: (context) =>
+          title: (items) => items[0].label,
+          afterBody: () =>
             latestTrend === "up"
               ? "Trend: Upward"
               : latestTrend === "down"
@@ -106,15 +100,20 @@ const ChartEquityCurve = ({ data }) => {
     scales: {
       x: {
         grid: { display: false },
-        ticks: { color: "#6b7280", font: { size: 12, family: "'Inter', sans-serif" } },
+        ticks: {
+          color: "#6b7280",
+          font: { size: 12, family: "'Inter', sans-serif" },
+        },
       },
       y: {
-        grid: { color: "rgba(229, 231, 235, 0.2)", borderDash: [8, 8] },
+        grid: {
+          color: "rgba(229, 231, 235, 0.2)",
+          borderDash: [8, 8],
+        },
         ticks: {
           color: "#6b7280",
           callback: (val) => `$${val >= 0 ? val : -val}`,
           font: { size: 13, family: "'Inter', sans-serif" },
-          stepSize: Math.max(...chartDataPoints.map(Math.abs), 0) / 5,
         },
       },
     },
@@ -122,7 +121,6 @@ const ChartEquityCurve = ({ data }) => {
     animation: { duration: 1200, easing: "easeInOutQuad" },
   };
 
-  // Trend indicator
   const TrendIndicator = () => (
     <motion.div
       initial={{ scale: 0.8, opacity: 0 }}
@@ -152,18 +150,14 @@ const ChartEquityCurve = ({ data }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: "easeInOut" }}
-      className="relative w-full bg-white rounded-2xl border border-gray-200/60 p-5 shadow-lg"
-      style={{
-        boxShadow: "0 6px 24px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.04)",
-      }}
+      className="relative w-full bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200/60 p-5 shadow-lg"
     >
-      {/* Header */}
-      <div className="flex justify-between items-center mb-5">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Equity Curve</h3>
+      {/* Header - no duplicate title */}
+      <div className="flex justify-end mb-3">
         <TrendIndicator />
       </div>
 
-      {/* Chart Container */}
+      {/* Chart */}
       <div className="h-[320px]">
         <Line data={chartData} options={options} />
       </div>
