@@ -29,45 +29,23 @@ const TimelineDateRangePicker = () => {
     let from, to;
 
     switch (preset) {
-      case "Today":
-        from = to = now;
-        break;
-      case "This week":
-        from = now.startOf("week");
-        to = now.endOf("week");
-        break;
-      case "This month":
-        from = now.startOf("month");
-        to = now.endOf("month");
-        break;
-      case "Last 30 days":
-        from = now.subtract(30, "day");
-        to = now;
-        break;
+      case "Today": from = to = now; break;
+      case "This week": from = now.startOf("week"); to = now.endOf("week"); break;
+      case "This month": from = now.startOf("month"); to = now.endOf("month"); break;
+      case "Last 30 days": from = now.subtract(30, "day"); to = now; break;
       case "Last month":
         from = now.subtract(1, "month").startOf("month");
         to = now.subtract(1, "month").endOf("month");
         break;
-      case "This quarter":
-        from = now.startOf("quarter");
-        to = now.endOf("quarter");
-        break;
-      case "YTD":
-        from = now.startOf("year");
-        to = now;
-        break;
-      default:
-        return;
+      case "This quarter": from = now.startOf("quarter"); to = now.endOf("quarter"); break;
+      case "YTD": from = now.startOf("year"); to = now; break;
+      default: return;
     }
 
     const fromDate = from.toDate();
     const toDate = to.toDate();
-
     setRange({ from: fromDate, to: toDate });
-    setDateRange({
-      start: fromDate.toISOString(),
-      end: toDate.toISOString(),
-    });
+    setDateRange({ start: fromDate.toISOString(), end: toDate.toISOString() });
     triggerRefresh();
   };
 
@@ -118,9 +96,9 @@ const TimelineDateRangePicker = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.25, ease: "easeInOut" }}
-                className="absolute top-12 right-0 w-[580px] bg-white border rounded-xl shadow-2xl flex z-50"
+                className="absolute top-12 right-0 w-[500px] bg-white border rounded-xl shadow-2xl flex z-50"
               >
-                {/* Calendar */}
+                {/* Calendar Section */}
                 <div className="w-2/3 px-4 py-4">
                   <DayPicker
                     mode="range"
@@ -136,18 +114,14 @@ const TimelineDateRangePicker = () => {
                       months: "flex flex-col",
                       month: "grid grid-cols-7 gap-1",
                       caption: "flex justify-between items-center mb-2 px-2 text-sm font-medium",
-                      head_row: "grid grid-cols-7 text-center",
+                      head_row: "grid grid-cols-7 text-center mb-1",
                       head_cell: "text-gray-500 font-medium text-xs",
                       row: "grid grid-cols-7",
-                      day: "w-9 h-9 flex items-center justify-center rounded-full transition-all duration-150 ease-in-out hover:bg-purple-50",
-                      day_selected:
-                        "bg-purple-600 text-white rounded-full scale-105 shadow-sm transition",
-                      day_range_start:
-                        "bg-purple-600 text-white rounded-full transition",
-                      day_range_end:
-                        "bg-purple-600 text-white rounded-full transition",
-                      day_range_middle:
-                        "bg-purple-100 text-purple-800 transition",
+                      day: "w-8 h-8 flex items-center justify-center rounded-full transition-all duration-150 ease-in-out hover:bg-purple-50",
+                      day_selected: "bg-purple-600 text-white rounded-full scale-105 shadow-sm transition",
+                      day_range_start: "bg-purple-600 text-white rounded-full",
+                      day_range_end: "bg-purple-600 text-white rounded-full",
+                      day_range_middle: "bg-purple-100 text-purple-800",
                       today: "ring-2 ring-purple-400",
                       disabled: "text-gray-300 pointer-events-none opacity-50",
                     }}
@@ -160,7 +134,7 @@ const TimelineDateRangePicker = () => {
                   </button>
                 </div>
 
-                {/* Presets */}
+                {/* Preset Buttons */}
                 <div className="w-1/3 border-l px-4 py-4 space-y-2 text-sm">
                   {[
                     "Today",
