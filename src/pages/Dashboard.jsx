@@ -162,15 +162,6 @@ const Dashboard = () => {
               <AdvancedFilters />
             </div>
           </div>
-
-          {/* Date Range Summary */}
-          {dateRange.start && dateRange.end && (
-            <div className="text-sm text-gray-500 mb-6">
-              Analytics from <strong>{dayjs(dateRange.start).format("YYYY-MM-DD")}</strong> till{" "}
-              <strong>{dayjs(dateRange.end).format("YYYY-MM-DD")}</strong>
-            </div>
-          )}
-
           {/* Analytics Section */}
           {isLoading ? (
             <div className="text-center py-10 text-gray-500 dark:text-gray-400">Loading dashboard...</div>
