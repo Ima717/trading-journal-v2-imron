@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Tooltip } from "react-tooltip";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Info, BarChart3 } from "lucide-react";
 
 const StatCard = ({
@@ -12,8 +12,8 @@ const StatCard = ({
   customBg = "",
   children,
 }) => {
-  const tooltipId = tooltip-${title};
-  const badgeId = badge-${title};
+  const tooltipId = `tooltip-${title}`;
+  const badgeId = `badge-${title}`;
   const [displayValue, setDisplayValue] = useState(value);
 
   useEffect(() => {
@@ -25,9 +25,9 @@ const StatCard = ({
 
   return (
     <div
-      className={relative p-6 rounded-xl shadow-sm w-full flex flex-col justify-between hover:shadow-md hover:scale-[1.02] transition-all duration-200 group overflow-hidden ${
+      className={`relative p-6 rounded-xl shadow-sm w-full flex flex-col justify-between hover:shadow-md hover:scale-[1.02] transition-all duration-200 group overflow-hidden ${
         customBg || "bg-white dark:bg-zinc-800"
-      }}
+      }`}
     >
       {/* Header */}
       <div className="flex justify-between items-center mb-1">
@@ -76,7 +76,7 @@ const StatCard = ({
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className={text-2xl font-bold ${color}}
+            className={`text-2xl font-bold ${color}`}
           >
             {displayValue}
           </motion.div>
@@ -88,7 +88,7 @@ const StatCard = ({
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className={text-2xl font-bold ${color}}
+          className={`text-2xl font-bold ${color}`}
         >
           {displayValue}
         </motion.div>
