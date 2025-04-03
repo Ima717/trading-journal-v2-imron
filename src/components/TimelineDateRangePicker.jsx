@@ -56,59 +56,60 @@ const TimelineDateRangePicker = () => {
   };
 
   return (
-    <div className="relative z-40" ref={dropdownRef}>
+    <div className="relative z-50" ref={dropdownRef}>
       <Popover>
         {({ open: popoverOpen }) => (
           <>
             <Popover.Button
               onClick={() => setOpen(!open)}
-              className="flex items-center gap-1 px-4 py-2 bg-white border rounded shadow-sm text-sm font-medium hover:bg-gray-100 transition-all duration-200"
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-sm font-medium hover:bg-gray-50 transition duration-200"
             >
               <CalendarIcon size={16} className="text-purple-600" />
-              <span>Date range</span>
+              <span className="text-gray-700">Date range</span>
             </Popover.Button>
 
             <AnimatePresence>
               {open && (
                 <Popover.Panel static>
                   <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.25, ease: "easeInOut" }}
-                    className="absolute top-12 right-0 w-[600px] bg-white shadow-2xl border rounded-xl overflow-hidden z-50 flex p-4"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.2, ease: "easeInOut" }}
+                    className="absolute top-14 right-0 w-[620px] bg-white shadow-2xl border border-gray-200 rounded-2xl overflow-hidden z-50 flex p-6 space-x-6"
                   >
                     {/* Calendar */}
-                    <div className="w-2/3 pr-4 border-r">
-                      <p className="text-sm text-gray-500 mb-2">Select Date Range</p>
+                    <div className="w-2/3 border-r pr-6">
+                      <p className="text-sm text-gray-500 mb-3">Select Date Range</p>
                       <DayPicker
                         mode="range"
                         selected={range}
                         onSelect={handleRangeSelect}
-                        numberOfMonths={1}
-                        className="p-2 rounded-md"
+                        numberOfMonths={2}
+                        className="rounded-md"
                         modifiersClassNames={{
                           selected: "bg-purple-600 text-white",
                           range_start: "bg-purple-600 text-white",
                           range_end: "bg-purple-600 text-white",
-                          range_middle: "bg-purple-200 text-purple-700",
+                          range_middle: "bg-purple-200 text-purple-800",
                         }}
                       />
                       <button
                         onClick={resetAll}
-                        className="mt-3 text-xs text-purple-600 hover:underline hover:text-purple-800 transition-all"
+                        className="mt-4 text-xs text-purple-600 hover:underline hover:text-purple-800 transition"
                       >
                         Reset all
                       </button>
                     </div>
 
                     {/* Presets */}
-                    <div className="w-1/3 pl-4 flex flex-col gap-2">
+                    <div className="w-1/3 flex flex-col gap-3">
+                      <p className="text-sm text-gray-500 mb-1">Quick Presets</p>
                       {presets.map((preset) => (
                         <button
                           key={preset.label}
                           onClick={() => applyPreset(preset.range[0], preset.range[1])}
-                          className="text-left text-sm px-3 py-2 rounded-md hover:bg-purple-100 hover:text-purple-800 transition-all duration-200"
+                          className="text-left text-sm px-3 py-2 rounded-lg hover:bg-purple-50 text-gray-700 hover:text-purple-700 transition-all duration-150"
                         >
                           {preset.label}
                         </button>
