@@ -245,15 +245,17 @@ const TimelineDateRangePicker = () => {
           <AnimatePresence mode="wait" custom={direction}>
             {open && (
               <Popover.Panel
-                static
-                as={motion.div}
-                ref={containerRef}
-                variants={fadeVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                className="absolute top-12 right-0 w-[500px] bg-white border rounded-xl shadow-2xl flex z-50"
+              static
+              as={motion.div}
+              ref={containerRef}
+              variants={fadeVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              className="absolute top-12 right-0 w-[500px] bg-white border rounded-xl shadow-2xl flex z-50"
+              style={{ position: "absolute" }} // ✅ Add this to fully lock layout and prevent jump
               >
+
                 {/* Calendar */}
                 <div className="w-2/3 px-4 py-3">
                   <h4 className="text-xs font-medium text-gray-700 mb-2">Select Date Range</h4>
