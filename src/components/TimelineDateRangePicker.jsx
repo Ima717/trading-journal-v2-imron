@@ -28,6 +28,7 @@ const CustomDateRangePicker = () => {
   const [range, setRange] = useState({ from: null, to: null });
   const [currentMonth, setCurrentMonth] = useState(dayjs().month()); // 0-11
   const [currentYear, setCurrentYear] = useState(dayjs().year());
+  const [direction, setDirection] = useState(0); // Track direction: 1 for next, -1 for previous
   const { setDateRange, triggerRefresh } = useFilters();
   const containerRef = useRef(null);
 
@@ -107,8 +108,20 @@ const CustomDateRangePicker = () => {
       start: from.toISOString(),
       end: to.toISOString(),
     });
-    setCurrentMonth(from.month());
-    setCurrentYear(from.year());
+
+    // Determine direction for animation based on the preset
+    const fromMonth = from.month();
+    const fromYear = from.year();
+    if (fromYear < currentYear || (fromYear === currentYear && fromMonth < currentMonth)) {
+      setDirection(-1); // Going to a previous month
+    } else if (fromYear > currentYear || (fromYear === currentYear && fromMonth > currentMonth)) {
+      setDirection(1); // Going to a next month
+    } else {
+      setDirection(0); // No month change (e.g., "Today")
+    }
+
+    setCurrentMonth(fromMonth);
+    setCurrentYear(fromYear);
     triggerRefresh();
   };
 
@@ -117,6 +130,7 @@ const CustomDateRangePicker = () => {
     setDateRange({ start: null, end: null });
     setCurrentMonth(today.month());
     setCurrentYear(today.year());
+    setDirection(0); // Reset direction
     triggerRefresh();
   };
 
@@ -132,6 +146,7 @@ const CustomDateRangePicker = () => {
       newYear += 1;
     }
 
+    setDirection(direction); // Set direction for animation
     setCurrentMonth(newMonth);
     setCurrentYear(newYear);
   };
@@ -170,11 +185,20 @@ const CustomDateRangePicker = () => {
     return date.isSame(dayjs(range.from), "day") && !range.to;
   };
 
-  // Prevent page jump by maintaining scroll position
-  const handleRefreshWithoutJump = () => {
-    const scrollPosition = window.scrollY;
-    triggerRefresh();
-    window.scrollTo(0, scrollPosition);
+  // Animation variants for directional sliding
+  const slideVariants = {
+    initial: (direction) => ({
+      opacity: 0,
+      x: direction > 0 ? 20 : -20, // Slide in from right if going forward, left if going backward
+    }),
+    animate: {
+      opacity: 1,
+      x: 0,
+    },
+    exit: (direction) => ({
+      opacity: 0,
+      x: direction > 0 ? -20 : 20, // Slide out to left if going forward, right if going backward
+    }),
   };
 
   return (
@@ -196,7 +220,7 @@ const CustomDateRangePicker = () => {
             )}
           </Popover.Button>
 
-          <AnimatePresence>
+          <AnimatePresence mode="wait" custom={direction}>
             {open && (
               <Popover.Panel
                 static
@@ -219,10 +243,12 @@ const CustomDateRangePicker = () => {
                       &lt;
                     </button>
                     <motion.span
-                      key={`${currentMonth}-${currentYear}`}
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
+                      key={`${currentMonth}-${currentYear}-label`}
+                      custom={direction}
+                      variants={slideVariants}
+                      initial="initial"
+                      animate="animate"
+                      exit="exit"
                       transition={{ duration: 0.3, ease: "easeInOut" }}
                       className="text-sm font-medium"
                     >
@@ -237,9 +263,11 @@ const CustomDateRangePicker = () => {
                   </div>
                   <motion.div
                     key={`${currentMonth}-${currentYear}`}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
+                    custom={direction}
+                    variants={slideVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                   >
                     <div className="grid grid-cols-7 gap-1">
