@@ -1,6 +1,7 @@
 import React from "react";
 import { useFilters } from "../context/FilterContext";
 import StatCard from "./StatCard";
+import MiniGauge from "./MiniGauge"; // ✅ NEW
 
 const WinStatsCard = () => {
   const { filteredTrades } = useFilters();
@@ -22,12 +23,6 @@ const WinStatsCard = () => {
   const totalDays = stats.green + stats.blue + stats.red;
   const dayWinPercent = totalDays ? (stats.green / totalDays) * 100 : 0;
 
-  const daySegments = [
-    { color: "bg-green-500", value: stats.green },
-    { color: "bg-blue-500", value: stats.blue },
-    { color: "bg-red-500", value: stats.red },
-  ];
-
   // --- AVG WIN/LOSS LOGIC ---
   const winningTrades = filteredTrades.filter((t) => t.pnl > 0);
   const losingTrades = filteredTrades.filter((t) => t.pnl < 0);
@@ -43,8 +38,6 @@ const WinStatsCard = () => {
     : 0;
 
   const ratio = avgLoss ? avgWin / avgLoss : 0;
-  const winWidth = Math.min((avgWin / (avgWin + avgLoss)) * 100, 100);
-  const lossWidth = 100 - winWidth;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
@@ -54,20 +47,15 @@ const WinStatsCard = () => {
         value={`${dayWinPercent.toFixed(2)}%`}
         tooltip="Percentage of trading days that ended with net profit."
       >
-        <div className="flex flex-col justify-between w-full">
-          <div className="flex h-3 w-full rounded overflow-hidden mb-1">
-            {daySegments.map(
-              (seg, i) =>
-                seg.value > 0 && (
-                  <div
-                    key={i}
-                    className={seg.color}
-                    style={{ width: `${(seg.value / totalDays) * 100}%` }}
-                  />
-                )
-            )}
-          </div>
-          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-semibold mt-1">
+        <div className="flex flex-col items-end w-full">
+          <MiniGauge
+            segments={[
+              { color: "#22c55e", value: stats.green }, // green
+              { color: "#3b82f6", value: stats.blue },  // blue
+              { color: "#ef4444", value: stats.red },   // red
+            ]}
+          />
+          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-semibold w-full mt-1">
             <span className="text-green-600">{stats.green}</span>
             <span className="text-blue-500">{stats.blue}</span>
             <span className="text-red-500">{stats.red}</span>
@@ -81,20 +69,16 @@ const WinStatsCard = () => {
         value={ratio.toFixed(2)}
         tooltip="Average dollar value of winning vs losing trades."
       >
-        <div className="flex flex-col justify-between w-full">
-          <div className="flex h-3 w-full rounded overflow-hidden mb-1">
-            <div
-              className="bg-green-500 text-xs text-white flex items-center justify-end pr-1"
-              style={{ width: `${winWidth}%` }}
-            >
-              ${avgWin.toFixed(1)}
-            </div>
-            <div
-              className="bg-red-500 text-xs text-white flex items-center justify-start pl-1"
-              style={{ width: `${lossWidth}%` }}
-            >
-              -${avgLoss.toFixed(1)}
-            </div>
+        <div className="flex flex-col items-end w-full">
+          <MiniGauge
+            segments={[
+              { color: "#22c55e", value: avgWin },
+              { color: "#ef4444", value: avgLoss },
+            ]}
+          />
+          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-semibold w-full mt-1">
+            <span className="text-green-600">${avgWin.toFixed(1)}</span>
+            <span className="text-red-500">-${avgLoss.toFixed(1)}</span>
           </div>
         </div>
       </StatCard>
