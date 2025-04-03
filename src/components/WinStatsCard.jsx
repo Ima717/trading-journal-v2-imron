@@ -48,18 +48,20 @@ const WinStatsCard = () => {
         tooltip="Percentage of trading days that ended with net profit."
       >
         <div className="flex flex-col items-center justify-center w-full mt-2 mb-1">
-          <div className="flex justify-center items-center w-full">
-            <div className="w-[80px]">
+          <div className="flex justify-center items-center w-full h-[50px]">
+            <div className="w-[80px] h-[40px]">
               <MiniGauge
                 segments={[
                   { color: "#22c55e", value: stats.green },
                   { color: "#3b82f6", value: stats.blue },
                   { color: "#ef4444", value: stats.red },
                 ]}
+                radius={35}
+                strokeWidth={5}
               />
             </div>
           </div>
-          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-semibold w-full mt-2 px-2">
+          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-semibold w-full mt-1 px-2">
             <span className="text-green-600">{stats.green}</span>
             <span className="text-blue-500">{stats.blue}</span>
             <span className="text-red-500">{stats.red}</span>
@@ -74,17 +76,19 @@ const WinStatsCard = () => {
         tooltip="Average dollar value of winning vs losing trades."
       >
         <div className="flex flex-col items-center justify-center w-full mt-2 mb-1">
-          <div className="flex justify-center items-center w-full">
-            <div className="w-[80px]">
+          <div className="flex justify-center items-center w-full h-[50px]">
+            <div className="w-[80px] h-[40px]">
               <MiniGauge
                 segments={[
                   { color: "#22c55e", value: avgWin },
                   { color: "#ef4444", value: avgLoss },
                 ]}
+                radius={35}
+                strokeWidth={5}
               />
             </div>
           </div>
-          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-semibold w-full mt-2 px-2">
+          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-semibold w-full mt-1 px-2">
             <span className="text-green-600">${avgWin.toFixed(1)}</span>
             <span className="text-red-500">-${avgLoss.toFixed(1)}</span>
           </div>
