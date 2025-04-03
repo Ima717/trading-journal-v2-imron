@@ -47,17 +47,19 @@ const WinStatsCard = () => {
         value={`${dayWinPercent.toFixed(2)}%`}
         tooltip="Percentage of trading days that ended with net profit."
       >
-        <div className="flex flex-col items-center w-full mt-1 mb-2">
-          <div className="w-[100px] h-[70px] flex items-center justify-center">
-            <MiniGauge
-              segments={[
-                { color: "#22c55e", value: stats.green },
-                { color: "#3b82f6", value: stats.blue },
-                { color: "#ef4444", value: stats.red },
-              ]}
-            />
+        <div className="flex flex-col items-center justify-center w-full mt-2 mb-1">
+          <div className="flex justify-center items-center w-full">
+            <div className="w-[80px]">
+              <MiniGauge
+                segments={[
+                  { color: "#22c55e", value: stats.green },
+                  { color: "#3b82f6", value: stats.blue },
+                  { color: "#ef4444", value: stats.red },
+                ]}
+              />
+            </div>
           </div>
-          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-semibold w-full mt-1">
+          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-semibold w-full mt-2 px-2">
             <span className="text-green-600">{stats.green}</span>
             <span className="text-blue-500">{stats.blue}</span>
             <span className="text-red-500">{stats.red}</span>
@@ -71,16 +73,18 @@ const WinStatsCard = () => {
         value={ratio.toFixed(2)}
         tooltip="Average dollar value of winning vs losing trades."
       >
-        <div className="flex flex-col items-center w-full mt-1 mb-2">
-          <div className="w-[100px] h-[70px] flex items-center justify-center">
-            <MiniGauge
-              segments={[
-                { color: "#22c55e", value: avgWin },
-                { color: "#ef4444", value: avgLoss },
-              ]}
-            />
+        <div className="flex flex-col items-center justify-center w-full mt-2 mb-1">
+          <div className="flex justify-center items-center w-full">
+            <div className="w-[80px]">
+              <MiniGauge
+                segments={[
+                  { color: "#22c55e", value: avgWin },
+                  { color: "#ef4444", value: avgLoss },
+                ]}
+              />
+            </div>
           </div>
-          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-semibold w-full mt-1">
+          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-semibold w-full mt-2 px-2">
             <span className="text-green-600">${avgWin.toFixed(1)}</span>
             <span className="text-red-500">-${avgLoss.toFixed(1)}</span>
           </div>
