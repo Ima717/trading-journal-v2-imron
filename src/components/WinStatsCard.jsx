@@ -1,6 +1,9 @@
+// WinStatsCard.jsx
 import React from "react";
 import { useFilters } from "../context/FilterContext";
 import StatCard from "./StatCard";
+import MiniGauge from "./MiniGauge";
+import { motion } from "framer-motion";
 
 const WinStatsCard = () => {
   const { filteredTrades } = useFilters();
@@ -43,16 +46,53 @@ const WinStatsCard = () => {
       {/* Day Win % Card */}
       <StatCard
         title="Day Win %"
-        value={`${dayWinPercent.toFixed(2)}%`}
         tooltip="Percentage of trading days that ended with net profit."
-      />
+      >
+        <div className="flex flex-col items-center mt-2">
+          <MiniGauge
+            segments={[
+              { value: stats.green, color: "#22c55e" }, // Green for winning days
+              { value: stats.blue, color: "#3b82f6" },  // Blue for neutral days
+              { value: stats.red, color: "#ef4444" },   // Red for losing days
+            ]}
+            size={80}
+          />
+          <motion.div
+            key={dayWinPercent}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 }} // Sync with gauge animation
+            className="text-2xl font-bold text-gray-900 dark:text-white mt-2"
+          >
+            {`${dayWinPercent.toFixed(2)}%`}
+          </motion.div>
+        </div>
+      </StatCard>
 
       {/* Avg Win/Loss Card */}
       <StatCard
         title="Avg win/loss trade"
-        value={ratio.toFixed(2)}
         tooltip="Average dollar value of winning vs losing trades."
-      />
+      >
+        <div className="flex flex-col items-center mt-2">
+          <MiniGauge
+            segments={[
+              { value: avgWin, color: "#22c55e" },  // Green for avg win
+              { value: avgLoss, color: "#ef4444" }, // Red for avg loss
+            ]}
+            size={80}
+          />
+          <motion.div
+            key={ratio}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 }} // Sync with gauge animation
+            className="text-2xl font-bold text-gray-900 dark:text-white mt-2"
+          >
+            {ratio.toFixed(2)}
+          </motion.div>
+        </div>
+      </StatCard>
     </div>
   );
 };
