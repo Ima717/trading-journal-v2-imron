@@ -1,6 +1,6 @@
 import React from "react";
 
-const MiniGauge = ({ segments = [], radius = 50, strokeWidth = 10 }) => {
+const MiniGauge = ({ segments = [], radius = 45, strokeWidth = 8 }) => {
   const total = segments.reduce((sum, seg) => sum + seg.value, 0);
   const normalizedSegments = segments.map((seg) => ({
     ...seg,
@@ -22,7 +22,6 @@ const MiniGauge = ({ segments = [], radius = 50, strokeWidth = 10 }) => {
   const describeArc = (startAngle, endAngle) => {
     const start = polarToCartesian(cx, cy, r, startAngle);
     const end = polarToCartesian(cx, cy, r, endAngle);
-
     const largeArcFlag = endAngle - startAngle > 180 ? 1 : 0;
 
     return [
@@ -36,8 +35,8 @@ const MiniGauge = ({ segments = [], radius = 50, strokeWidth = 10 }) => {
   return (
     <svg
       width={radius * 2}
-      height={radius + strokeWidth * 1.5}
-      viewBox={`0 0 ${radius * 2} ${radius + strokeWidth * 1.5}`}
+      height={radius + strokeWidth * 2.5}
+      viewBox={`0 0 ${radius * 2} ${radius + strokeWidth * 2.5}`}
       className="block"
     >
       {normalizedSegments.map((seg, index) => {
