@@ -10,7 +10,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { TrendingUp, TrendingDown } from "lucide-react";
 
 ChartJS.register(
@@ -126,12 +126,12 @@ const ChartEquityCurve = ({ data }) => {
     animation: { duration: 1200, easing: "easeInOutQuad" },
   };
 
-  // Trend indicator with pulse animation
+  // Trend indicator without pulsing animation
   const TrendIndicator = () => (
     <motion.div
       initial={{ scale: 0.8, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      transition={{ duration: 0.6, ease: "easeOut", repeat: Infinity, repeatType: "reverse" }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
       className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${
         latestTrend === "up"
           ? "bg-green-100 text-green-700"
