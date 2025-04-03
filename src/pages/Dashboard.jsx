@@ -186,8 +186,11 @@ const Dashboard = () => {
                 </StatCard>
               </div>
 
+              {/* Adjusted WinStatsCard Section */}
               <div className="mb-6">
-                <WinStatsCard />
+                <div className="p-0"> {/* Remove default padding to avoid interference */}
+                  <WinStatsCard />
+                </div>
               </div>
 
               <div className="mb-6">
