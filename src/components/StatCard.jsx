@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Tooltip } from "react-tooltip";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Info, BarChart3 } from "lucide-react";
 
 const StatCard = ({
@@ -14,19 +14,17 @@ const StatCard = ({
 }) => {
   const tooltipId = `tooltip-${title}`;
   const badgeId = `badge-${title}`;
-  const [shouldAnimate, setShouldAnimate] = useState(false);
+  const [displayValue, setDisplayValue] = useState(value);
 
   useEffect(() => {
-    // Prevent animation on initial render
-    const timer = setTimeout(() => setShouldAnimate(true), 500);
-    return () => clearTimeout(timer);
-  }, []);
+    const timeout = setTimeout(() => {
+      setDisplayValue(value);
+    }, 50);
+    return () => clearTimeout(timeout);
+  }, [value]);
 
   return (
-    <motion.div
-      initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
-      animate={shouldAnimate ? { opacity: 1, y: 0 } : false}
-      transition={shouldAnimate ? { duration: 0.3 } : undefined}
+    <div
       className={`relative p-6 rounded-xl shadow-sm w-full flex flex-col justify-between hover:shadow-md hover:scale-[1.02] transition-all duration-200 group overflow-hidden ${
         customBg || "bg-white dark:bg-zinc-800"
       }`}
@@ -73,11 +71,27 @@ const StatCard = ({
       {/* Main Content */}
       {children ? (
         <div className="mt-2 flex items-center justify-between">
-          <div className={`text-2xl font-bold ${color}`}>{value}</div>
+          <motion.div
+            key={displayValue}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className={`text-2xl font-bold ${color}`}
+          >
+            {displayValue}
+          </motion.div>
           <div className="w-10 h-10">{children}</div>
         </div>
       ) : (
-        <div className={`text-2xl font-bold ${color}`}>{value}</div>
+        <motion.div
+          key={displayValue}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className={`text-2xl font-bold ${color}`}
+        >
+          {displayValue}
+        </motion.div>
       )}
 
       {/* Hover Icon */}
@@ -86,7 +100,7 @@ const StatCard = ({
           <BarChart3 size={14} />
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
