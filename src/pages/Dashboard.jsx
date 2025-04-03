@@ -14,14 +14,16 @@ import ChartTagPerformance from "../components/ChartTagPerformance";
 import ChartZellaScore from "../components/ChartZellaScore";
 import CalendarWidget from "../components/CalendarWidget";
 import StatCard from "../components/StatCard";
-import { getPnLOverTime, getZellaScoreOverTime } from "../utils/calculations";
-import ErrorBoundary from "../components/ErrorBoundary";
 import ChartEquityCurve from "../components/ChartEquityCurve";
 import ChartSymbolDistribution from "../components/ChartSymbolDistribution";
 import ChartPnLBySymbol from "../components/ChartPnLBySymbol";
 import AdvancedFilters from "../components/AdvancedFilters";
 import TimelineDateRangePicker from "../components/TimelineDateRangePicker";
-import WinStatsCard from "../components/WinStatsCard"; // ✅ New import
+import WinStatsCard from "../components/WinStatsCard";
+import ChartCard from "../components/ChartCard"; // ✅ NEW
+
+import { getPnLOverTime, getZellaScoreOverTime } from "../utils/calculations";
+import ErrorBoundary from "../components/ErrorBoundary";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -29,9 +31,6 @@ const Dashboard = () => {
   const { theme } = useTheme();
   const {
     dateRange,
-    resultFilter,
-    clickedTag,
-    setClickedTag,
     filteredTrades,
     setDateRange,
   } = useFilters();
@@ -123,17 +122,6 @@ const Dashboard = () => {
     ? (wins.reduce((s, t) => s + t.pnl, 0) / Math.abs(losses.reduce((s, t) => s + t.pnl, 0))).toFixed(2)
     : "0.00";
 
-  const zellaScore = Math.min(
-    winRate * 0.4 + profitFactor * 10 * 0.3 + dayWinPercent * 0.3,
-    100
-  ).toFixed(2);
-
-  const getWinRateBackground = () => {
-    if (winRate > 60) return "bg-gradient-to-r from-green-400 to-green-500 text-white";
-    if (winRate >= 40) return "bg-gradient-to-r from-yellow-400 to-yellow-500 text-white";
-    return "bg-gradient-to-r from-red-400 to-red-500 text-white";
-  };
-
   const donut = (
     <CircularProgressbar
       value={wins.reduce((s, t) => s + t.pnl, 0)}
@@ -146,6 +134,12 @@ const Dashboard = () => {
       })}
     />
   );
+
+  const getWinRateBackground = () => {
+    if (winRate > 60) return "bg-gradient-to-r from-green-400 to-green-500 text-white";
+    if (winRate >= 40) return "bg-gradient-to-r from-yellow-400 to-yellow-500 text-white";
+    return "bg-gradient-to-r from-red-400 to-red-500 text-white";
+  };
 
   return (
     <ErrorBoundary>
@@ -162,7 +156,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Analytics Section */}
+          {/* Analytics Cards */}
           {isLoading ? (
             <div className="text-center py-10 text-gray-500 dark:text-gray-400">Loading dashboard...</div>
           ) : (
@@ -186,37 +180,47 @@ const Dashboard = () => {
                 </StatCard>
               </div>
 
-              {/* Adjusted WinStatsCard Section */}
               <div className="mb-6">
-                <div className="p-0"> {/* Remove default padding to avoid interference */}
-                  <WinStatsCard />
-                </div>
+                <WinStatsCard />
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <ChartCard title="Zella Score">
+                  <ChartZellaScore data={zellaTrendData} />
+                </ChartCard>
+
+                <ChartCard title="Equity Curve">
+                  <ChartEquityCurve />
+                </ChartCard>
               </div>
 
               <div className="mb-6">
-                <ChartZellaScore data={zellaTrendData} />
+                <ChartCard title="Calendar">
+                  <CalendarWidget />
+                </ChartCard>
               </div>
-              <div className="mb-6">
-                <ChartEquityCurve />
-              </div>
-              <div className="mb-6">
-                <CalendarWidget />
-              </div>
-              <div className="mb-6">
-                <ChartSymbolDistribution />
-              </div>
-              <div className="mb-6">
-                <ChartPnLBySymbol />
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <ChartCard title="Symbol Distribution">
+                  <ChartSymbolDistribution />
+                </ChartCard>
+                <ChartCard title="PnL by Symbol">
+                  <ChartPnLBySymbol />
+                </ChartCard>
               </div>
 
               {tagPerformanceData.length > 0 && (
                 <div className="mb-6">
-                  <ChartTagPerformance data={tagPerformanceData} />
+                  <ChartCard title="Tag Performance">
+                    <ChartTagPerformance data={tagPerformanceData} />
+                  </ChartCard>
                 </div>
               )}
 
               <div className="mb-6">
-                <TradeTabs filteredTrades={filteredTrades} />
+                <ChartCard title="Trades Table">
+                  <TradeTabs filteredTrades={filteredTrades} />
+                </ChartCard>
               </div>
             </>
           )}
