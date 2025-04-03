@@ -12,8 +12,8 @@ const StatCard = ({
   customBg = "",
   children,
 }) => {
-  const tooltipId = `tooltip-${title}`;
-  const badgeId = `badge-${title}`;
+  const tooltipId = tooltip-${title};
+  const badgeId = badge-${title};
   const [displayValue, setDisplayValue] = useState(value);
 
   useEffect(() => {
@@ -25,9 +25,9 @@ const StatCard = ({
 
   return (
     <div
-      className={`relative p-6 rounded-xl shadow-sm w-full flex flex-col justify-between hover:shadow-md hover:scale-[1.02] transition-all duration-200 group overflow-hidden ${
+      className={relative p-6 rounded-xl shadow-sm w-full flex flex-col justify-between hover:shadow-md hover:scale-[1.02] transition-all duration-200 group overflow-hidden ${
         customBg || "bg-white dark:bg-zinc-800"
-      }`}
+      }}
     >
       {/* Header */}
       <div className="flex justify-between items-center mb-1">
@@ -69,33 +69,30 @@ const StatCard = ({
       </div>
 
       {/* Main Content */}
-{children ? (
-  <div className="mt-2 flex flex-col justify-center items-center w-full h-full">
-    <motion.div
-      key={displayValue}
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className={`text-2xl font-bold mb-3 ${color}`}
-    >
-      {displayValue}
-    </motion.div>
-    <div className="w-full flex justify-center items-center">
-      {children}
-    </div>
-  </div>
-) : (
-  <motion.div
-    key={displayValue}
-    initial={{ opacity: 0, y: 6 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.3 }}
-    className={`text-2xl font-bold ${color}`}
-  >
-    {displayValue}
-  </motion.div>
-)}
-
+      {children ? (
+        <div className="mt-2 flex items-center justify-between">
+          <motion.div
+            key={displayValue}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className={text-2xl font-bold ${color}}
+          >
+            {displayValue}
+          </motion.div>
+          <div className="w-10 h-10">{children}</div>
+        </div>
+      ) : (
+        <motion.div
+          key={displayValue}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className={text-2xl font-bold ${color}}
+        >
+          {displayValue}
+        </motion.div>
+      )}
 
       {/* Hover Icon */}
       <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
