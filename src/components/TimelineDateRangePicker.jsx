@@ -25,7 +25,8 @@ const generateCalendarDays = (month, year) => {
 };
 
 const CustomDateRangePicker = () => {
-  const [range, setRange] = useState({ from: null, to: null });
+  const [range, setRange] = useState({ from: null, to: null }); // Local state for selected range
+  const [pendingRange, setPendingRange] = useState({ from: null, to: null }); // Pending range before applying
   const [currentMonth, setCurrentMonth] = useState(dayjs().month()); // 0-11
   const [currentYear, setCurrentYear] = useState(dayjs().year());
   const [direction, setDirection] = useState(0); // Track direction: 1 for next, -1 for previous
@@ -39,33 +40,35 @@ const CustomDateRangePicker = () => {
     const selectedDate = dayjs(`${currentYear}-${currentMonth + 1}-${day}`);
     if (selectedDate.isAfter(today, "day")) return; // Disable future dates
 
-    if (!range.from || (range.from && range.to)) {
+    if (!pendingRange.from || (pendingRange.from && pendingRange.to)) {
       // Start a new range
-      setRange({ from: selectedDate.toDate(), to: null });
-      setDateRange({
-        start: selectedDate.toISOString(),
-        end: selectedDate.toISOString(),
-      });
-      triggerRefresh();
-    } else if (range.from && !range.to) {
+      setPendingRange({ from: selectedDate.toDate(), to: null });
+    } else if (pendingRange.from && !pendingRange.to) {
       // Complete the range
-      const fromDate = dayjs(range.from);
+      const fromDate = dayjs(pendingRange.from);
       if (selectedDate.isBefore(fromDate)) {
         // If the second date is before the first, swap them
-        setRange({ from: selectedDate.toDate(), to: fromDate.toDate() });
-        setDateRange({
-          start: selectedDate.toISOString(),
-          end: fromDate.toISOString(),
-        });
+        setPendingRange({ from: selectedDate.toDate(), to: fromDate.toDate() });
       } else {
-        setRange({ from: range.from, to: selectedDate.toDate() });
-        setDateRange({
-          start: fromDate.toISOString(),
-          end: selectedDate.toISOString(),
-        });
+        setPendingRange({ from: pendingRange.from, to: selectedDate.toDate() });
       }
-      triggerRefresh();
     }
+  };
+
+  const handleApplyFilters = (close) => {
+    setRange(pendingRange); // Apply the pending range
+    if (pendingRange.from) {
+      setDateRange({
+        start: pendingRange.from.toISOString(),
+        end: pendingRange.to ? pendingRange.to.toISOString() : pendingRange.from.toISOString(),
+      });
+      // Save scroll position before refresh
+      const scrollPosition = window.scrollY;
+      triggerRefresh();
+      // Restore scroll position after refresh
+      window.scrollTo(0, scrollPosition);
+    }
+    close(); // Close the popover
   };
 
   const handlePreset = (preset) => {
@@ -103,11 +106,7 @@ const CustomDateRangePicker = () => {
         return;
     }
 
-    setRange({ from: from.toDate(), to: to.toDate() });
-    setDateRange({
-      start: from.toISOString(),
-      end: to.toISOString(),
-    });
+    setPendingRange({ from: from.toDate(), to: to.toDate() });
 
     // Determine direction for animation based on the preset
     const fromMonth = from.month();
@@ -122,16 +121,20 @@ const CustomDateRangePicker = () => {
 
     setCurrentMonth(fromMonth);
     setCurrentYear(fromYear);
-    triggerRefresh();
   };
 
   const resetDates = () => {
+    setPendingRange({ from: null, to: null });
     setRange({ from: null, to: null });
     setDateRange({ start: null, end: null });
     setCurrentMonth(today.month());
     setCurrentYear(today.year());
     setDirection(0); // Reset direction
+    // Save scroll position before refresh
+    const scrollPosition = window.scrollY;
     triggerRefresh();
+    // Restore scroll position after refresh
+    window.scrollTo(0, scrollPosition);
   };
 
   const handleMonthChange = (direction) => {
@@ -162,30 +165,30 @@ const CustomDateRangePicker = () => {
   };
 
   const isInRange = (day) => {
-    if (!range.from || !range.to || !day) return false;
+    if (!pendingRange.from || !pendingRange.to || !day) return false;
     const date = dayjs(`${currentYear}-${currentMonth + 1}-${day}`);
-    return date.isAfter(dayjs(range.from), "day") && date.isBefore(dayjs(range.to), "day");
+    return date.isAfter(dayjs(pendingRange.from), "day") && date.isBefore(dayjs(pendingRange.to), "day");
   };
 
   const isRangeStart = (day) => {
-    if (!range.from || !day) return false;
+    if (!pendingRange.from || !day) return false;
     const date = dayjs(`${currentYear}-${currentMonth + 1}-${day}`);
-    return date.isSame(dayjs(range.from), "day");
+    return date.isSame(dayjs(pendingRange.from), "day");
   };
 
   const isRangeEnd = (day) => {
-    if (!range.to || !day) return false;
+    if (!pendingRange.to || !day) return false;
     const date = dayjs(`${currentYear}-${currentMonth + 1}-${day}`);
-    return date.isSame(dayjs(range.to), "day");
+    return date.isSame(dayjs(pendingRange.to), "day");
   };
 
   const isSelected = (day) => {
-    if (!range.from || !day) return false;
+    if (!pendingRange.from || !day) return false;
     const date = dayjs(`${currentYear}-${currentMonth + 1}-${day}`);
-    return date.isSame(dayjs(range.from), "day") && !range.to;
+    return date.isSame(dayjs(pendingRange.from), "day") && !pendingRange.to;
   };
 
-  // Animation variants for directional sliding
+  // Animation variants for directional sliding (month change)
   const slideVariants = {
     initial: (direction) => ({
       opacity: 0,
@@ -199,6 +202,24 @@ const CustomDateRangePicker = () => {
       opacity: 0,
       x: direction > 0 ? -20 : 20, // Slide out to left if going forward, right if going backward
     }),
+  };
+
+  // Animation variants for fade-in/out (open/close)
+  const fadeVariants = {
+    initial: {
+      opacity: 0,
+      scale: 0.95, // Slight scale down for a subtle effect
+    },
+    animate: {
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 0.2, ease: "easeInOut" },
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.95,
+      transition: { duration: 0.2, ease: "easeInOut" },
+    },
   };
 
   return (
@@ -226,10 +247,10 @@ const CustomDateRangePicker = () => {
                 static
                 as={motion.div}
                 ref={containerRef}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.25, ease: "easeInOut" }}
+                variants={fadeVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
                 className="absolute top-12 right-0 w-[500px] bg-white border rounded-xl shadow-2xl flex z-50"
               >
                 {/* Calendar */}
@@ -295,9 +316,6 @@ const CustomDateRangePicker = () => {
                           onClick={() => {
                             if (day && !isFuture(day)) {
                               handleDateClick(day);
-                              if (range.from && range.to) {
-                                close();
-                              }
                             }
                           }}
                         >
@@ -306,15 +324,23 @@ const CustomDateRangePicker = () => {
                       ))}
                     </div>
                   </motion.div>
-                  <button
-                    onClick={() => {
-                      resetDates();
-                      close();
-                    }}
-                    className="mt-2 text-xs text-purple-600 hover:underline transition"
-                  >
-                    Reset all
-                  </button>
+                  <div className="mt-2 flex justify-between">
+                    <button
+                      onClick={() => {
+                        resetDates();
+                        close();
+                      }}
+                      className="text-xs text-purple-600 hover:underline transition"
+                    >
+                      Reset all
+                    </button>
+                    <button
+                      onClick={() => handleApplyFilters(close)}
+                      className="text-xs bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 transition"
+                    >
+                      Apply Filters
+                    </button>
+                  </div>
                 </div>
 
                 {/* Preset Buttons */}
@@ -333,7 +359,6 @@ const CustomDateRangePicker = () => {
                       key={preset}
                       onClick={() => {
                         handlePreset(preset);
-                        close();
                       }}
                       className="w-full text-left px-2 py-1 rounded hover:bg-purple-100 transition-all duration-200 text-xs"
                     >
