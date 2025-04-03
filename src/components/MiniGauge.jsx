@@ -1,26 +1,28 @@
 import React from "react";
 
-const MiniGauge = ({ segments = [], radius = 40, strokeWidth = 6 }) => {
-  const total = segments.reduce((sum, seg) => sum + seg.value, 0) || 1; // Avoid division by zero
+const MiniGauge = ({ segments = [], radius = 35, strokeWidth = 5 }) => {
+  // Calculate total value to normalize segments
+  const total = segments.reduce((sum, seg) => sum + (seg.value || 0), 0) || 1; // Default to 1 to avoid division by zero
   const normalizedSegments = segments.map((seg) => ({
     ...seg,
-    percent: (seg.value / total) * 100,
+    percent: (seg.value / total) * 100 || 0, // Ensure percent is defined
   }));
 
-  const cx = radius;
-  const cy = radius;
-  const r = radius - strokeWidth / 2;
+  // SVG geometry calculations
+  const cx = radius; // Center x of the circle
+  const cy = radius; // Center y of the circle
+  const r = radius - strokeWidth / 2; // Radius adjusted for stroke width
 
+  // Convert polar coordinates to Cartesian for arc drawing
   const polarToCartesian = (cx, cy, r, angleInDegrees) => {
-    const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180;
+    const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180; // -90 to start from top
     return {
       x: cx + r * Math.cos(angleInRadians),
-      y: cy + r * Math.sin
-
-(angleInRadians),
+      y: cy + r * Math.sin(angleInRadians),
     };
   };
 
+  // Generate the SVG path for an arc
   const describeArc = (startAngle, endAngle) => {
     const start = polarToCartesian(cx, cy, r, startAngle);
     const end = polarToCartesian(cx, cy, r, endAngle);
@@ -34,18 +36,19 @@ const MiniGauge = ({ segments = [], radius = 40, strokeWidth = 6 }) => {
 
   let startAngle = 0;
 
-  // Define SVG dimensions
-  const svgWidth = radius * 2;
-  const svgHeight = radius + strokeWidth; // Ensure enough height for the semi-circle
+  // SVG dimensions
+  const diameter = radius * 2;
+  const gaugeHeight = radius + strokeWidth; // Height to fit the semi-circle
 
   return (
     <svg
-      width={svgWidth}
-      height={svgHeight}
-      viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-      className="block mx-auto"
+      width={diameter}
+      height={gaugeHeight}
+      viewBox={`0 0 ${diameter} ${gaugeHeight}`} // Ensure viewBox matches dimensions
+      className="block mx-auto" // Center horizontally
+      style={{ transform: "translateY(-10%)" }} // Slight vertical adjustment to center visually
     >
-      {/* Optional: Add a background circle for better visual contrast */}
+      {/* Background circle for better contrast */}
       <path
         d={describeArc(0, 180)}
         fill="none"
@@ -53,17 +56,18 @@ const MiniGauge = ({ segments = [], radius = 40, strokeWidth = 6 }) => {
         strokeWidth={strokeWidth}
         strokeLinecap="round"
       />
-      {/* Render the segments */}
+      {/* Render each segment */}
       {normalizedSegments.map((seg, index) => {
         const arcLength = (seg.percent / 100) * 180;
         const endAngle = startAngle + arcLength;
         const d = describeArc(startAngle, endAngle);
+
         const path = (
           <path
             key={index}
             d={d}
             fill="none"
-            stroke={seg.color}
+            stroke={seg.color || "#000"} // Default to black if no color
             strokeWidth={strokeWidth}
             strokeLinecap="round"
           />
