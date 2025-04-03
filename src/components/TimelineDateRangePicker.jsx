@@ -134,6 +134,7 @@ const TimelineDateRangePicker = () => {
                     className="text-sm transition-all"
                     classNames={{
                       months: "flex flex-col gap-4",
+                      month: "w-full", // Ensure the month container takes full width
                       caption: "flex justify-between items-center mb-2 px-2",
                       nav_button: "p-1 rounded hover:bg-purple-100 text-purple-600 transition",
                       day_selected: range?.from && !range?.to 
@@ -142,18 +143,29 @@ const TimelineDateRangePicker = () => {
                       day_range_middle: "bg-purple-100 text-purple-800 transition-all shadow-sm", // Shadow for range middle
                       day_range_start: "bg-purple-600 text-white rounded-full transition-all shadow-md",
                       day_range_end: "bg-purple-600 text-white rounded-full transition-all shadow-md",
-                      day: "p-2 transition-all duration-150 ease-in-out rounded-full", // Base day styling
+                      day: "p-2 mx-1 transition-all duration-150 ease-in-out rounded-full", // Added mx-1 for horizontal spacing
                       day_hover: "hover:bg-purple-200 hover:shadow-sm hover:scale-105", // Hover animation for selectable dates
-                      head_cell: "text-gray-500 font-medium text-xs",
+                      head_cell: "text-gray-500 font-medium text-xs mx-1", // Added mx-1 for header spacing
+                      head_row: "flex justify-between", // Ensure header row is evenly spaced
+                      row: "flex justify-between", // Ensure each row is evenly spaced
                     }}
                     styles={{
+                      month: {
+                        width: "100%", // Ensure the month container is wide enough
+                        padding: "0 10px", // Add padding to the month container
+                      },
                       day: {
                         transition: "all 0.2s ease-in-out", // Smooth transition for hover effects
+                        width: "36px", // Fixed width for each day to ensure consistent spacing
+                        height: "36px", // Fixed height for each day
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
                       },
                       day_range_middle: {
                         background: "rgba(147, 51, 234, 0.1)", // Light purple for range middle
                         boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)", // Shadow for range middle
-                        transition: "background 0.3s ease-in-out", // Smooth range animation
+                        transition: "background 0.3s ease-in-out, box-shadow 0.3s ease-in-out", // Smooth range animation
                       },
                     }}
                   />
