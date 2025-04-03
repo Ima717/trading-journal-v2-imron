@@ -24,8 +24,8 @@ const generateCalendarDays = (month, year) => {
   return days;
 };
 
-const CustomDateRangePicker = () => {
-  const [range, setRange] = useState({ from: null, to: null }); // Local state for selected range
+const TimelineDateRangePicker = () => {
+  const [range, setRange] = useState({ from: null, to: null }); // Local state for applied range
   const [pendingRange, setPendingRange] = useState({ from: null, to: null }); // Pending range before applying
   const [currentMonth, setCurrentMonth] = useState(dayjs().month()); // 0-11
   const [currentYear, setCurrentYear] = useState(dayjs().year());
@@ -123,7 +123,7 @@ const CustomDateRangePicker = () => {
     setCurrentYear(fromYear);
   };
 
-  const resetDates = () => {
+  const resetDates = (close) => {
     setPendingRange({ from: null, to: null });
     setRange({ from: null, to: null });
     setDateRange({ start: null, end: null });
@@ -135,6 +135,7 @@ const CustomDateRangePicker = () => {
     triggerRefresh();
     // Restore scroll position after refresh
     window.scrollTo(0, scrollPosition);
+    close();
   };
 
   const handleMonthChange = (direction) => {
@@ -326,10 +327,7 @@ const CustomDateRangePicker = () => {
                   </motion.div>
                   <div className="mt-2 flex justify-between">
                     <button
-                      onClick={() => {
-                        resetDates();
-                        close();
-                      }}
+                      onClick={() => resetDates(close)}
                       className="text-xs text-purple-600 hover:underline transition"
                     >
                       Reset all
@@ -357,9 +355,7 @@ const CustomDateRangePicker = () => {
                   ].map((preset) => (
                     <button
                       key={preset}
-                      onClick={() => {
-                        handlePreset(preset);
-                      }}
+                      onClick={() => handlePreset(preset)}
                       className="w-full text-left px-2 py-1 rounded hover:bg-purple-100 transition-all duration-200 text-xs"
                     >
                       {preset}
@@ -375,4 +371,4 @@ const CustomDateRangePicker = () => {
   );
 };
 
-export default CustomDateRangePicker;
+export default TimelineDateRangePicker;
