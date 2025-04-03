@@ -1,34 +1,68 @@
 import React, { useState, useRef } from "react";
-import { Popover, Transition } from "@headlessui/react";
+import { Popover } from "@headlessui/react";
 import { CalendarIcon } from "lucide-react";
-import { DayPicker } from "react-day-picker";
-import "react-day-picker/dist/style.css";
 import dayjs from "dayjs";
 import { useFilters } from "../context/FilterContext";
 import { motion, AnimatePresence } from "framer-motion";
 
-const TimelineDateRangePicker = () => {
+// Utility function to generate days for a given month
+const generateCalendarDays = (month, year) => {
+  const firstDayOfMonth = dayjs(`${year}-${month + 1}-01`).day();
+  const daysInMonth = dayjs(`${year}-${month + 1}-01`).daysInMonth();
+  const days = [];
+
+  // Add empty slots for days before the 1st of the month
+  for (let i = 0; i < firstDayOfMonth; i++) {
+    days.push(null);
+  }
+
+  // Add days of the month
+  for (let i = 1; i <= daysInMonth; i++) {
+    days.push(i);
+  }
+
+  return days;
+};
+
+const CustomDateRangePicker = () => {
   const [range, setRange] = useState({ from: null, to: null });
-  const [month, setMonth] = useState(new Date()); // Track the currently displayed month
+  const [currentMonth, setCurrentMonth] = useState(dayjs().month()); // 0-11
+  const [currentYear, setCurrentYear] = useState(dayjs().year());
   const { setDateRange, triggerRefresh } = useFilters();
   const containerRef = useRef(null);
 
-  const today = new Date();
+  const today = dayjs();
+  const days = generateCalendarDays(currentMonth, currentYear);
 
-  const handleDateSelect = (selectedRange) => {
-    setRange(selectedRange);
-    if (selectedRange?.from && selectedRange?.to) {
+  const handleDateClick = (day) => {
+    const selectedDate = dayjs(`${currentYear}-${currentMonth + 1}-${day}`);
+    if (selectedDate.isAfter(today, "day")) return; // Disable future dates
+
+    if (!range.from || (range.from && range.to)) {
+      // Start a new range
+      setRange({ from: selectedDate.toDate(), to: null });
       setDateRange({
-        start: selectedRange.from.toISOString(),
-        end: selectedRange.to.toISOString(),
+        start: selectedDate.toISOString(),
+        end: selectedDate.toISOString(),
       });
       triggerRefresh();
-    } else if (selectedRange?.from) {
-      // If only one date is selected, set it as both start and end
-      setDateRange({
-        start: selectedRange.from.toISOString(),
-        end: selectedRange.from.toISOString(),
-      });
+    } else if (range.from && !range.to) {
+      // Complete the range
+      const fromDate = dayjs(range.from);
+      if (selectedDate.isBefore(fromDate)) {
+        // If the second date is before the first, swap them
+        setRange({ from: selectedDate.toDate(), to: fromDate.toDate() });
+        setDateRange({
+          start: selectedDate.toISOString(),
+          end: fromDate.toISOString(),
+        });
+      } else {
+        setRange({ from: range.from, to: selectedDate.toDate() });
+        setDateRange({
+          start: fromDate.toISOString(),
+          end: selectedDate.toISOString(),
+        });
+      }
       triggerRefresh();
     }
   };
@@ -68,36 +102,72 @@ const TimelineDateRangePicker = () => {
         return;
     }
 
-    const fromDate = from.toDate();
-    const toDate = to.toDate();
-
-    setRange({ from: fromDate, to: toDate });
+    setRange({ from: from.toDate(), to: to.toDate() });
     setDateRange({
-      start: fromDate.toISOString(),
-      end: toDate.toISOString(),
+      start: from.toISOString(),
+      end: to.toISOString(),
     });
-    setMonth(fromDate); // Update the displayed month to the start of the preset range
+    setCurrentMonth(from.month());
+    setCurrentYear(from.year());
     triggerRefresh();
   };
 
   const resetDates = () => {
     setRange({ from: null, to: null });
     setDateRange({ start: null, end: null });
-    setMonth(new Date()); // Reset to current month
+    setCurrentMonth(today.month());
+    setCurrentYear(today.year());
     triggerRefresh();
   };
 
-  const isToday = (date) => dayjs(date).isSame(today, "day");
-  const isFuture = (date) => dayjs(date).isAfter(today, "day");
+  const handleMonthChange = (direction) => {
+    let newMonth = currentMonth + direction;
+    let newYear = currentYear;
 
-  const modifiers = {
-    today: isToday,
-    future: isFuture,
+    if (newMonth < 0) {
+      newMonth = 11;
+      newYear -= 1;
+    } else if (newMonth > 11) {
+      newMonth = 0;
+      newYear += 1;
+    }
+
+    setCurrentMonth(newMonth);
+    setCurrentYear(newYear);
   };
 
-  const modifiersClassNames = {
-    today: "ring-2 ring-purple-500 ring-opacity-50", // Tiny ring for today's date
-    future: "text-gray-400 pointer-events-none opacity-40", // Disable future dates
+  const isToday = (day) => {
+    const date = dayjs(`${currentYear}-${currentMonth + 1}-${day}`);
+    return date.isSame(today, "day");
+  };
+
+  const isFuture = (day) => {
+    const date = dayjs(`${currentYear}-${currentMonth + 1}-${day}`);
+    return date.isAfter(today, "day");
+  };
+
+  const isInRange = (day) => {
+    if (!range.from || !range.to || !day) return false;
+    const date = dayjs(`${currentYear}-${currentMonth + 1}-${day}`);
+    return date.isAfter(dayjs(range.from), "day") && date.isBefore(dayjs(range.to), "day");
+  };
+
+  const isRangeStart = (day) => {
+    if (!range.from || !day) return false;
+    const date = dayjs(`${currentYear}-${currentMonth + 1}-${day}`);
+    return date.isSame(dayjs(range.from), "day");
+  };
+
+  const isRangeEnd = (day) => {
+    if (!range.to || !day) return false;
+    const date = dayjs(`${currentYear}-${currentMonth + 1}-${day}`);
+    return date.isSame(dayjs(range.to), "day");
+  };
+
+  const isSelected = (day) => {
+    if (!range.from || !day) return false;
+    const date = dayjs(`${currentYear}-${currentMonth + 1}-${day}`);
+    return date.isSame(dayjs(range.from), "day") && !range.to;
   };
 
   // Prevent page jump by maintaining scroll position
@@ -141,71 +211,72 @@ const TimelineDateRangePicker = () => {
                 {/* Calendar */}
                 <div className="w-2/3 px-4 py-3">
                   <h4 className="text-xs font-medium text-gray-700 mb-2">Select Date Range</h4>
+                  <div className="flex justify-between items-center mb-2 px-2">
+                    <button
+                      onClick={() => handleMonthChange(-1)}
+                      className="p-1 rounded hover:bg-purple-100 text-purple-600 transition"
+                    >
+                      &lt;
+                    </button>
+                    <motion.span
+                      key={`${currentMonth}-${currentYear}`}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="text-sm font-medium"
+                    >
+                      {dayjs(`${currentYear}-${currentMonth + 1}-01`).format("MMMM YYYY")}
+                    </motion.span>
+                    <button
+                      onClick={() => handleMonthChange(1)}
+                      className="p-1 rounded hover:bg-purple-100 text-purple-600 transition"
+                    >
+                      &gt;
+                    </button>
+                  </div>
                   <motion.div
-                    key={month.toISOString()} // Key changes when month changes, triggering animation
+                    key={`${currentMonth}-${currentYear}`}
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                   >
-                    <DayPicker
-                      mode="range"
-                      selected={range}
-                      onSelect={(selectedRange) => {
-                        handleDateSelect(selectedRange);
-                        if (selectedRange?.from && selectedRange?.to) {
-                          close(); // Close the popover after selecting a range
-                        }
-                      }}
-                      month={month}
-                      onMonthChange={setMonth}
-                      numberOfMonths={1} // Ensure only one month is displayed
-                      modifiers={modifiers}
-                      disabled={isFuture}
-                      modifiersClassNames={modifiersClassNames}
-                      className="text-sm transition-all"
-                      classNames={{
-                        months: "flex flex-col gap-4",
-                        month: "w-full", // Let DayPicker handle the grid layout
-                        caption: "flex justify-between items-center mb-2 px-2",
-                        nav_button: "p-1 rounded hover:bg-purple-100 text-purple-600 transition",
-                        day_selected: range?.from && !range?.to 
-                          ? "bg-purple-600 text-white rounded-lg transition-all shadow-md" // Single date: purple square with rounded corners
-                          : "bg-purple-600 text-white rounded-full transition-all shadow-md", // Range: rounded circle
-                        day_range_middle: "bg-purple-100 text-purple-800 transition-all shadow-sm", // Shadow for range middle
-                        day_range_start: "bg-purple-600 text-white rounded-full transition-all shadow-md",
-                        day_range_end: "bg-purple-600 text-white rounded-full transition-all shadow-md",
-                        day: "p-2 transition-all duration-150 ease-in-out rounded-full", // Base day styling
-                        day_hover: "hover:bg-purple-200 hover:shadow-sm hover:scale-105", // Hover animation for selectable dates
-                        head_cell: "text-gray-500 font-medium text-xs w-9", // Adjusted width for header cells
-                        head_row: "", // Let DayPicker handle the default layout
-                        row: "", // Let DayPicker handle the default layout
-                      }}
-                      styles={{
-                        month: {
-                          width: "100%", // Ensure the month container is wide enough
-                          padding: "0 8px", // Reduced padding to make it smaller
-                        },
-                        day: {
-                          transition: "all 0.2s ease-in-out", // Smooth transition for hover effects
-                          width: "32px", // Reduced size for smaller calendar
-                          height: "32px", // Reduced size for smaller calendar
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          margin: "0 2px", // Add margin between days for better spacing
-                          fontSize: "0.875rem", // Slightly smaller font size
-                        },
-                        day_range_middle: {
-                          background: "rgba(147, 51, 234, 0.1)", // Light purple for range middle
-                          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)", // Shadow for range middle
-                          transition: "background 0.3s ease-in-out, box-shadow 0.3s ease-in-out", // Smooth range animation
-                        },
-                        caption_label: {
-                          fontSize: "0.875rem", // Smaller caption font size
-                        },
-                      }}
-                    />
+                    <div className="grid grid-cols-7 gap-1">
+                      {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
+                        <div
+                          key={day}
+                          className="text-xs text-gray-500 font-medium text-center w-8"
+                        >
+                          {day}
+                        </div>
+                      ))}
+                      {days.map((day, index) => (
+                        <div
+                          key={index}
+                          className={`w-8 h-8 flex items-center justify-center text-sm rounded-full transition-all duration-150 ease-in-out
+                            ${day ? "cursor-pointer" : "cursor-default"}
+                            ${isFuture(day) ? "text-gray-400 pointer-events-none opacity-40" : ""}
+                            ${isToday(day) ? "ring-2 ring-purple-500 ring-opacity-50" : ""}
+                            ${isSelected(day) ? "bg-purple-600 text-white rounded-lg shadow-md" : ""}
+                            ${isRangeStart(day) ? "bg-purple-600 text-white rounded-full shadow-md" : ""}
+                            ${isRangeEnd(day) ? "bg-purple-600 text-white rounded-full shadow-md" : ""}
+                            ${isInRange(day) ? "bg-purple-100 text-purple-800 shadow-sm" : ""}
+                            ${!isFuture(day) && !isSelected(day) && !isRangeStart(day) && !isRangeEnd(day) && !isInRange(day) ? "hover:bg-purple-200 hover:shadow-sm hover:scale-105" : ""}
+                          `}
+                          onClick={() => {
+                            if (day && !isFuture(day)) {
+                              handleDateClick(day);
+                              if (range.from && range.to) {
+                                close();
+                              }
+                            }
+                          }}
+                        >
+                          {day || ""}
+                        </div>
+                      ))}
+                    </div>
                   </motion.div>
                   <button
                     onClick={() => {
@@ -251,4 +322,4 @@ const TimelineDateRangePicker = () => {
   );
 };
 
-export default TimelineDateRangePicker;
+export default CustomDateRangePicker;
