@@ -14,13 +14,8 @@ const TimelineDateRangePicker = () => {
   const today = new Date();
 
   const handleDateSelect = (selectedRange) => {
-    if (
-      selectedRange?.from &&
-      selectedRange?.to &&
-      selectedRange.from <= today &&
-      selectedRange.to <= today
-    ) {
-      setRange(selectedRange);
+    setRange(selectedRange);
+    if (selectedRange?.from && selectedRange?.to) {
       setDateRange({
         start: selectedRange.from.toISOString(),
         end: selectedRange.to.toISOString(),
@@ -32,6 +27,7 @@ const TimelineDateRangePicker = () => {
   const handlePreset = (preset) => {
     const now = dayjs();
     let from, to;
+
     switch (preset) {
       case "Today":
         from = to = now;
@@ -81,6 +77,19 @@ const TimelineDateRangePicker = () => {
     triggerRefresh();
   };
 
+  const isToday = (date) => dayjs(date).isSame(today, "day");
+  const isFuture = (date) => dayjs(date).isAfter(today, "day");
+
+  const modifiers = {
+    today: isToday,
+    future: isFuture,
+  };
+
+  const modifiersClassNames = {
+    today: "ring-2 ring-purple-400",
+    future: "text-gray-400 pointer-events-none opacity-50",
+  };
+
   return (
     <Popover className="relative z-50">
       {({ open }) => (
@@ -108,8 +117,8 @@ const TimelineDateRangePicker = () => {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
-                className="absolute top-12 right-0 w-[540px] bg-white border rounded-xl shadow-2xl flex z-50"
+                transition={{ duration: 0.25, ease: "easeInOut" }}
+                className="absolute top-12 right-0 w-[580px] bg-white border rounded-xl shadow-2xl flex z-50"
               >
                 {/* Calendar */}
                 <div className="w-2/3 px-4 py-4">
@@ -119,9 +128,18 @@ const TimelineDateRangePicker = () => {
                     onSelect={handleDateSelect}
                     numberOfMonths={1}
                     toDate={today}
+                    modifiers={modifiers}
+                    disabled={isFuture}
+                    modifiersClassNames={modifiersClassNames}
                     className="text-sm"
-                    modifiersClassNames={{
-                      today: "ring-2 ring-purple-400",
+                    classNames={{
+                      months: "flex flex-col",
+                      month: "grid grid-cols-7 gap-1",
+                      caption: "flex justify-between items-center mb-2 px-2 text-sm font-medium",
+                      head_row: "grid grid-cols-7 text-center",
+                      head_cell: "text-gray-500 font-medium text-xs",
+                      row: "grid grid-cols-7",
+                      day: "w-9 h-9 flex items-center justify-center rounded-full transition-all duration-150 ease-in-out hover:bg-purple-50",
                       day_selected:
                         "bg-purple-600 text-white rounded-full scale-105 shadow-sm transition",
                       day_range_start:
@@ -130,15 +148,8 @@ const TimelineDateRangePicker = () => {
                         "bg-purple-600 text-white rounded-full transition",
                       day_range_middle:
                         "bg-purple-100 text-purple-800 transition",
+                      today: "ring-2 ring-purple-400",
                       disabled: "text-gray-300 pointer-events-none opacity-50",
-                    }}
-                    classNames={{
-                      months: "flex flex-col",
-                      caption: "flex justify-between items-center mb-2 px-2",
-                      nav_button:
-                        "p-1 rounded hover:bg-purple-100 text-purple-600 transition",
-                      day: "w-10 h-10 flex items-center justify-center rounded-full transition-all duration-150 ease-in-out hover:bg-purple-50",
-                      head_cell: "text-gray-500 font-medium text-xs",
                     }}
                   />
                   <button
@@ -163,7 +174,7 @@ const TimelineDateRangePicker = () => {
                     <button
                       key={preset}
                       onClick={() => handlePreset(preset)}
-                      className="w-full text-left px-3 py-1.5 rounded hover:bg-purple-50 transition-all duration-150 ease-in-out"
+                      className="w-full text-left px-3 py-2 rounded hover:bg-purple-100 transition-all duration-200"
                     >
                       {preset}
                     </button>
