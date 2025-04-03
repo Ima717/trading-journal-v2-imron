@@ -1,7 +1,7 @@
 import React from "react";
 
-const MiniGauge = ({ segments = [], radius = 45, strokeWidth = 8 }) => {
-  const total = segments.reduce((sum, seg) => sum + seg.value, 0);
+const MiniGauge = ({ segments = [], radius = 40, strokeWidth = 6 }) => {
+  const total = segments.reduce((sum, seg) => sum + seg.value, 0) || 1; // Avoid division by zero
   const normalizedSegments = segments.map((seg) => ({
     ...seg,
     percent: (seg.value / total) * 100,
@@ -15,7 +15,9 @@ const MiniGauge = ({ segments = [], radius = 45, strokeWidth = 8 }) => {
     const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180;
     return {
       x: cx + r * Math.cos(angleInRadians),
-      y: cy + r * Math.sin(angleInRadians),
+      y: cy + r * Math.sin
+
+(angleInRadians),
     };
   };
 
@@ -32,13 +34,26 @@ const MiniGauge = ({ segments = [], radius = 45, strokeWidth = 8 }) => {
 
   let startAngle = 0;
 
+  // Define SVG dimensions
+  const svgWidth = radius * 2;
+  const svgHeight = radius + strokeWidth; // Ensure enough height for the semi-circle
+
   return (
     <svg
-      width={radius * 2}
-      height={radius + strokeWidth * 2.5}
-      viewBox={`0 0 ${radius * 2} ${radius + strokeWidth * 2.5}`}
-      className="block"
+      width={svgWidth}
+      height={svgHeight}
+      viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+      className="block mx-auto"
     >
+      {/* Optional: Add a background circle for better visual contrast */}
+      <path
+        d={describeArc(0, 180)}
+        fill="none"
+        stroke="#e5e7eb" // Light gray background
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
+      {/* Render the segments */}
       {normalizedSegments.map((seg, index) => {
         const arcLength = (seg.percent / 100) * 180;
         const endAngle = startAngle + arcLength;
