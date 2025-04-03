@@ -136,7 +136,7 @@ const TimelineDateRangePicker = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.25, ease: "easeInOut" }}
-                className="absolute top-12 right-0 w-[500px] bg-white border rounded-xl shadow-2xl flex z-50" // Reduced width to make it smaller
+                className="absolute top-12 right-0 w-[500px] bg-white border rounded-xl shadow-2xl flex z-50"
               >
                 {/* Calendar */}
                 <div className="w-2/3 px-4 py-3">
@@ -166,7 +166,7 @@ const TimelineDateRangePicker = () => {
                       className="text-sm transition-all"
                       classNames={{
                         months: "flex flex-col gap-4",
-                        month: "w-full table", // Use table layout to ensure proper grid
+                        month: "w-full", // Let DayPicker handle the grid layout
                         caption: "flex justify-between items-center mb-2 px-2",
                         nav_button: "p-1 rounded hover:bg-purple-100 text-purple-600 transition",
                         day_selected: range?.from && !range?.to 
@@ -178,8 +178,8 @@ const TimelineDateRangePicker = () => {
                         day: "p-2 transition-all duration-150 ease-in-out rounded-full", // Base day styling
                         day_hover: "hover:bg-purple-200 hover:shadow-sm hover:scale-105", // Hover animation for selectable dates
                         head_cell: "text-gray-500 font-medium text-xs w-9", // Adjusted width for header cells
-                        head_row: "table-row", // Use table-row to maintain grid
-                        row: "table-row", // Use table-row to maintain grid
+                        head_row: "", // Let DayPicker handle the default layout
+                        row: "", // Let DayPicker handle the default layout
                       }}
                       styles={{
                         month: {
