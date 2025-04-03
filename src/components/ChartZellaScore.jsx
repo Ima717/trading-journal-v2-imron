@@ -38,7 +38,7 @@ const ChartZellaScore = ({ data }) => {
     datasets: [
       {
         label: "Zella Metrics",
-        data: [70, 60, 55, 40, 45, 65], // Replace with real metrics later
+        data: [70, 60, 55, 40, 45, 65], // Replace with real metrics
         backgroundColor: "rgba(139, 92, 246, 0.3)",
         borderColor: "rgba(139, 92, 246, 1)",
         pointBackgroundColor: "rgba(139, 92, 246, 1)",
@@ -48,6 +48,7 @@ const ChartZellaScore = ({ data }) => {
 
   const radarOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     scales: {
       r: {
         beginAtZero: true,
@@ -56,7 +57,7 @@ const ChartZellaScore = ({ data }) => {
         grid: { color: "#e5e7eb" },
         pointLabels: {
           color: "#6b7280",
-          font: { size: 12 },
+          font: { size: 11 },
         },
       },
     },
@@ -72,25 +73,29 @@ const ChartZellaScore = ({ data }) => {
       transition={{ duration: 0.4 }}
       className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-sm"
     >
+      {/* Title */}
+      <h3 className="text-sm text-gray-600 dark:text-gray-300 font-semibold mb-3">
+        Zella Score
+      </h3>
 
-      {/* ✅ Radar Chart */}
-      <div className="mb-6 w-full max-w-sm mx-auto">
-        <Radar data={radarData} options={radarOptions} />
+      {/* Radar Chart - smaller */}
+      <div className="w-full flex justify-center mb-5">
+        <div className="w-full max-w-[300px] h-[250px]">
+          <Radar data={radarData} options={radarOptions} />
+        </div>
       </div>
 
-      {/* ✅ Score Progress Line Below */}
-      <div className="w-full flex flex-col items-center justify-center">
-        <span className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+      {/* Score Line - gradient + indicator */}
+      <div className="flex flex-col items-center w-full">
+        <span className="text-xs text-gray-500 dark:text-gray-400 mb-1">
           Your Zella Score
         </span>
 
-        {/* Line bar with gradient */}
-        <div className="relative w-3/4 h-2 rounded-full bg-gray-200 overflow-hidden mb-2">
+        <div className="relative w-[80%] h-2 rounded-full bg-gray-200 overflow-hidden mb-1">
           <div
             className="absolute top-0 h-2 w-full rounded-full"
             style={{
-              background:
-                "linear-gradient(to right, #020024, #090979, #00d4ff)",
+              background: "linear-gradient(to right, #1565c0, #b92b27)",
             }}
           />
           <div
