@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { Popover, Transition } from "@headlessui/react";
+import { Popover } from "@headlessui/react";
 import { CalendarIcon } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
@@ -11,12 +11,16 @@ const TimelineDateRangePicker = () => {
   const [range, setRange] = useState({ from: null, to: null });
   const { setDateRange, triggerRefresh } = useFilters();
   const containerRef = useRef(null);
-
   const today = new Date();
 
   const handleDateSelect = (selectedRange) => {
-    setRange(selectedRange);
-    if (selectedRange?.from && selectedRange?.to) {
+    if (
+      selectedRange?.from &&
+      selectedRange?.to &&
+      selectedRange.from <= today &&
+      selectedRange.to <= today
+    ) {
+      setRange(selectedRange);
       setDateRange({
         start: selectedRange.from.toISOString(),
         end: selectedRange.to.toISOString(),
@@ -26,35 +30,35 @@ const TimelineDateRangePicker = () => {
   };
 
   const handlePreset = (preset) => {
-    const today = dayjs();
+    const now = dayjs();
     let from, to;
     switch (preset) {
       case "Today":
-        from = to = today;
+        from = to = now;
         break;
       case "This week":
-        from = today.startOf("week");
-        to = today.endOf("week");
+        from = now.startOf("week");
+        to = now.endOf("week");
         break;
       case "This month":
-        from = today.startOf("month");
-        to = today.endOf("month");
+        from = now.startOf("month");
+        to = now.endOf("month");
         break;
       case "Last 30 days":
-        from = today.subtract(30, "day");
-        to = today;
+        from = now.subtract(30, "day");
+        to = now;
         break;
       case "Last month":
-        from = today.subtract(1, "month").startOf("month");
-        to = today.subtract(1, "month").endOf("month");
+        from = now.subtract(1, "month").startOf("month");
+        to = now.subtract(1, "month").endOf("month");
         break;
       case "This quarter":
-        from = today.startOf("quarter");
-        to = today.endOf("quarter");
+        from = now.startOf("quarter");
+        to = now.endOf("quarter");
         break;
       case "YTD":
-        from = today.startOf("year");
-        to = today;
+        from = now.startOf("year");
+        to = now;
         break;
       default:
         return;
@@ -75,19 +79,6 @@ const TimelineDateRangePicker = () => {
     setRange({ from: null, to: null });
     setDateRange({ start: null, end: null });
     triggerRefresh();
-  };
-
-  const isToday = (date) => dayjs(date).isSame(today, "day");
-  const isFuture = (date) => dayjs(date).isAfter(today, "day");
-
-  const modifiers = {
-    today: isToday,
-    future: isFuture,
-  };
-
-  const modifiersClassNames = {
-    today: "ring-2 ring-purple-500",
-    future: "text-gray-400 pointer-events-none opacity-40",
   };
 
   return (
@@ -117,33 +108,36 @@ const TimelineDateRangePicker = () => {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.25, ease: "easeInOut" }}
-                className="absolute top-12 right-0 w-[600px] bg-white border rounded-xl shadow-2xl flex z-50"
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="absolute top-12 right-0 w-[540px] bg-white border rounded-xl shadow-2xl flex z-50"
               >
                 {/* Calendar */}
-                <div className="w-2/3 px-5 py-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Select Date Range</h4>
+                <div className="w-2/3 px-4 py-4">
                   <DayPicker
                     mode="range"
                     selected={range}
                     onSelect={handleDateSelect}
                     numberOfMonths={1}
-                    modifiers={modifiers}
-                    disabled={isFuture}
-                    modifiersClassNames={modifiersClassNames}
-                    className="text-sm transition-all"
-                    classNames={{
-                      months: "flex flex-col gap-4",
-                      caption: "flex justify-between items-center mb-2 px-2",
-                      nav_button: "p-1 rounded hover:bg-purple-100 text-purple-600 transition",
+                    toDate={today}
+                    className="text-sm"
+                    modifiersClassNames={{
+                      today: "ring-2 ring-purple-400",
                       day_selected:
-                        "bg-purple-600 text-white rounded-full transition-all",
-                      day_range_middle: "bg-purple-100 text-purple-800 transition-all",
+                        "bg-purple-600 text-white rounded-full scale-105 shadow-sm transition",
                       day_range_start:
-                        "bg-purple-600 text-white rounded-full transition-all",
+                        "bg-purple-600 text-white rounded-full transition",
                       day_range_end:
-                        "bg-purple-600 text-white rounded-full transition-all",
-                      day: "p-2 hover:bg-gray-100 transition-all duration-150 ease-in-out rounded-full",
+                        "bg-purple-600 text-white rounded-full transition",
+                      day_range_middle:
+                        "bg-purple-100 text-purple-800 transition",
+                      disabled: "text-gray-300 pointer-events-none opacity-50",
+                    }}
+                    classNames={{
+                      months: "flex flex-col",
+                      caption: "flex justify-between items-center mb-2 px-2",
+                      nav_button:
+                        "p-1 rounded hover:bg-purple-100 text-purple-600 transition",
+                      day: "w-10 h-10 flex items-center justify-center rounded-full transition-all duration-150 ease-in-out hover:bg-purple-50",
                       head_cell: "text-gray-500 font-medium text-xs",
                     }}
                   />
@@ -155,7 +149,7 @@ const TimelineDateRangePicker = () => {
                   </button>
                 </div>
 
-                {/* Preset Buttons */}
+                {/* Presets */}
                 <div className="w-1/3 border-l px-4 py-4 space-y-2 text-sm">
                   {[
                     "Today",
@@ -169,7 +163,7 @@ const TimelineDateRangePicker = () => {
                     <button
                       key={preset}
                       onClick={() => handlePreset(preset)}
-                      className="w-full text-left px-3 py-2 rounded hover:bg-purple-100 transition-all duration-200"
+                      className="w-full text-left px-3 py-1.5 rounded hover:bg-purple-50 transition-all duration-150 ease-in-out"
                     >
                       {preset}
                     </button>
