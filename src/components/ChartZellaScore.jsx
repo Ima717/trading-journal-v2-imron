@@ -38,7 +38,7 @@ const ChartZellaScore = ({ data }) => {
     datasets: [
       {
         label: "Zella Metrics",
-        data: [70, 60, 55, 40, 45, 65], // Replace with real metrics
+        data: [70, 60, 55, 40, 45, 65], // TODO: Replace with real metrics
         backgroundColor: "rgba(139, 92, 246, 0.3)",
         borderColor: "rgba(139, 92, 246, 1)",
         pointBackgroundColor: "rgba(139, 92, 246, 1)",
@@ -71,35 +71,28 @@ const ChartZellaScore = ({ data }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-sm"
+      className="flex flex-col items-center space-y-6 w-full"
     >
-      {/* Title */}
-      <h3 className="text-sm text-gray-600 dark:text-gray-300 font-semibold mb-3">
-        Zella Score
-      </h3>
-
-      {/* Radar Chart - smaller */}
-      <div className="w-full flex justify-center mb-5">
-        <div className="w-full max-w-[300px] h-[250px]">
-          <Radar data={radarData} options={radarOptions} />
-        </div>
+      {/* Radar Chart */}
+      <div className="w-full max-w-[300px] h-[240px]">
+        <Radar data={radarData} options={radarOptions} />
       </div>
 
-      {/* Score Line - gradient + indicator */}
-      <div className="flex flex-col items-center w-full">
+      {/* Score Line */}
+      <div className="w-full flex flex-col items-center px-4">
         <span className="text-xs text-gray-500 dark:text-gray-400 mb-1">
           Your Zella Score
         </span>
 
-        <div className="relative w-[80%] h-2 rounded-full bg-gray-200 overflow-hidden mb-1">
+        <div className="relative w-full max-w-[220px] h-2 bg-gray-200 rounded-full overflow-hidden mb-1">
           <div
-            className="absolute top-0 h-2 w-full rounded-full"
+            className="absolute top-0 left-0 h-2 w-full"
             style={{
               background: "linear-gradient(to right, #1565c0, #b92b27)",
             }}
           />
           <div
-            className="absolute top-0 h-2 w-2 bg-white border-2 border-black rounded-full"
+            className="absolute top-[-4px] h-4 w-4 bg-white border-2 border-black rounded-full"
             style={{
               left: `${score}%`,
               transform: "translateX(-50%)",
@@ -107,7 +100,7 @@ const ChartZellaScore = ({ data }) => {
           />
         </div>
 
-        <div className="text-lg font-bold text-zinc-800 dark:text-white">
+        <div className="text-xl font-bold text-zinc-900 dark:text-white mt-1">
           {score}
         </div>
       </div>
