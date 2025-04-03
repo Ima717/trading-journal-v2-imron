@@ -48,6 +48,7 @@ const ChartZellaScore = ({ data }) => {
 
   const radarOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     scales: {
       r: {
         beginAtZero: true,
@@ -56,7 +57,7 @@ const ChartZellaScore = ({ data }) => {
         grid: { color: "#e5e7eb" },
         pointLabels: {
           color: "#6b7280",
-          font: { size: 12 },
+          font: { size: 11 },
         },
       },
     },
@@ -70,13 +71,15 @@ const ChartZellaScore = ({ data }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-sm w-full max-w-md mx-auto"
+      className="bg-white dark:bg-zinc-800 p-4 rounded-lg shadow-sm w-full max-w-[450px] mx-auto"
     >
-      <h3 className="text-sm text-gray-600 dark:text-gray-300 mb-3 font-semibold">
+      <h3 className="text-sm text-gray-600 dark:text-gray-300 mb-2 font-semibold">
         📈 Zella Score
       </h3>
 
-      <Radar data={radarData} options={radarOptions} className="mb-4" />
+      <div className="relative h-[260px] mb-4">
+        <Radar data={radarData} options={radarOptions} />
+      </div>
 
       <div className="flex flex-col items-center">
         <span className="text-xs text-gray-500 dark:text-gray-400 mb-1">
@@ -92,7 +95,7 @@ const ChartZellaScore = ({ data }) => {
             style={{ left: `${score}%` }}
           />
         </div>
-        <div className="text-xl font-bold mt-2 text-zinc-800 dark:text-white">
+        <div className="text-lg font-bold mt-2 text-zinc-800 dark:text-white">
           {score}
         </div>
       </div>
