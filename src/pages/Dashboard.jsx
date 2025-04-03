@@ -14,15 +14,14 @@ import ChartTagPerformance from "../components/ChartTagPerformance";
 import ChartZellaScore from "../components/ChartZellaScore";
 import CalendarWidget from "../components/CalendarWidget";
 import StatCard from "../components/StatCard";
-import AvgWinLoss from "../components/AvgWinLoss";
-import DayWinCard from "../components/DayWinCard";
 import { getPnLOverTime, getZellaScoreOverTime } from "../utils/calculations";
 import ErrorBoundary from "../components/ErrorBoundary";
 import ChartEquityCurve from "../components/ChartEquityCurve";
 import ChartSymbolDistribution from "../components/ChartSymbolDistribution";
 import ChartPnLBySymbol from "../components/ChartPnLBySymbol";
 import AdvancedFilters from "../components/AdvancedFilters";
-import TimelineDateRangePicker from "../components/TimelineDateRangePicker"; // NEW
+import TimelineDateRangePicker from "../components/TimelineDateRangePicker";
+import WinStatsCard from "../components/WinStatsCard"; // ✅ New import
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -162,6 +161,7 @@ const Dashboard = () => {
               <AdvancedFilters />
             </div>
           </div>
+
           {/* Analytics Section */}
           {isLoading ? (
             <div className="text-center py-10 text-gray-500 dark:text-gray-400">Loading dashboard...</div>
@@ -186,9 +186,8 @@ const Dashboard = () => {
                 </StatCard>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                <DayWinCard />
-                <AvgWinLoss />
+              <div className="mb-6">
+                <WinStatsCard />
               </div>
 
               <div className="mb-6">
