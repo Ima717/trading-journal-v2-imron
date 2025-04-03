@@ -24,8 +24,8 @@ ChartJS.register(
 
 const ChartEquityCurve = ({ data }) => {
   // Sample fallback data
-  const sampleLabels = ["09:10:04", "10:54:16", "10:59:33"];
-  const sampleData = [10, 20, -15];
+  const sampleLabels = ["Mar 15", "Mar 19", "Mar 23", "Mar 27", "Apr 1"];
+  const sampleData = [-100, 200, -400, -800, -850];
 
   // State for dynamic trend indicator and data
   const [latestTrend, setLatestTrend] = useState("neutral");
@@ -42,7 +42,7 @@ const ChartEquityCurve = ({ data }) => {
     }
   }, [data]);
 
-  // Chart data with dynamic gradient
+  // Chart data with dynamic gradient based on positivity/negativity
   const chartData = {
     labels: data?.map((d) => d.date) || sampleLabels,
     datasets: [
@@ -53,26 +53,25 @@ const ChartEquityCurve = ({ data }) => {
         backgroundColor: (context) => {
           const ctx = context.chart.ctx;
           const gradient = ctx.createLinearGradient(0, 0, 0, 350);
-          const dataPoints = context.chart.data.datasets[0].data;
-          const minVal = Math.min(...dataPoints);
-          const maxVal = Math.max(...dataPoints);
-          const range = maxVal - minVal;
-
-          dataPoints.forEach((value, index) => {
-            const normalizedValue = (value - minVal) / range;
-            const green = Math.min(34 + (197 - 34) * normalizedValue, 197);
-            const red = Math.max(239 - (239 - 34) * normalizedValue, 34);
-            const alpha = 0.2 * (1 - Math.abs(normalizedValue - 0.5) * 2); // Softer fade
-            gradient.addColorStop(index / (dataPoints.length - 1), `rgba(${red}, ${green}, 68, ${alpha})`);
-          });
+          const lastValue = chartDataPoints[chartDataPoints.length - 1];
+          if (lastValue > 0) {
+            gradient.addColorStop(0, "rgba(34, 197, 94, 0.15)"); // Slight green for positive
+            gradient.addColorStop(1, "rgba(34, 197, 94, 0.05)"); // Fade to transparent
+          } else if (lastValue < 0) {
+            gradient.addColorStop(0, "rgba(239, 68, 68, 0.15)"); // Slight red for negative
+            gradient.addColorStop(1, "rgba(239, 68, 68, 0.05)"); // Fade to transparent
+          } else {
+            gradient.addColorStop(0, "rgba(209, 213, 219, 0.1)"); // Neutral gray
+            gradient.addColorStop(1, "rgba(209, 213, 219, 0.05)"); // Fade to transparent
+          }
           return gradient;
         },
-        borderColor: "#8b5cf6", // Purple line to match screenshot
+        borderColor: "#22c55e", // Default green line (can be dynamic if needed)
         tension: 0.4,
         pointRadius: 4,
         pointHoverRadius: 6,
         pointBackgroundColor: "#fff",
-        pointBorderColor: "#8b5cf6",
+        pointBorderColor: "#22c55e",
         pointBorderWidth: 2,
         borderWidth: 2,
       },
@@ -95,6 +94,12 @@ const ChartEquityCurve = ({ data }) => {
         callbacks: {
           label: (context) => `P&L: $${context.parsed.y.toFixed(2)}`,
           title: (tooltipItems) => tooltipItems[0].label,
+          afterBody: (context) =>
+            latestTrend === "up"
+              ? "Trend: Upward"
+              : latestTrend === "down"
+              ? "Trend: Downward"
+              : "Trend: Neutral",
         },
       },
     },
