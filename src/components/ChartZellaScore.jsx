@@ -72,10 +72,6 @@ const ChartZellaScore = ({ data }) => {
       transition={{ duration: 0.4 }}
       className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-sm"
     >
-      {/* ✅ Main Title */}
-      <h3 className="text-sm text-gray-600 dark:text-gray-300 font-semibold mb-3">
-        Zella Score
-      </h3>
 
       {/* ✅ Radar Chart */}
       <div className="mb-6 w-full max-w-sm mx-auto">
