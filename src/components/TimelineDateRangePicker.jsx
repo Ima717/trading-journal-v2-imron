@@ -110,20 +110,21 @@ const TimelineDateRangePicker = () => {
                     disabled={isFuture}
                     modifiersClassNames={modifiersClassNames}
                     classNames={{
-                      months: "flex flex-col gap-2",
-                      month: "w-full",
-                      caption: "flex justify-between items-center mb-2 px-2 text-sm font-medium",
-                      head_row: "flex justify-between mb-1",
-                      head_cell: "text-gray-500 font-medium text-xs w-8 text-center",
-                      row: "flex justify-between",
-                      day: "w-8 h-8 flex items-center justify-center rounded-full transition-all duration-150 ease-in-out hover:bg-purple-50",
-                      day_selected: "bg-purple-600 text-white rounded-full scale-105 shadow-sm transition",
-                      day_range_start: "bg-purple-600 text-white rounded-full",
-                      day_range_end: "bg-purple-600 text-white rounded-full",
-                      day_range_middle: "bg-purple-100 text-purple-800",
-                      today: "ring-2 ring-purple-400",
-                      disabled: "text-gray-300 pointer-events-none opacity-50",
-                    }}
+                    months: "flex flex-col gap-2",
+                    month: "grid grid-cols-7 gap-1",
+                    caption: "col-span-7 flex justify-between items-center mb-2 px-2 text-sm font-medium",
+                    head_row: "contents",
+                    head_cell: "text-gray-500 font-medium text-xs text-center",
+                    row: "contents",
+                    day: "w-8 h-8 flex items-center justify-center rounded-full transition-all duration-150 ease-in-out hover:bg-purple-50",
+                    day_selected: "bg-purple-600 text-white rounded-full scale-105 shadow-sm transition",
+                    day_range_start: "bg-purple-600 text-white rounded-full transition",
+                    day_range_end: "bg-purple-600 text-white rounded-full transition",
+                    day_range_middle: "bg-purple-100 text-purple-800 transition",
+                    today: "ring-2 ring-purple-400",
+                    disabled: "text-gray-300 pointer-events-none opacity-50",
+                  }}
+
                   />
                   <button
                     onClick={resetDates}
