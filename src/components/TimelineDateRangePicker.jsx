@@ -86,8 +86,8 @@ const TimelineDateRangePicker = () => {
   };
 
   const modifiersClassNames = {
-    today: "ring-2 ring-purple-500",
-    future: "text-gray-400 pointer-events-none opacity-40",
+    today: "ring-2 ring-purple-500 ring-opacity-50", // Tiny ring for today's date
+    future: "text-gray-400 pointer-events-none opacity-40", // Disable future dates
   };
 
   return (
@@ -136,15 +136,25 @@ const TimelineDateRangePicker = () => {
                       months: "flex flex-col gap-4",
                       caption: "flex justify-between items-center mb-2 px-2",
                       nav_button: "p-1 rounded hover:bg-purple-100 text-purple-600 transition",
-                      day_selected:
-                        "bg-purple-600 text-white rounded-full transition-all",
-                      day_range_middle: "bg-purple-100 text-purple-800 transition-all",
-                      day_range_start:
-                        "bg-purple-600 text-white rounded-full transition-all",
-                      day_range_end:
-                        "bg-purple-600 text-white rounded-full transition-all",
-                      day: "p-2 hover:bg-gray-100 transition-all duration-150 ease-in-out rounded-full",
+                      day_selected: range?.from && !range?.to 
+                        ? "bg-purple-600 text-white rounded-lg transition-all shadow-md" // Single date: purple square with rounded corners
+                        : "bg-purple-600 text-white rounded-full transition-all shadow-md", // Range: rounded circle
+                      day_range_middle: "bg-purple-100 text-purple-800 transition-all shadow-sm", // Shadow for range middle
+                      day_range_start: "bg-purple-600 text-white rounded-full transition-all shadow-md",
+                      day_range_end: "bg-purple-600 text-white rounded-full transition-all shadow-md",
+                      day: "p-2 transition-all duration-150 ease-in-out rounded-full", // Base day styling
+                      day_hover: "hover:bg-purple-200 hover:shadow-sm hover:scale-105", // Hover animation for selectable dates
                       head_cell: "text-gray-500 font-medium text-xs",
+                    }}
+                    styles={{
+                      day: {
+                        transition: "all 0.2s ease-in-out", // Smooth transition for hover effects
+                      },
+                      day_range_middle: {
+                        background: "rgba(147, 51, 234, 0.1)", // Light purple for range middle
+                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)", // Shadow for range middle
+                        transition: "background 0.3s ease-in-out", // Smooth range animation
+                      },
                     }}
                   />
                   <button
