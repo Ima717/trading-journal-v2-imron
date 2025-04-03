@@ -49,15 +49,13 @@ const WinStatsCard = () => {
       >
         <div className="flex flex-col items-center justify-center w-full mt-2 mb-1">
           <div className="flex justify-center items-center w-full h-[50px]">
-            <div className="w-[80px] h-[40px]">
+            <div className="w-[80px] h-[40px] flex items-center justify-center">
               <MiniGauge
                 segments={[
                   { color: "#22c55e", value: stats.green },
                   { color: "#3b82f6", value: stats.blue },
                   { color: "#ef4444", value: stats.red },
                 ]}
-                radius={35}
-                strokeWidth={5}
               />
             </div>
           </div>
@@ -77,14 +75,12 @@ const WinStatsCard = () => {
       >
         <div className="flex flex-col items-center justify-center w-full mt-2 mb-1">
           <div className="flex justify-center items-center w-full h-[50px]">
-            <div className="w-[80px] h-[40px]">
+            <div className="w-[80px] h-[40px] flex items-center justify-center">
               <MiniGauge
                 segments={[
                   { color: "#22c55e", value: avgWin },
                   { color: "#ef4444", value: avgLoss },
                 ]}
-                radius={35}
-                strokeWidth={5}
               />
             </div>
           </div>
