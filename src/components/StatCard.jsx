@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Tooltip } from "react-tooltip";
 import { motion } from "framer-motion";
 import { Info, BarChart3 } from "lucide-react";
@@ -14,12 +14,19 @@ const StatCard = ({
 }) => {
   const tooltipId = `tooltip-${title}`;
   const badgeId = `badge-${title}`;
+  const [shouldAnimate, setShouldAnimate] = useState(false);
+
+  useEffect(() => {
+    // Prevent animation on initial render
+    const timer = setTimeout(() => setShouldAnimate(true), 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
+      animate={shouldAnimate ? { opacity: 1, y: 0 } : false}
+      transition={shouldAnimate ? { duration: 0.3 } : undefined}
       className={`relative p-6 rounded-xl shadow-sm w-full flex flex-col justify-between hover:shadow-md hover:scale-[1.02] transition-all duration-200 group overflow-hidden ${
         customBg || "bg-white dark:bg-zinc-800"
       }`}
