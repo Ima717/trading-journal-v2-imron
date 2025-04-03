@@ -20,7 +20,7 @@ import ChartPnLBySymbol from "../components/ChartPnLBySymbol";
 import AdvancedFilters from "../components/AdvancedFilters";
 import TimelineDateRangePicker from "../components/TimelineDateRangePicker";
 import WinStatsCard from "../components/WinStatsCard";
-import ChartCard from "../components/ChartCard"; // ✅ NEW
+import ChartCard from "../components/ChartCard"; // ✅ Wrapper with title
 
 import { getPnLOverTime, getZellaScoreOverTime } from "../utils/calculations";
 import ErrorBoundary from "../components/ErrorBoundary";
@@ -29,11 +29,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { theme } = useTheme();
-  const {
-    dateRange,
-    filteredTrades,
-    setDateRange,
-  } = useFilters();
+  const { dateRange, filteredTrades, setDateRange } = useFilters();
 
   const [tagPerformanceData, setTagPerformanceData] = useState([]);
   const [pnlData, setPnlData] = useState([]);
@@ -108,12 +104,16 @@ const Dashboard = () => {
   const winRate = totalTrades ? ((wins.length / totalTrades) * 100).toFixed(2) : "0.00";
   const tradingDays = [...new Set(filteredTrades.map((t) => t.date))];
   const winningDays = tradingDays.filter((day) => {
-    const dayPnL = filteredTrades.filter((t) => t.date === day).reduce((sum, t) => sum + t.pnl, 0);
+    const dayPnL = filteredTrades
+      .filter((t) => t.date === day)
+      .reduce((sum, t) => sum + t.pnl, 0);
     return dayPnL > 0;
   });
+
   const dayWinPercent = tradingDays.length
     ? ((winningDays.length / tradingDays.length) * 100).toFixed(2)
     : "0.00";
+
   const avgWin = wins.length ? wins.reduce((s, t) => s + t.pnl, 0) / wins.length : 0;
   const avgLoss = losses.length
     ? Math.abs(losses.reduce((s, t) => s + t.pnl, 0) / losses.length)
@@ -188,7 +188,6 @@ const Dashboard = () => {
                 <ChartCard title="Zella Score">
                   <ChartZellaScore data={zellaTrendData} />
                 </ChartCard>
-
                 <ChartCard title="Equity Curve">
                   <ChartEquityCurve />
                 </ChartCard>
