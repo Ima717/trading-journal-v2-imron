@@ -1,121 +1,84 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { Line } from "react-chartjs-2";
-import { useFilters } from "../context/FilterContext";
-import { motion } from "framer-motion";
-import dayjs from "dayjs";
-
 import {
   Chart as ChartJS,
-  LineElement,
-  PointElement,
+  CategoryScale,
   LinearScale,
-  TimeScale,
+  PointElement,
+  LineElement,
   Tooltip,
   Legend,
-  Filler
 } from "chart.js";
-import "chartjs-adapter-date-fns";
+import { motion } from "framer-motion";
 
 ChartJS.register(
-  LineElement,
-  PointElement,
+  CategoryScale,
   LinearScale,
-  TimeScale,
+  PointElement,
+  LineElement,
   Tooltip,
-  Legend,
-  Filler
+  Legend
 );
 
-const ChartEquityCurve = () => {
-  const { filteredTrades } = useFilters();
+const ChartEquityCurve = ({ data }) => {
+  // Sample fallback if data not passed in yet
+  const sampleLabels = ["Mar 15", "Mar 17", "Mar 19", "Mar 21", "Mar 23", "Mar 25", "Mar 27", "Mar 29", "Apr 1"];
+  const sampleData = [-100, 50, 200, -150, -400, -600, -800, -900, -850];
 
-  const { labels, cumulativePnl } = useMemo(() => {
-    let runningTotal = 0;
-    const sorted = [...filteredTrades].sort(
-      (a, b) => new Date(a.date) - new Date(b.date)
-    );
-
-    const labels = [];
-    const cumulativePnl = [];
-
-    sorted.forEach((trade) => {
-      runningTotal += trade.pnl || 0;
-      labels.push(dayjs(trade.date).format("YYYY-MM-DD"));
-      cumulativePnl.push(runningTotal);
-    });
-
-    return { labels, cumulativePnl };
-  }, [filteredTrades]);
-
-  if (!labels.length) return null;
-
-  const data = {
-    labels,
+  const chartData = {
+    labels: data?.map((d) => d.date) || sampleLabels,
     datasets: [
       {
         label: "Net Cumulative P&L",
-        data: cumulativePnl,
+        data: data?.map((d) => d.pnl) || sampleData,
         fill: true,
-        backgroundColor: "rgba(34, 197, 94, 0.08)",
-        borderColor: "rgba(34, 197, 94, 1)",
-        borderWidth: 2,
+        backgroundColor: "rgba(34,197,94,0.1)",
+        borderColor: "#22c55e",
         tension: 0.3,
-        pointRadius: 0
-      }
-    ]
+        pointRadius: 0,
+      },
+    ],
   };
 
   const options = {
     responsive: true,
     maintainAspectRatio: false,
-    animation: { duration: 700 },
+    plugins: {
+      legend: {
+        display: false,
+      },
+    },
     scales: {
       x: {
-        type: "time",
-        time: {
-          unit: "day",
-          tooltipFormat: "PP"
-        },
         grid: { display: false },
         ticks: {
-          color: "#9ca3af",
-          font: { family: "Inter", size: 11 }
-        }
+          color: "#6b7280",
+          maxTicksLimit: 8,
+        },
       },
       y: {
+        grid: { color: "#e5e7eb" },
         ticks: {
           color: "#6b7280",
-          font: { family: "Inter", size: 11 }
+          callback: (val) => `$${val}`,
         },
-        grid: {
-          color: "#e5e7eb"
-        }
-      }
+      },
     },
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: "#111827",
-        titleColor: "#f9fafb",
-        bodyColor: "#f9fafb",
-        padding: 10,
-        cornerRadius: 4
-      }
-    }
   };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-sm"
+      transition={{ duration: 0.3 }}
+      className="bg-white dark:bg-zinc-800 p-4 rounded-lg shadow-sm w-full"
     >
-      <h3 className="text-sm text-gray-600 dark:text-gray-300 mb-3 font-semibold">
-        📈 Net Cumulative P&L
+      <h3 className="text-sm text-gray-600 dark:text-gray-300 mb-2 font-semibold">
+        📈 Equity Curve
       </h3>
-      <div className="h-64">
-        <Line data={data} options={options} />
+
+      <div className="relative h-[280px]">
+        <Line data={chartData} options={options} />
       </div>
     </motion.div>
   );
