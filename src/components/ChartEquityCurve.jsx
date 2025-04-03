@@ -10,7 +10,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { TrendingUp, TrendingDown } from "lucide-react";
 
 ChartJS.register(
@@ -27,7 +27,7 @@ const ChartEquityCurve = ({ data }) => {
   const sampleLabels = ["Mar 15", "Mar 19", "Mar 23", "Mar 27", "Apr 1"];
   const sampleData = [-100, 200, -400, -800, -850];
 
-  // State for dynamic trend indicator
+  // State for dynamic trend indicator and data
   const [latestTrend, setLatestTrend] = useState("neutral");
   const [chartDataPoints, setChartDataPoints] = useState(data?.map((d) => d.pnl) || sampleData);
 
@@ -42,7 +42,7 @@ const ChartEquityCurve = ({ data }) => {
     }
   }, [data]);
 
-  // Chart data with dynamic line color based on trend
+  // Chart data with dynamic gradient and line color
   const chartData = {
     labels: data?.map((d) => d.date) || sampleLabels,
     datasets: [
@@ -50,7 +50,20 @@ const ChartEquityCurve = ({ data }) => {
         label: "Net Cumulative P&L",
         data: chartDataPoints,
         fill: true,
-        backgroundColor: "rgba(34, 197, 94, 0.2)", // Light green fill
+        backgroundColor: (context) => {
+          const ctx = context.chart.ctx;
+          const gradient = ctx.createLinearGradient(0, 0, 0, 350);
+          if (latestTrend === "down") {
+            gradient.addColorStop(0, "rgba(239, 68, 68, 0.2)"); // Soft red start
+            gradient.addColorStop(0.5, "rgba(239, 68, 68, 0.1)"); // Mid fade
+            gradient.addColorStop(1, "rgba(239, 68, 68, 0.05)"); // Near-transparent end
+          } else {
+            gradient.addColorStop(0, "rgba(34, 197, 94, 0.2)"); // Soft green start
+            gradient.addColorStop(0.5, "rgba(34, 197, 94, 0.1)"); // Mid fade
+            gradient.addColorStop(1, "rgba(34, 197, 94, 0.05)"); // Near-transparent end
+          }
+          return gradient;
+        },
         borderColor: latestTrend === "down" ? "#ef4444" : "#22c55e", // Red for downtrend, green for uptrend
         tension: 0.4,
         pointRadius: 4,
@@ -71,14 +84,20 @@ const ChartEquityCurve = ({ data }) => {
       legend: { display: false },
       tooltip: {
         backgroundColor: "rgba(0, 0, 0, 0.9)",
-        titleFont: { size: 14, weight: "bold", family: "'Inter', sans-serif" },
+        titleFont: { size: 14, weight: "600", family: "'Inter', sans-serif" },
         bodyFont: { size: 12, family: "'Inter', sans-serif" },
-        padding: 10,
-        cornerRadius: 6,
+        padding: 12,
+        cornerRadius: 8,
         displayColors: false,
         callbacks: {
           label: (context) => `P&L: $${context.parsed.y.toFixed(2)}`,
           title: (tooltipItems) => tooltipItems[0].label,
+          afterBody: (context) =>
+            latestTrend === "up"
+              ? "Trend: Upward"
+              : latestTrend === "down"
+              ? "Trend: Downward"
+              : "Trend: Neutral",
         },
       },
     },
@@ -88,26 +107,31 @@ const ChartEquityCurve = ({ data }) => {
         ticks: { color: "#6b7280", font: { size: 12, family: "'Inter', sans-serif" } },
       },
       y: {
-        grid: { color: "rgba(229, 231, 235, 0.3)", borderDash: [6, 6] },
+        grid: { color: "rgba(229, 231, 235, 0.2)", borderDash: [8, 8] },
         ticks: {
           color: "#6b7280",
           callback: (val) => `$${val >= 0 ? val : -val}`,
-          font: { size: 12, family: "'Inter', sans-serif" },
-          stepSize: Math.max(...chartDataPoints.map(Math.abs), 0) / 4,
+          font: { size: 13, family: "'Inter', sans-serif" },
+          stepSize: Math.max(...chartDataPoints.map(Math.abs), 0) / 5,
         },
-        title: { display: true, text: "P&L ($)", color: "#6b7280", font: { size: 14, weight: "bold" } },
+        title: {
+          display: true,
+          text: "P&L ($)",
+          color: "#6b7280",
+          font: { size: 15, weight: "600" },
+        },
       },
     },
     interaction: { mode: "nearest", intersect: false },
-    animation: { duration: 1000, easing: "easeInOutQuad" },
+    animation: { duration: 1200, easing: "easeInOutQuad" },
   };
 
-  // Trend indicator
+  // Trend indicator with pulse animation
   const TrendIndicator = () => (
     <motion.div
-      initial={{ scale: 0, opacity: 0 }}
+      initial={{ scale: 0.8, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
+      transition={{ duration: 0.6, ease: "easeOut", repeat: Infinity, repeatType: "reverse" }}
       className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${
         latestTrend === "up"
           ? "bg-green-100 text-green-700"
@@ -131,11 +155,14 @@ const ChartEquityCurve = ({ data }) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className="relative w-full bg-white rounded-xl border border-gray-200 p-4 shadow-sm"
+      transition={{ duration: 0.8, ease: "easeInOut" }}
+      className="relative w-full bg-white rounded-2xl border border-gray-200/60 p-5 shadow-lg"
+      style={{
+        boxShadow: "0 6px 24px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.04)",
+      }}
     >
       {/* Header */}
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-5">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Equity Curve</h3>
         <TrendIndicator />
       </div>
