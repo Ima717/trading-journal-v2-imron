@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../utils/firebase";
 import { collection, query, onSnapshot } from "firebase/firestore";
@@ -22,7 +22,7 @@ import ChartEquityCurve from "../components/ChartEquityCurve";
 import ChartSymbolDistribution from "../components/ChartSymbolDistribution";
 import ChartPnLBySymbol from "../components/ChartPnLBySymbol";
 import AdvancedFilters from "../components/AdvancedFilters";
-import TimelineDateRangePicker from "../components/TimelineDateRangePicker";
+import TimelineDateRangePicker from "../components/TimelineDateRangePicker"; // NEW
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -41,7 +41,6 @@ const Dashboard = () => {
   const [pnlData, setPnlData] = useState([]);
   const [zellaTrendData, setZellaTrendData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const scrollPositionRef = useRef(window.scrollY); // Store scroll position
 
   const handleLogout = async () => {
     try {
@@ -93,7 +92,6 @@ const Dashboard = () => {
         }));
 
         setTagPerformanceData(formatted);
-        setFilteredTrades(trades); // Update filtered trades in context
         setIsLoading(false);
       },
       (error) => {
@@ -104,20 +102,6 @@ const Dashboard = () => {
 
     return () => unsubscribe();
   }, [user, dateRange]);
-
-  // Restore scroll position after dateRange changes
-  useEffect(() => {
-    window.scrollTo(0, scrollPositionRef.current);
-  }, [dateRange]);
-
-  // Update scroll position on scroll
-  useEffect(() => {
-    const handleScroll = () => {
-      scrollPositionRef.current = window.scrollY;
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const netPnL = filteredTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
   const totalTrades = filteredTrades.length;
