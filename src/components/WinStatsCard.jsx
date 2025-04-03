@@ -48,11 +48,10 @@ const WinStatsCard = () => {
         title="Day Win %"
         tooltip="Percentage of trading days that ended with net profit."
       >
-        <div className="flex flex-col items-center mt-2">
+        <div className="flex flex-col items-center justify-center h-full mt-2">
           <MiniGauge
             segments={[
               { value: stats.green, color: "#22c55e" }, // Green for winning days
-              { value: stats.blue, color: "#3b82f6" },  // Blue for neutral days
               { value: stats.red, color: "#ef4444" },   // Red for losing days
             ]}
             size={80}
@@ -61,7 +60,7 @@ const WinStatsCard = () => {
             key={dayWinPercent}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }} // Sync with gauge animation
+            transition={{ duration: 0.5, delay: 0.5 }}
             className="text-2xl font-bold text-gray-900 dark:text-white mt-2"
           >
             {`${dayWinPercent.toFixed(2)}%`}
@@ -74,7 +73,7 @@ const WinStatsCard = () => {
         title="Avg win/loss trade"
         tooltip="Average dollar value of winning vs losing trades."
       >
-        <div className="flex flex-col items-center mt-2">
+        <div className="flex flex-col items-center justify-center h-full mt-2">
           <MiniGauge
             segments={[
               { value: avgWin, color: "#22c55e" },  // Green for avg win
@@ -86,7 +85,7 @@ const WinStatsCard = () => {
             key={ratio}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }} // Sync with gauge animation
+            transition={{ duration: 0.5, delay: 0.5 }}
             className="text-2xl font-bold text-gray-900 dark:text-white mt-2"
           >
             {ratio.toFixed(2)}
