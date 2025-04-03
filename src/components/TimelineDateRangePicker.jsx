@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { Popover, Transition } from "@headlessui/react";
+import { Popover } from "@headlessui/react";
 import { CalendarIcon } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
@@ -26,48 +26,28 @@ const TimelineDateRangePicker = () => {
   };
 
   const handlePreset = (preset) => {
-    const today = dayjs();
+    const now = dayjs();
     let from, to;
+
     switch (preset) {
-      case "Today":
-        from = to = today;
-        break;
-      case "This week":
-        from = today.startOf("week");
-        to = today.endOf("week");
-        break;
-      case "This month":
-        from = today.startOf("month");
-        to = today.endOf("month");
-        break;
-      case "Last 30 days":
-        from = today.subtract(30, "day");
-        to = today;
-        break;
+      case "Today": from = to = now; break;
+      case "This week": from = now.startOf("week"); to = now.endOf("week"); break;
+      case "This month": from = now.startOf("month"); to = now.endOf("month"); break;
+      case "Last 30 days": from = now.subtract(30, "day"); to = now; break;
       case "Last month":
-        from = today.subtract(1, "month").startOf("month");
-        to = today.subtract(1, "month").endOf("month");
+        from = now.subtract(1, "month").startOf("month");
+        to = now.subtract(1, "month").endOf("month");
         break;
-      case "This quarter":
-        from = today.startOf("quarter");
-        to = today.endOf("quarter");
-        break;
-      case "YTD":
-        from = today.startOf("year");
-        to = today;
-        break;
-      default:
-        return;
+      case "This quarter": from = now.startOf("quarter"); to = now.endOf("quarter"); break;
+      case "YTD": from = now.startOf("year"); to = now; break;
+      default: return;
     }
 
     const fromDate = from.toDate();
     const toDate = to.toDate();
 
     setRange({ from: fromDate, to: toDate });
-    setDateRange({
-      start: fromDate.toISOString(),
-      end: toDate.toISOString(),
-    });
+    setDateRange({ start: fromDate.toISOString(), end: toDate.toISOString() });
     triggerRefresh();
   };
 
@@ -86,8 +66,8 @@ const TimelineDateRangePicker = () => {
   };
 
   const modifiersClassNames = {
-    today: "ring-2 ring-purple-500 ring-opacity-50", // Tiny ring for today's date
-    future: "text-gray-400 pointer-events-none opacity-40", // Disable future dates
+    today: "ring-2 ring-purple-400",
+    future: "text-gray-400 pointer-events-none opacity-50",
   };
 
   return (
@@ -120,56 +100,33 @@ const TimelineDateRangePicker = () => {
                 transition={{ duration: 0.25, ease: "easeInOut" }}
                 className="absolute top-12 right-0 w-[600px] bg-white border rounded-xl shadow-2xl flex z-50"
               >
-                {/* Calendar */}
+                {/* Calendar Section */}
                 <div className="w-2/3 px-5 py-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Select Date Range</h4>
                   <DayPicker
                     mode="range"
                     selected={range}
                     onSelect={handleDateSelect}
                     numberOfMonths={1}
+                    toDate={today}
                     modifiers={modifiers}
                     disabled={isFuture}
                     modifiersClassNames={modifiersClassNames}
-                    className="text-sm transition-all"
                     classNames={{
                       months: "flex flex-col gap-4",
-                      month: "w-full table", // Use table layout to ensure proper grid
-                      caption: "flex justify-between items-center mb-2 px-2",
-                      nav_button: "p-1 rounded hover:bg-purple-100 text-purple-600 transition",
-                      day_selected: range?.from && !range?.to 
-                        ? "bg-purple-600 text-white rounded-lg transition-all shadow-md" // Single date: purple square with rounded corners
-                        : "bg-purple-600 text-white rounded-full transition-all shadow-md", // Range: rounded circle
-                      day_range_middle: "bg-purple-100 text-purple-800 transition-all shadow-sm", // Shadow for range middle
-                      day_range_start: "bg-purple-600 text-white rounded-full transition-all shadow-md",
-                      day_range_end: "bg-purple-600 text-white rounded-full transition-all shadow-md",
-                      day: "p-2 transition-all duration-150 ease-in-out rounded-full", // Base day styling
-                      day_hover: "hover:bg-purple-200 hover:shadow-sm hover:scale-105", // Hover animation for selectable dates
-                      head_cell: "text-gray-500 font-medium text-xs w-10", // Fixed width for header cells
-                      head_row: "table-row", // Use table-row to maintain grid
-                      row: "table-row", // Use table-row to maintain grid
-                    }}
-                    styles={{
-                      month: {
-                        width: "100%", // Ensure the month container is wide enough
-                        padding: "0 10px", // Add padding to the month container
-                      },
-                      day: {
-                        transition: "all 0.2s ease-in-out", // Smooth transition for hover effects
-                        width: "36px", // Fixed width for each day to ensure consistent spacing
-                        height: "36px", // Fixed height for each day
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        margin: "0 2px", // Add margin between days for better spacing
-                      },
-                      day_range_middle: {
-                        background: "rgba(147, 51, 234, 0.1)", // Light purple for range middle
-                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)", // Shadow for range middle
-                        transition: "background 0.3s ease-in-out, box-shadow 0.3s ease-in-out", // Smooth range animation
-                      },
+                      caption: "flex justify-between items-center mb-2 px-2 text-sm font-medium",
+                      head_row: "grid grid-cols-7",
+                      head_cell: "text-gray-500 font-medium text-xs text-center",
+                      row: "grid grid-cols-7",
+                      day: "w-9 h-9 flex items-center justify-center rounded-full transition-all duration-150 ease-in-out hover:bg-purple-50",
+                      day_selected: "bg-purple-600 text-white rounded-full scale-105 shadow-md transition",
+                      day_range_start: "bg-purple-600 text-white rounded-full transition",
+                      day_range_end: "bg-purple-600 text-white rounded-full transition",
+                      day_range_middle: "bg-purple-100 text-purple-800 shadow-inner transition",
+                      today: "ring-2 ring-purple-400",
+                      disabled: "text-gray-300 pointer-events-none opacity-50",
                     }}
                   />
+
                   <button
                     onClick={resetDates}
                     className="mt-3 text-xs text-purple-600 hover:underline transition"
@@ -178,7 +135,7 @@ const TimelineDateRangePicker = () => {
                   </button>
                 </div>
 
-                {/* Preset Buttons */}
+                {/* Presets Section */}
                 <div className="w-1/3 border-l px-4 py-4 space-y-2 text-sm">
                   {[
                     "Today",
