@@ -98,6 +98,7 @@ const CalendarCard = ({ trades = [] }) => {
 
   return (
     <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200/60 p-5 shadow-lg w-full h-[850px] flex flex-col">
+      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <button onClick={handlePrevMonth} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
@@ -127,6 +128,7 @@ const CalendarCard = ({ trades = [] }) => {
       </div>
 
       <div className="flex flex-1 gap-4 items-start">
+        {/* Calendar Days */}
         <div className="flex-1">
           <div ref={headerRef} className="grid grid-cols-7 gap-1 text-sm text-center text-gray-500 dark:text-gray-400 mb-3">
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
@@ -142,7 +144,7 @@ const CalendarCard = ({ trades = [] }) => {
               initial={{ opacity: 0, filter: "blur(5px)" }}
               animate={{ opacity: 1, filter: "blur(0px)" }}
               exit={{ opacity: 0, filter: "blur(5px)" }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
               className="grid grid-cols-7 gap-1 text-sm text-gray-800 dark:text-white"
             >
               {Array.from({ length: firstDayOfWeek }).map((_, i) => (
@@ -192,22 +194,33 @@ const CalendarCard = ({ trades = [] }) => {
           </AnimatePresence>
         </div>
 
-        <div className="w-[150px] flex flex-col gap-1" style={{ marginTop: `${headerHeight + 11}px` }}>
-          {weeklyStats.map((week, index) => (
-            <div
-              key={`week-${index}`}
-              style={{ height: rowHeight }}
-              className="bg-white dark:bg-zinc-800 rounded-md px-3 py-2 text-sm flex flex-col items-center justify-center border border-gray-200 dark:border-zinc-700"
-            >
-              <div className="text-gray-500 dark:text-gray-400">Week {index + 1}</div>
-              <div className={`text-lg font-semibold ${week.weekPnL >= 0 ? "text-green-600" : "text-red-600"}`}>
-                {week.weekPnL >= 0 ? "+" : ""}${week.weekPnL.toFixed(1)}
+        {/* Weekly Stats with animation */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentMonth.format("MM-YYYY") + "-weeks"}
+            initial={{ opacity: 0, filter: "blur(4px)" }}
+            animate={{ opacity: 1, filter: "blur(0px)" }}
+            exit={{ opacity: 0, filter: "blur(4px)" }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="w-[150px] flex flex-col gap-1"
+            style={{ marginTop: `${headerHeight + 11}px` }}
+          >
+            {weeklyStats.map((week, index) => (
+              <div
+                key={`week-${index}`}
+                style={{ height: rowHeight }}
+                className="bg-white dark:bg-zinc-800 rounded-md px-3 py-2 text-sm flex flex-col items-center justify-center border border-gray-200 dark:border-zinc-700"
+              >
+                <div className="text-gray-500 dark:text-gray-400">Week {index + 1}</div>
+                <div className={`text-lg font-semibold ${week.weekPnL >= 0 ? "text-green-600" : "text-red-600"}`}>
+                  {week.weekPnL >= 0 ? "+" : ""}${week.weekPnL.toFixed(1)}
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">{week.tradingDays} days</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">{week.totalTrades} trades</div>
               </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">{week.tradingDays} days</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">{week.totalTrades} trades</div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );
