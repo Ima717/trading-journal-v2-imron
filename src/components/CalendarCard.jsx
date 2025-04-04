@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Settings } from "lucide-react";
 import dayjs from "dayjs";
-import Tooltip from "react-tooltip-lite";
+import { Tooltip as ReactTooltip } from "react-tooltip";
 
 const CalendarCard = ({ trades = [] }) => {
   const [currentMonth, setCurrentMonth] = useState(dayjs());
@@ -11,12 +11,11 @@ const CalendarCard = ({ trades = [] }) => {
   const startOfMonth = currentMonth.startOf("month");
   const daysInMonth = currentMonth.daysInMonth();
   const firstDayOfWeek = startOfMonth.day();
-
   const days = Array.from({ length: daysInMonth }, (_, i) =>
     startOfMonth.add(i, "day")
   );
 
-  // 🔍 Map trades by date (YYYY-MM-DD)
+  // 🔍 Build date-to-PnL map
   const tradeMap = useMemo(() => {
     const map = {};
     trades.forEach((t) => {
@@ -67,7 +66,7 @@ const CalendarCard = ({ trades = [] }) => {
           </button>
           <button
             className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
-            title="Settings (Coming Soon)"
+            title="Settings (coming soon)"
           >
             <Settings size={18} />
           </button>
@@ -100,24 +99,17 @@ const CalendarCard = ({ trades = [] }) => {
           {days.map((date) => {
             const key = date.format("YYYY-MM-DD");
             const pnl = tradeMap[key];
+            const tooltipId = `tooltip-${key}`;
 
             return (
-              <Tooltip
-                content={
-                  pnl !== undefined ? (
-                    <span>
-                      {key}: <strong className={pnl >= 0 ? "text-green-500" : "text-red-500"}>
-                        ${Math.abs(pnl).toFixed(2)}
-                      </strong>
-                    </span>
-                  ) : null
-                }
-                direction="up"
-                arrow={false}
-                key={key}
-                className="w-full h-full"
-              >
+              <div key={key}>
                 <motion.div
+                  data-tooltip-id={tooltipId}
+                  data-tooltip-content={
+                    pnl !== undefined
+                      ? `${key}: ${pnl < 0 ? "-" : ""}$${Math.abs(pnl).toFixed(2)}`
+                      : null
+                  }
                   whileHover={{ scale: 1.05 }}
                   className={`rounded-lg h-[60px] flex items-center justify-center cursor-pointer border transition-all duration-200
                     ${
@@ -130,7 +122,15 @@ const CalendarCard = ({ trades = [] }) => {
                 >
                   {date.date()}
                 </motion.div>
-              </Tooltip>
+
+                {pnl !== undefined && (
+                  <ReactTooltip
+                    id={tooltipId}
+                    place="top"
+                    className="z-[1000] text-xs px-2 py-1 rounded shadow-lg bg-gray-900 text-white"
+                  />
+                )}
+              </div>
             );
           })}
         </motion.div>
