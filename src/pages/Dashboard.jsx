@@ -22,6 +22,8 @@ import TimelineDateRangePicker from "../components/TimelineDateRangePicker";
 import WinStatsCard from "../components/WinStatsCard";
 import ChartCard from "../components/ChartCard";
 import DrawdownCard from "../components/DrawdownCard";
+import CalendarCard from "../components/CalendarCard"; // ✅ NEW
+import RecentTradesCard from "../components/RecentTradesCard"; // ✅ NEW
 import ErrorBoundary from "../components/ErrorBoundary";
 
 import { getPnLOverTime, getZellaScoreOverTime } from "../utils/calculations";
@@ -156,14 +158,13 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Loading */}
           {isLoading ? (
             <div className="text-center py-10 text-gray-500 dark:text-gray-400">
               Loading dashboard...
             </div>
           ) : (
             <>
-              {/* Top Stat Cards */}
+              {/* Stat Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                 <StatCard
                   title="Net P&L"
@@ -187,33 +188,21 @@ const Dashboard = () => {
                 <WinStatsCard />
               </div>
 
-              {/* Animated Widgets Row */}
+              {/* Animated Widgets */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-stretch">
-                <motion.div
-                  whileHover={{ y: -4, scale: 1.015 }}
-                  transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                  className="h-full"
-                >
+                <motion.div whileHover={{ y: -4, scale: 1.015 }} transition={{ type: "spring", stiffness: 260, damping: 20 }} className="h-full">
                   <ChartCard title="Zella Score">
                     <ChartZellaScore data={zellaTrendData} />
                   </ChartCard>
                 </motion.div>
 
-                <motion.div
-                  whileHover={{ y: -4, scale: 1.015 }}
-                  transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                  className="h-full"
-                >
+                <motion.div whileHover={{ y: -4, scale: 1.015 }} transition={{ type: "spring", stiffness: 260, damping: 20 }} className="h-full">
                   <ChartCard title="Equity Curve">
                     <ChartEquityCurve data={pnlData} />
                   </ChartCard>
                 </motion.div>
 
-                <motion.div
-                  whileHover={{ y: -4, scale: 1.015 }}
-                  transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                  className="h-full"
-                >
+                <motion.div whileHover={{ y: -4, scale: 1.015 }} transition={{ type: "spring", stiffness: 260, damping: 20 }} className="h-full">
                   <ChartCard>
                     <DrawdownCard
                       maxDrawdown={maxDrawdown}
@@ -224,6 +213,18 @@ const Dashboard = () => {
                 </motion.div>
               </div>
 
+              {/* Calendar & Trade History Section */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-stretch">
+                <motion.div whileHover={{ y: -4, scale: 1.015 }} transition={{ type: "spring", stiffness: 260, damping: 20 }} className="lg:col-span-2 h-full">
+                  <CalendarCard />
+                </motion.div>
+
+                <motion.div whileHover={{ y: -4, scale: 1.015 }} transition={{ type: "spring", stiffness: 260, damping: 20 }} className="h-full">
+                  <RecentTradesCard />
+                </motion.div>
+              </div>
+
+              {/* Charts */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 <ChartCard title="Symbol Distribution">
                   <ChartSymbolDistribution />
