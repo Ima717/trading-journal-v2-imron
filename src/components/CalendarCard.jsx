@@ -20,7 +20,7 @@ const CalendarCard = ({ trades = [] }) => {
   const totalWeeks = Math.ceil((firstDayOfWeek + daysInMonth) / 7);
 
   // Calculate dynamic row height
-  const headerHeight = 60; // Approximate height of the header (adjust if needed)
+  const headerHeight = 60; // Approximate height of the header
   const weekdayHeight = 40; // Height of the weekday row
   const availableHeight = 850 - headerHeight - weekdayHeight; // Total height minus header and weekdays
   const rowHeight = availableHeight / totalWeeks; // Dynamic row height
@@ -89,14 +89,14 @@ const CalendarCard = ({ trades = [] }) => {
     if (animating) return;
     setAnimating(true);
     setCurrentMonth((prev) => prev.subtract(1, "month"));
-    setTimeout(() => setAnimating(false), 250);
+    setTimeout(() => setAnimating(false), 200);
   };
 
   const handleNextMonth = () => {
     if (animating) return;
     setAnimating(true);
     setCurrentMonth((prev) => prev.add(1, "month"));
-    setTimeout(() => setAnimating(false), 250);
+    setTimeout(() => setAnimating(false), 200);
   };
 
   return (
@@ -110,7 +110,7 @@ const CalendarCard = ({ trades = [] }) => {
           >
             <ChevronLeft size={18} />
           </button>
-          {/* Placeholder for longest month name to fix arrow positions */}
+          {/* Fixed width for the longest month name ("September") */}
           <div className="relative w-[120px] text-center">
             <h2 className="text-lg font-semibold text-gray-800 dark:text-white absolute left-1/2 transform -translate-x-1/2">
               {currentMonth.format("MMMM YYYY")}
@@ -202,7 +202,7 @@ const CalendarCard = ({ trades = [] }) => {
                         initial={{ opacity: 0, filter: "blur(5px)" }}
                         animate={{ opacity: 1, filter: "blur(0px)" }}
                         exit={{ opacity: 0, filter: "blur(5px)" }}
-                        transition={{ duration: 0.25, ease: "easeInOut" }}
+                        transition={{ duration: 0.2, ease: "easeInOut" }}
                         className="font-medium"
                       >
                         {date.date()}
@@ -213,7 +213,6 @@ const CalendarCard = ({ trades = [] }) => {
                         <span
                           className={`text-xs font-semibold ${
                             pnl >= 0 ? "text-green-600" : "text-red-600"
-                         
                           }`}
                         >
                           {pnl >= 0 ? "+" : ""}${pnl.toFixed(1)}
