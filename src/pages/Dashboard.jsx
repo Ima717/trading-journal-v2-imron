@@ -208,7 +208,7 @@ const Dashboard = () => {
                 <ChartCard title="Equity Curve">
                   <ChartEquityCurve data={pnlData} />
                 </ChartCard>
-                <ChartCard title="Drawdown">
+                <ChartCard>
                   <DrawdownCard
                     maxDrawdown={maxDrawdown}
                     recoveryFactor={recoveryFactor}
