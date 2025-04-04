@@ -212,6 +212,7 @@ const Dashboard = () => {
                   <DrawdownCard
                     maxDrawdown={maxDrawdown}
                     recoveryFactor={recoveryFactor}
+                    data={pnlData}
                   />
                 </ChartCard>
               </div>
