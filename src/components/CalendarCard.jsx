@@ -28,7 +28,6 @@ const CalendarCard = ({ trades = [] }) => {
       }
       map.pnl[date] += t.pnl || 0;
       map.tradesCount[date] += 1;
-      // Assuming percentage is provided in the trade data; otherwise, you can calculate it
       map.percentage[date] = t.percentage || 0;
     });
     return map;
@@ -62,7 +61,9 @@ const CalendarCard = ({ trades = [] }) => {
           const key = d.format("YYYY-MM-DD");
           return sum + (tradeMap.pnl[key] || 0);
         }, 0);
-        const tradingDays = currentWeek.filter((d) => tradeMap.pnl[d.format("YYYY-MM-DD")]).length;
+        const tradingDays = currentWeek.filter((d) =>
+          tradeMap.pnl[d.format("YYYY-MM-DD")]
+        ).length;
         const totalTrades = currentWeek.reduce((sum, d) => {
           const key = d.format("YYYY-MM-DD");
           return sum + (tradeMap.tradesCount[key] || 0);
@@ -79,20 +80,18 @@ const CalendarCard = ({ trades = [] }) => {
     if (animating) return;
     setAnimating(true);
     setCurrentMonth((prev) => prev.subtract(1, "month"));
-    setTimeout(() => setAnimating(false), 250);
+    setTimeout(() => setAnimating(false), 300);
   };
 
   const handleNextMonth = () => {
     if (animating) return;
     setAnimating(true);
     setCurrentMonth((prev) => prev.add(1, "month"));
-    setTimeout(() => setAnimating(false), 250);
+    setTimeout(() => setAnimating(false), 300);
   };
 
   return (
-    <div
-      className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200/60 p-5 shadow-lg w-full h-[850px] flex flex-col"
-    >
+    <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200/60 p-5 shadow-lg w-full h-[850px] flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
@@ -140,9 +139,9 @@ const CalendarCard = ({ trades = [] }) => {
         {/* Calendar Grid */}
         <div className="flex-1">
           {/* Weekdays */}
-          <div className="grid grid-cols-7 gap-2 text-sm text-center text-gray-500 dark:text-gray-400 mb-2">
+          <div className="grid grid-cols-7 gap-0 text-sm text-center text-gray-500 dark:text-gray-400 mb-2">
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-              <div key={d} className="font-medium">
+              <div key={d} className="font-medium p-2">
                 {d}
               </div>
             ))}
@@ -152,14 +151,14 @@ const CalendarCard = ({ trades = [] }) => {
           <AnimatePresence mode="wait">
             <motion.div
               key={currentMonth.format("MM-YYYY")}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.25 }}
-              className="grid grid-cols-7 gap-2 text-sm text-gray-800 dark:text-white"
+              initial={{ opacity: 0, filter: "blur(5px)" }}
+              animate={{ opacity: 1, filter: "blur(0px)" }}
+              exit={{ opacity: 0, filter: "blur(5px)" }}
+              transition={{ duration: 0.3 }}
+              className="grid grid-cols-7 gap-0 text-sm text-gray-800 dark:text-white"
             >
               {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-                <div key={`empty-${i}`} />
+                <div key={`empty-${i}`} className="h-[90px]" />
               ))}
 
               {days.map((date) => {
@@ -170,7 +169,10 @@ const CalendarCard = ({ trades = [] }) => {
                 const tooltipId = `tooltip-${key}`;
 
                 return (
-                  <div key={key}>
+                  <div
+                    key={key}
+                    className="h-[90px] flex items-center justify-center"
+                  >
                     <motion.div
                       data-tooltip-id={tooltipId}
                       data-tooltip-content={
@@ -179,7 +181,7 @@ const CalendarCard = ({ trades = [] }) => {
                           : null
                       }
                       whileHover={{ scale: 1.05 }}
-                      className={`rounded-lg h-[90px] flex flex-col items-center justify-center cursor-pointer border transition-all duration-200 p-2
+                      className={`rounded-lg w-full h-full flex flex-col items-center justify-center cursor-pointer border transition-all duration-200 p-2
                         ${
                           pnl !== undefined
                             ? pnl >= 0
@@ -198,8 +200,12 @@ const CalendarCard = ({ trades = [] }) => {
                           >
                             {pnl >= 0 ? "+" : ""}${pnl.toFixed(1)}
                           </span>
-                          <span className="text-xs text-gray-500">{percentage}%</span>
-                          <span className="text-xs text-gray-400">{tradesCount} trades</span>
+                          <span className="text-xs text-gray-500">
+                            {percentage}%
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            {tradesCount} trades
+                          </span>
                         </>
                       )}
                     </motion.div>
@@ -223,9 +229,11 @@ const CalendarCard = ({ trades = [] }) => {
           {weeklyStats.map((week, index) => (
             <div
               key={`week-${index}`}
-              className="bg-gray-50 dark:bg-zinc-700 rounded-lg p-3 text-sm"
+              className="bg-gray-50 dark:bg-zinc-700 rounded-lg p-3 text-sm h-[90px] flex flex-col items-center justify-center"
             >
-              <div className="text-gray-500 dark:text-gray-400">Week {index + 1}</div>
+              <div className="text-gray-500 dark:text-gray-400">
+                Week {index + 1}
+              </div>
               <div
                 className={`text-lg font-semibold ${
                   week.weekPnL >= 0 ? "text-green-600" : "text-red-600"
