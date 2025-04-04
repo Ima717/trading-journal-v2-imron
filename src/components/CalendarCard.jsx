@@ -192,7 +192,7 @@ const CalendarCard = ({ trades = [] }) => {
           </AnimatePresence>
         </div>
 
-        <div className="w-[150px] flex flex-col gap-1" style={{ marginTop: `${headerHeight + 10}px` }}>
+        <div className="w-[150px] flex flex-col gap-1" style={{ marginTop: `${headerHeight + 12}px` }}>
           {weeklyStats.map((week, index) => (
             <div
               key={`week-${index}`}
