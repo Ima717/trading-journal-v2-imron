@@ -20,7 +20,8 @@ import ChartPnLBySymbol from "../components/ChartPnLBySymbol";
 import AdvancedFilters from "../components/AdvancedFilters";
 import TimelineDateRangePicker from "../components/TimelineDateRangePicker";
 import WinStatsCard from "../components/WinStatsCard";
-import ChartCard from "../components/ChartCard"; // ✅ Wrapper with title
+import ChartCard from "../components/ChartCard";
+import DrawdownCard from "../components/DrawdownCard"; // ✅ NEW
 
 import { getPnLOverTime, getZellaScoreOverTime } from "../utils/calculations";
 import ErrorBoundary from "../components/ErrorBoundary";
@@ -141,6 +142,21 @@ const Dashboard = () => {
     return "bg-gradient-to-r from-red-400 to-red-500 text-white";
   };
 
+  // ✅ Drawdown & Recovery calculations
+  const cumulativePnl = [];
+  let runningPnl = 0;
+  filteredTrades
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .forEach((t) => {
+      runningPnl += t.pnl || 0;
+      cumulativePnl.push(runningPnl);
+    });
+
+  const peak = Math.max(...cumulativePnl, 0);
+  const trough = Math.min(...cumulativePnl, 0);
+  const maxDrawdown = trough;
+  const recoveryFactor = peak !== 0 ? Math.abs(peak / trough) : 0;
+
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-100 dark:bg-zinc-900 font-inter">
@@ -156,7 +172,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Analytics Cards */}
+          {/* Top Stat Cards */}
           {isLoading ? (
             <div className="text-center py-10 text-gray-500 dark:text-gray-400">Loading dashboard...</div>
           ) : (
@@ -184,12 +200,19 @@ const Dashboard = () => {
                 <WinStatsCard />
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              {/* ✅ Zella, Equity, Drawdown in one row */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                 <ChartCard title="Zella Score">
                   <ChartZellaScore data={zellaTrendData} />
                 </ChartCard>
                 <ChartCard title="Equity Curve">
-                  <ChartEquityCurve />
+                  <ChartEquityCurve data={pnlData} />
+                </ChartCard>
+                <ChartCard title="Drawdown">
+                  <DrawdownCard
+                    maxDrawdown={maxDrawdown}
+                    recoveryFactor={recoveryFactor}
+                  />
                 </ChartCard>
               </div>
 
