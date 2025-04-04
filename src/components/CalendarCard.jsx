@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Settings } from "lucide-react";
 import dayjs from "dayjs";
 
@@ -19,9 +19,9 @@ const CalendarCard = () => {
 
   return (
     <motion.div
-      whileHover={{ y: -4 }}
-      transition={{ type: "spring", stiffness: 300 }}
-      className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200/60 p-5 shadow-lg w-full h-full flex flex-col"
+      whileHover={{ y: -4, scale: 1.015 }}
+      transition={{ type: "spring", stiffness: 260, damping: 20 }}
+      className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200/60 p-5 shadow-lg w-full h-full min-h-[580px] flex flex-col"
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
@@ -31,18 +31,18 @@ const CalendarCard = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={handlePrevMonth}
-            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700"
+            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
           >
             <ChevronLeft size={18} />
           </button>
           <button
             onClick={handleNextMonth}
-            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700"
+            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
           >
             <ChevronRight size={18} />
           </button>
           <button
-            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700"
+            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
             title="Settings"
           >
             <Settings size={18} />
@@ -59,20 +59,29 @@ const CalendarCard = () => {
         ))}
       </div>
 
-      {/* Days */}
-      <div className="grid grid-cols-7 gap-2 text-sm text-gray-800 dark:text-white flex-1">
-        {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-          <div key={`empty-${i}`} />
-        ))}
-        {days.map((date) => (
-          <div
-            key={date.format("YYYY-MM-DD")}
-            className="rounded-lg h-[60px] hover:bg-purple-100/60 dark:hover:bg-purple-900/30 transition-colors flex items-center justify-center cursor-pointer border border-transparent hover:border-purple-400 dark:hover:border-purple-600"
-          >
-            {date.date()}
-          </div>
-        ))}
-      </div>
+      {/* Animated Days */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentMonth.format("YYYY-MM")}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
+          className="grid grid-cols-7 gap-2 text-sm text-gray-800 dark:text-white flex-1"
+        >
+          {Array.from({ length: firstDayOfWeek }).map((_, i) => (
+            <div key={`empty-${i}`} />
+          ))}
+          {days.map((date) => (
+            <div
+              key={date.format("YYYY-MM-DD")}
+              className="rounded-lg h-[60px] hover:bg-purple-100/60 dark:hover:bg-purple-900/30 transition-colors flex items-center justify-center cursor-pointer border border-transparent hover:border-purple-400 dark:hover:border-purple-600"
+            >
+              {date.date()}
+            </div>
+          ))}
+        </motion.div>
+      </AnimatePresence>
     </motion.div>
   );
 };
