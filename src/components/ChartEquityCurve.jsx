@@ -50,10 +50,10 @@ const ChartEquityCurve = ({ data }) => {
           const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, 350);
           const last = chartDataPoints[chartDataPoints.length - 1];
           if (last > 0) {
-            gradient.addColorStop(0, "rgba(34, 197, 94, 0.15)");
+            gradient.addColorStop(0, "rgba(34, 197, 94, 0.2)");
             gradient.addColorStop(1, "rgba(34, 197, 94, 0.05)");
           } else if (last < 0) {
-            gradient.addColorStop(0, "rgba(239, 68, 68, 0.15)");
+            gradient.addColorStop(0, "rgba(239, 68, 68, 0.2)");
             gradient.addColorStop(1, "rgba(239, 68, 68, 0.05)");
           } else {
             gradient.addColorStop(0, "rgba(209, 213, 219, 0.1)");
@@ -87,7 +87,7 @@ const ChartEquityCurve = ({ data }) => {
         displayColors: false,
         callbacks: {
           label: (context) => `P&L: $${context.parsed.y.toFixed(2)}`,
-          title: (items) => items[0].label,
+          title: () => null,
           afterBody: () =>
             latestTrend === "up"
               ? "Trend: Upward"
@@ -99,15 +99,11 @@ const ChartEquityCurve = ({ data }) => {
     },
     scales: {
       x: {
-        grid: { display: false },
-        ticks: {
-          color: "#6b7280",
-          font: { size: 12, family: "'Inter', sans-serif" },
-        },
+        display: false, // ✅ Hide dates completely
       },
       y: {
         grid: {
-          color: "rgba(229, 231, 235, 0.2)",
+          color: "rgba(229, 231, 235, 0.15)",
           borderDash: [8, 8],
         },
         ticks: {
@@ -118,7 +114,7 @@ const ChartEquityCurve = ({ data }) => {
       },
     },
     interaction: { mode: "nearest", intersect: false },
-    animation: { duration: 1200, easing: "easeInOutQuad" },
+    animation: { duration: 800, easing: "easeInOutQuad" },
   };
 
   const TrendIndicator = () => (
@@ -150,15 +146,12 @@ const ChartEquityCurve = ({ data }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: "easeInOut" }}
-      className="relative w-full bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200/60 p-5 shadow-lg"
+      className="w-full h-full flex flex-col"
     >
-      {/* Header - no duplicate title */}
       <div className="flex justify-end mb-3">
         <TrendIndicator />
       </div>
-
-      {/* Chart */}
-      <div className="h-[320px]">
+      <div className="flex-grow w-full -mx-4 px-4">
         <Line data={chartData} options={options} />
       </div>
     </motion.div>
