@@ -41,17 +41,13 @@ const DrawdownCard = ({ maxDrawdown = -842, recoveryFactor = 0.65, data = [] }) 
         fill: true,
         pointRadius: 0,
         borderWidth: 2,
-        borderColor: (ctx) => {
-          const { chart } = ctx;
-          const { ctx: canvas } = chart;
-          const gradient = canvas.createLinearGradient(0, 0, 0, chart.height);
-          gradient.addColorStop(0, "#22c55e");
-          gradient.addColorStop(1, "#ef4444");
-          return gradient;
-        },
+        borderColor: "#22c55e",
         backgroundColor: (ctx) => {
-          const { chart } = ctx;
-          const { ctx: canvas, chartArea } = chart;
+          const chart = ctx.chart;
+          const { chartArea, ctx: canvas } = chart;
+
+          // Prevent crash on first render
+          if (!chartArea) return "rgba(0,0,0,0)";
 
           const gradient = canvas.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
           gradient.addColorStop(0, "rgba(34,197,94,0.2)");
@@ -127,7 +123,7 @@ const DrawdownCard = ({ maxDrawdown = -842, recoveryFactor = 0.65, data = [] }) 
         </span>
       </div>
 
-      {/* Progress */}
+      {/* Progress Bar */}
       <div className="w-full h-3 rounded-full bg-gray-200 dark:bg-zinc-700 relative overflow-hidden">
         <div
           className="absolute top-0 left-0 h-3 rounded-full bg-gradient-to-r from-red-400 to-red-700"
@@ -135,7 +131,7 @@ const DrawdownCard = ({ maxDrawdown = -842, recoveryFactor = 0.65, data = [] }) 
         />
       </div>
 
-      {/* Recovery */}
+      {/* Recovery Factor */}
       <div className="flex justify-between items-center text-sm">
         <span className="text-gray-500 dark:text-gray-400">Recovery Factor</span>
         <span
@@ -151,7 +147,7 @@ const DrawdownCard = ({ maxDrawdown = -842, recoveryFactor = 0.65, data = [] }) 
         </span>
       </div>
 
-      {/* Compact Area Chart */}
+      {/* Mini Chart */}
       <div className="mt-2 h-[120px] w-full">
         <Line ref={chartRef} data={chartData} options={options} />
       </div>
