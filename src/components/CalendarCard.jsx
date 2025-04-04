@@ -159,7 +159,7 @@ const CalendarCard = ({ trades = [] }) => {
 
                 return (
                   <div key={key} style={{ height: rowHeight }} className="rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800">
-                    <motion.div
+                    <div
                       data-tooltip-id={tooltipId}
                       data-tooltip-content={pnl !== undefined ? `${key}: ${pnl < 0 ? "-" : ""}$${Math.abs(pnl).toFixed(2)} | Trades: ${tradesCount}` : null}
                       className={`w-full h-full flex flex-col items-center justify-center cursor-pointer transition-all duration-200 p-2
@@ -179,7 +179,7 @@ const CalendarCard = ({ trades = [] }) => {
                           <span className="text-xs text-gray-400">{tradesCount} trades</span>
                         </>
                       )}
-                    </motion.div>
+                    </div>
                     {pnl !== undefined && (
                       <ReactTooltip
                         id={tooltipId}
