@@ -107,7 +107,7 @@ const DrawdownCard = ({ maxDrawdown = -905, recoveryFactor = 0.38, data = [] }) 
     >
       {/* Title and Max DD */}
       <div className="flex justify-between items-center mb-3">
-        <h3 className="text-sm font-semibold text-gray-800 dark:text-white">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-white">
           Max Drawdown
         </h3>
         <span className="text-sm text-red-600 font-semibold flex items-center gap-1">
