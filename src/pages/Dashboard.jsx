@@ -8,6 +8,7 @@ import { useFilters } from "../context/FilterContext";
 import { useTheme } from "../context/ThemeContext";
 import dayjs from "dayjs";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import { motion } from "framer-motion";
 
 import TradeTabs from "../components/TradeTabs";
 import ChartTagPerformance from "../components/ChartTagPerformance";
@@ -21,16 +22,16 @@ import AdvancedFilters from "../components/AdvancedFilters";
 import TimelineDateRangePicker from "../components/TimelineDateRangePicker";
 import WinStatsCard from "../components/WinStatsCard";
 import ChartCard from "../components/ChartCard";
-import DrawdownCard from "../components/DrawdownCard"; // ✅ NEW
+import DrawdownCard from "../components/DrawdownCard";
+import ErrorBoundary from "../components/ErrorBoundary";
 
 import { getPnLOverTime, getZellaScoreOverTime } from "../utils/calculations";
-import ErrorBoundary from "../components/ErrorBoundary";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { theme } = useTheme();
-  const { dateRange, filteredTrades, setDateRange } = useFilters();
+  const { dateRange, filteredTrades } = useFilters();
 
   const [tagPerformanceData, setTagPerformanceData] = useState([]);
   const [pnlData, setPnlData] = useState([]);
@@ -103,17 +104,6 @@ const Dashboard = () => {
   const wins = filteredTrades.filter((t) => t.pnl > 0);
   const losses = filteredTrades.filter((t) => t.pnl < 0);
   const winRate = totalTrades ? ((wins.length / totalTrades) * 100).toFixed(2) : "0.00";
-  const tradingDays = [...new Set(filteredTrades.map((t) => t.date))];
-  const winningDays = tradingDays.filter((day) => {
-    const dayPnL = filteredTrades
-      .filter((t) => t.date === day)
-      .reduce((sum, t) => sum + t.pnl, 0);
-    return dayPnL > 0;
-  });
-
-  const dayWinPercent = tradingDays.length
-    ? ((winningDays.length / tradingDays.length) * 100).toFixed(2)
-    : "0.00";
 
   const avgWin = wins.length ? wins.reduce((s, t) => s + t.pnl, 0) / wins.length : 0;
   const avgLoss = losses.length
@@ -121,6 +111,17 @@ const Dashboard = () => {
     : 0;
   const profitFactor = losses.length
     ? (wins.reduce((s, t) => s + t.pnl, 0) / Math.abs(losses.reduce((s, t) => s + t.pnl, 0))).toFixed(2)
+    : "0.00";
+
+  const tradingDays = [...new Set(filteredTrades.map((t) => t.date))];
+  const winningDays = tradingDays.filter((day) => {
+    const dayPnL = filteredTrades
+      .filter((t) => t.date === day)
+      .reduce((sum, t) => sum + t.pnl, 0);
+    return dayPnL > 0;
+  });
+  const dayWinPercent = tradingDays.length
+    ? ((winningDays.length / tradingDays.length) * 100).toFixed(2)
     : "0.00";
 
   const donut = (
@@ -136,13 +137,6 @@ const Dashboard = () => {
     />
   );
 
-  const getWinRateBackground = () => {
-    if (winRate > 60) return "bg-gradient-to-r from-green-400 to-green-500 text-white";
-    if (winRate >= 40) return "bg-gradient-to-r from-yellow-400 to-yellow-500 text-white";
-    return "bg-gradient-to-r from-red-400 to-red-500 text-white";
-  };
-
-  // ✅ Drawdown & Recovery calculations
   const cumulativePnl = [];
   let runningPnl = 0;
   filteredTrades
@@ -156,6 +150,12 @@ const Dashboard = () => {
   const trough = Math.min(...cumulativePnl, 0);
   const maxDrawdown = trough;
   const recoveryFactor = peak !== 0 ? Math.abs(peak / trough) : 0;
+
+  const getWinRateBackground = () => {
+    if (winRate > 60) return "bg-gradient-to-r from-green-400 to-green-500 text-white";
+    if (winRate >= 40) return "bg-gradient-to-r from-yellow-400 to-yellow-500 text-white";
+    return "bg-gradient-to-r from-red-400 to-red-500 text-white";
+  };
 
   return (
     <ErrorBoundary>
@@ -172,11 +172,11 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Top Stat Cards */}
           {isLoading ? (
             <div className="text-center py-10 text-gray-500 dark:text-gray-400">Loading dashboard...</div>
           ) : (
             <>
+              {/* Stat Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                 <StatCard
                   title="Net P&L"
@@ -200,21 +200,41 @@ const Dashboard = () => {
                 <WinStatsCard />
               </div>
 
-              {/* ✅ Zella, Equity, Drawdown in one row */}
+              {/* Animated Widget Row */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-stretch">
-                <ChartCard title="Zella Score">
-                  <ChartZellaScore data={zellaTrendData} />
-                </ChartCard>
-                <ChartCard title="Equity Curve">
-                  <ChartEquityCurve data={pnlData} />
-                </ChartCard>
-                <ChartCard>
-                  <DrawdownCard
-                    maxDrawdown={maxDrawdown}
-                    recoveryFactor={recoveryFactor}
-                    data={pnlData}
-                  />
-                </ChartCard>
+                <motion.div
+                  whileHover={{ y: -4 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                  className="h-full"
+                >
+                  <ChartCard title="Zella Score">
+                    <ChartZellaScore data={zellaTrendData} />
+                  </ChartCard>
+                </motion.div>
+
+                <motion.div
+                  whileHover={{ y: -4 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                  className="h-full"
+                >
+                  <ChartCard title="Equity Curve">
+                    <ChartEquityCurve data={pnlData} />
+                  </ChartCard>
+                </motion.div>
+
+                <motion.div
+                  whileHover={{ y: -4 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                  className="h-full"
+                >
+                  <ChartCard>
+                    <DrawdownCard
+                      maxDrawdown={maxDrawdown}
+                      recoveryFactor={recoveryFactor}
+                      data={pnlData}
+                    />
+                  </ChartCard>
+                </motion.div>
               </div>
 
               <div className="mb-6">
