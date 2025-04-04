@@ -38,63 +38,48 @@ const Dashboard = () => {
   const [zellaTrendData, setZellaTrendData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      navigate("/signin");
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
-  };
-
   useEffect(() => {
     if (!user) return;
     setIsLoading(true);
 
     const q = query(collection(db, "users", user.uid, "trades"));
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        let trades = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      let trades = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-        if (dateRange.start && dateRange.end) {
-          const start = dayjs(dateRange.start);
-          const end = dayjs(dateRange.end);
-          trades = trades.filter((t) =>
+      if (dateRange.start && dateRange.end) {
+        const start = dayjs(dateRange.start);
+        const end = dayjs(dateRange.end);
+        trades = trades.filter(
+          (t) =>
             dayjs(t.date).isAfter(start.subtract(1, "day")) &&
             dayjs(t.date).isBefore(end.add(1, "day"))
-          );
-        }
-
-        const pnlSeries = getPnLOverTime(trades);
-        const zellaSeries = getZellaScoreOverTime(trades);
-        setPnlData(pnlSeries);
-        setZellaTrendData(zellaSeries);
-
-        const tagMap = {};
-        trades.forEach((trade) => {
-          if (Array.isArray(trade.tags)) {
-            trade.tags.forEach((tag) => {
-              if (!tagMap[tag]) tagMap[tag] = { totalPnL: 0, count: 0 };
-              tagMap[tag].totalPnL += trade.pnl || 0;
-              tagMap[tag].count += 1;
-            });
-          }
-        });
-
-        const formatted = Object.entries(tagMap).map(([tag, val]) => ({
-          tag,
-          avgPnL: parseFloat((val.totalPnL / val.count).toFixed(2)),
-        }));
-
-        setTagPerformanceData(formatted);
-        setIsLoading(false);
-      },
-      (error) => {
-        console.error("Error fetching trades:", error);
-        setIsLoading(false);
+        );
       }
-    );
+
+      const pnlSeries = getPnLOverTime(trades);
+      const zellaSeries = getZellaScoreOverTime(trades);
+      setPnlData(pnlSeries);
+      setZellaTrendData(zellaSeries);
+
+      const tagMap = {};
+      trades.forEach((trade) => {
+        if (Array.isArray(trade.tags)) {
+          trade.tags.forEach((tag) => {
+            if (!tagMap[tag]) tagMap[tag] = { totalPnL: 0, count: 0 };
+            tagMap[tag].totalPnL += trade.pnl || 0;
+            tagMap[tag].count += 1;
+          });
+        }
+      });
+
+      const formatted = Object.entries(tagMap).map(([tag, val]) => ({
+        tag,
+        avgPnL: parseFloat((val.totalPnL / val.count).toFixed(2)),
+      }));
+
+      setTagPerformanceData(formatted);
+      setIsLoading(false);
+    });
 
     return () => unsubscribe();
   }, [user, dateRange]);
@@ -172,11 +157,14 @@ const Dashboard = () => {
             </div>
           </div>
 
+          {/* Loading */}
           {isLoading ? (
-            <div className="text-center py-10 text-gray-500 dark:text-gray-400">Loading dashboard...</div>
+            <div className="text-center py-10 text-gray-500 dark:text-gray-400">
+              Loading dashboard...
+            </div>
           ) : (
             <>
-              {/* Stat Cards */}
+              {/* Top Stat Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                 <StatCard
                   title="Net P&L"
@@ -200,11 +188,11 @@ const Dashboard = () => {
                 <WinStatsCard />
               </div>
 
-              {/* Animated Widget Row */}
+              {/* Animated Widgets Row */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-stretch">
                 <motion.div
-                  whileHover={{ y: -4 }}
-                  transition={{ type: "spring", stiffness: 300 }}
+                  whileHover={{ y: -4, scale: 1.015 }}
+                  transition={{ type: "spring", stiffness: 260, damping: 20 }}
                   className="h-full"
                 >
                   <ChartCard title="Zella Score">
@@ -213,8 +201,8 @@ const Dashboard = () => {
                 </motion.div>
 
                 <motion.div
-                  whileHover={{ y: -4 }}
-                  transition={{ type: "spring", stiffness: 300 }}
+                  whileHover={{ y: -4, scale: 1.015 }}
+                  transition={{ type: "spring", stiffness: 260, damping: 20 }}
                   className="h-full"
                 >
                   <ChartCard title="Equity Curve">
@@ -223,8 +211,8 @@ const Dashboard = () => {
                 </motion.div>
 
                 <motion.div
-                  whileHover={{ y: -4 }}
-                  transition={{ type: "spring", stiffness: 300 }}
+                  whileHover={{ y: -4, scale: 1.015 }}
+                  transition={{ type: "spring", stiffness: 260, damping: 20 }}
                   className="h-full"
                 >
                   <ChartCard>
