@@ -37,7 +37,7 @@ const DrawdownCard = ({ maxDrawdown = -905, recoveryFactor = 0.38, data = [] }) 
       {
         label: "Cumulative P&L",
         data: pnlPoints,
-        tension: 0, // keep it straight, no smoothing
+        tension: 0,
         pointRadius: 0,
         fill: true,
         borderWidth: 2,
@@ -48,10 +48,10 @@ const DrawdownCard = ({ maxDrawdown = -905, recoveryFactor = 0.38, data = [] }) 
           if (!chartArea) return "rgba(0,0,0,0)";
 
           const gradient = canvas.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-          gradient.addColorStop(0, "rgba(34,197,94,0.35)"); // stronger green
+          gradient.addColorStop(0, "rgba(34,197,94,0.4)");
           gradient.addColorStop(0.5, "rgba(255,255,255,0)");
           gradient.addColorStop(0.5, "rgba(255,255,255,0)");
-          gradient.addColorStop(1, "rgba(239,68,68,0.35)"); // stronger red
+          gradient.addColorStop(1, "rgba(239,68,68,0.4)");
           return gradient;
         },
       },
@@ -61,7 +61,10 @@ const DrawdownCard = ({ maxDrawdown = -905, recoveryFactor = 0.38, data = [] }) 
   const options = {
     responsive: true,
     maintainAspectRatio: false,
-    interaction: { mode: "nearest", intersect: false },
+    interaction: {
+      mode: "nearest",
+      intersect: false,
+    },
     plugins: {
       legend: { display: false },
       tooltip: {
@@ -139,8 +142,8 @@ const DrawdownCard = ({ maxDrawdown = -905, recoveryFactor = 0.38, data = [] }) 
         </span>
       </div>
 
-      {/* Chart - expanded & clean */}
-      <div className="h-[120px] w-full -mx-5 px-5">
+      {/* Chart */}
+      <div className="mt-2 h-[120px] w-full -mx-5 px-5">
         <Line ref={chartRef} data={chartData} options={options} />
       </div>
     </motion.div>
