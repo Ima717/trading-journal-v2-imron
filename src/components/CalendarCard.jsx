@@ -163,8 +163,8 @@ const CalendarCard = ({ trades = [] }) => {
           <div className="grid grid-cols-7 gap-0 text-sm text-gray-800 dark:text-white">
             {Array.from({ length: firstDayOfWeek }).map((_, i) => (
               <div
-                key={`empty-${i}`}
-                className={`h-[${rowHeight}px] mr-1 border border-gray-200 dark:border-zinc-700`}
+                key={`empty-start-${i}`}
+                className={`h-[${rowHeight}px] mr-1 border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900`}
               />
             ))}
 
@@ -237,11 +237,18 @@ const CalendarCard = ({ trades = [] }) => {
                 </div>
               );
             })}
+
+            {Array.from({ length: (totalWeeks * 7) - (firstDayOfWeek + daysInMonth) }).map((_, i) => (
+              <div
+                key={`empty-end-${i}`}
+                className={`h-[${rowHeight}px] mr-1 border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900`}
+              />
+            ))}
           </div>
         </div>
 
         {/* Weekly Stats */}
-        <div className="w-[150px] flex flex-col gap-1">
+        <div className="w-[150px] flex flex-col">
           {weeklyStats.map((week, index) => (
             <div
               key={`week-${index}`}
