@@ -80,14 +80,14 @@ const CalendarCard = ({ trades = [] }) => {
     if (animating) return;
     setAnimating(true);
     setCurrentMonth((prev) => prev.subtract(1, "month"));
-    setTimeout(() => setAnimating(false), 300);
+    setTimeout(() => setAnimating(false), 400);
   };
 
   const handleNextMonth = () => {
     if (animating) return;
     setAnimating(true);
     setCurrentMonth((prev) => prev.add(1, "month"));
-    setTimeout(() => setAnimating(false), 300);
+    setTimeout(() => setAnimating(false), 400);
   };
 
   return (
@@ -135,7 +135,7 @@ const CalendarCard = ({ trades = [] }) => {
       </div>
 
       {/* Main Content: Calendar + Weekly Stats */}
-      <div className="flex flex-1 gap-4">
+      <div className="flex flex-1 gap-0">
         {/* Calendar Grid */}
         <div className="flex-1">
           {/* Weekdays */}
@@ -154,11 +154,14 @@ const CalendarCard = ({ trades = [] }) => {
               initial={{ opacity: 0, filter: "blur(5px)" }}
               animate={{ opacity: 1, filter: "blur(0px)" }}
               exit={{ opacity: 0, filter: "blur(5px)" }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
               className="grid grid-cols-7 gap-0 text-sm text-gray-800 dark:text-white"
             >
               {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-                <div key={`empty-${i}`} className="h-[90px]" />
+                <div
+                  key={`empty-${i}`}
+                  className="h-[120px] mr-1 border border-gray-200 dark:border-zinc-700"
+                />
               ))}
 
               {days.map((date) => {
@@ -171,7 +174,7 @@ const CalendarCard = ({ trades = [] }) => {
                 return (
                   <div
                     key={key}
-                    className="h-[90px] flex items-center justify-center"
+                    className="h-[120px] flex items-center justify-center mr-1 border border-gray-200 dark:border-zinc-700"
                   >
                     <motion.div
                       data-tooltip-id={tooltipId}
@@ -180,8 +183,7 @@ const CalendarCard = ({ trades = [] }) => {
                           ? `${key}: ${pnl < 0 ? "-" : ""}$${Math.abs(pnl).toFixed(2)} | Trades: ${tradesCount}`
                           : null
                       }
-                      whileHover={{ scale: 1.05 }}
-                      className={`rounded-lg w-full h-full flex flex-col items-center justify-center cursor-pointer border transition-all duration-200 p-2
+                      className={`rounded-lg w-full h-full flex flex-col items-center justify-center cursor-pointer transition-all duration-200 p-2
                         ${
                           pnl !== undefined
                             ? pnl >= 0
@@ -224,12 +226,15 @@ const CalendarCard = ({ trades = [] }) => {
           </AnimatePresence>
         </div>
 
+        {/* Vertical Separator Line */}
+        <div className="w-px bg-gray-200 dark:bg-zinc-700 mx-2"></div>
+
         {/* Weekly Stats */}
-        <div className="w-[150px] flex flex-col gap-3">
+        <div className="w-[150px] flex flex-col gap-0">
           {weeklyStats.map((week, index) => (
             <div
               key={`week-${index}`}
-              className="bg-gray-50 dark:bg-zinc-700 rounded-lg p-3 text-sm h-[90px] flex flex-col items-center justify-center"
+              className="bg-gray-50 dark:bg-zinc-700 rounded-lg p-3 text-sm h-[120px] flex flex-col items-center justify-center border border-gray-200 dark:border-zinc-700"
             >
               <div className="text-gray-500 dark:text-gray-400">
                 Week {index + 1}
