@@ -82,8 +82,13 @@ const CalendarCard = ({ trades = [] }) => {
       }
     });
 
+    // Ensure the number of weeks matches totalWeeks
+    while (weeks.length < totalWeeks) {
+      weeks.push({ weekPnL: 0, tradingDays: 0, totalTrades: 0 });
+    }
+
     return weeks;
-  }, [tradeMap, days, startOfMonth]);
+  }, [tradeMap, days, startOfMonth, totalWeeks]);
 
   const handlePrevMonth = () => {
     if (animating) return;
