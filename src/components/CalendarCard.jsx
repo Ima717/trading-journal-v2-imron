@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 import { Tooltip as ReactTooltip } from "react-tooltip";
 
 const CalendarCard = ({ trades = [] }) => {
-  const [currentMonth, setCurrentMonth] = useState(dayjs("2025-02-01")); // Set to February 2025 for demo
+  const [currentMonth, setCurrentMonth] = useState(dayjs());
   const [animating, setAnimating] = useState(false);
 
   const startOfMonth = currentMonth.startOf("month");
@@ -16,14 +16,20 @@ const CalendarCard = ({ trades = [] }) => {
     startOfMonth.add(i, "day")
   );
 
-  // 🔍 Build date-to-PnL map and percentage map (mocked percentages for demo)
+  // 🔍 Build date-to-analytics map (PnL, number of trades, percentage)
   const tradeMap = useMemo(() => {
-    const map = { pnl: {}, percentage: {} };
+    const map = { pnl: {}, tradesCount: {}, percentage: {} };
     trades.forEach((t) => {
       const date = dayjs(t.date).format("YYYY-MM-DD");
-      if (!map.pnl[date]) map.pnl[date] = 0;
+      if (!map.pnl[date]) {
+        map.pnl[date] = 0;
+        map.tradesCount[date] = 0;
+        map.percentage[date] = 0;
+      }
       map.pnl[date] += t.pnl || 0;
-      map.percentage[date] = t.percentage || (Math.random() * 100).toFixed(2); // Mock percentage
+      map.tradesCount[date] += 1;
+      // Assuming percentage is provided in the trade data; otherwise, you can calculate it
+      map.percentage[date] = t.percentage || 0;
     });
     return map;
   }, [trades]);
@@ -32,13 +38,15 @@ const CalendarCard = ({ trades = [] }) => {
   const monthlyStats = useMemo(() => {
     let totalPnL = 0;
     let tradingDays = 0;
+    let totalTrades = 0;
     Object.keys(tradeMap.pnl).forEach((date) => {
       if (dayjs(date).isSame(currentMonth, "month")) {
         totalPnL += tradeMap.pnl[date];
+        totalTrades += tradeMap.tradesCount[date];
         tradingDays++;
       }
     });
-    return { totalPnL, tradingDays };
+    return { totalPnL, tradingDays, totalTrades };
   }, [tradeMap, currentMonth]);
 
   // 📅 Calculate weekly stats
@@ -55,7 +63,11 @@ const CalendarCard = ({ trades = [] }) => {
           return sum + (tradeMap.pnl[key] || 0);
         }, 0);
         const tradingDays = currentWeek.filter((d) => tradeMap.pnl[d.format("YYYY-MM-DD")]).length;
-        weeks.push({ weekPnL, tradingDays });
+        const totalTrades = currentWeek.reduce((sum, d) => {
+          const key = d.format("YYYY-MM-DD");
+          return sum + (tradeMap.tradesCount[key] || 0);
+        }, 0);
+        weeks.push({ weekPnL, tradingDays, totalTrades });
         currentWeek = [];
       }
     });
@@ -78,10 +90,8 @@ const CalendarCard = ({ trades = [] }) => {
   };
 
   return (
-    <motion.div
-      whileHover={{ y: -4, scale: 1.015 }}
-      transition={{ type: "spring", stiffness: 260, damping: 20 }}
-      className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200/60 p-5 shadow-lg w-[850px] h-[700px] flex flex-col"
+    <div
+      className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200/60 p-5 shadow-lg w-full h-[850px] flex flex-col"
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
@@ -155,6 +165,7 @@ const CalendarCard = ({ trades = [] }) => {
               {days.map((date) => {
                 const key = date.format("YYYY-MM-DD");
                 const pnl = tradeMap.pnl[key];
+                const tradesCount = tradeMap.tradesCount[key];
                 const percentage = tradeMap.percentage[key];
                 const tooltipId = `tooltip-${key}`;
 
@@ -164,11 +175,11 @@ const CalendarCard = ({ trades = [] }) => {
                       data-tooltip-id={tooltipId}
                       data-tooltip-content={
                         pnl !== undefined
-                          ? `${key}: ${pnl < 0 ? "-" : ""}$${Math.abs(pnl).toFixed(2)}`
+                          ? `${key}: ${pnl < 0 ? "-" : ""}$${Math.abs(pnl).toFixed(2)} | Trades: ${tradesCount}`
                           : null
                       }
                       whileHover={{ scale: 1.05 }}
-                      className={`rounded-lg h-[80px] flex flex-col items-center justify-center cursor-pointer border transition-all duration-200 p-2
+                      className={`rounded-lg h-[90px] flex flex-col items-center justify-center cursor-pointer border transition-all duration-200 p-2
                         ${
                           pnl !== undefined
                             ? pnl >= 0
@@ -188,6 +199,7 @@ const CalendarCard = ({ trades = [] }) => {
                             {pnl >= 0 ? "+" : ""}${pnl.toFixed(1)}
                           </span>
                           <span className="text-xs text-gray-500">{percentage}%</span>
+                          <span className="text-xs text-gray-400">{tradesCount} trades</span>
                         </>
                       )}
                     </motion.div>
@@ -224,35 +236,15 @@ const CalendarCard = ({ trades = [] }) => {
               <div className="text-xs text-gray-500 dark:text-gray-400">
                 {week.tradingDays} days
               </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                {week.totalTrades} trades
+              </div>
             </div>
           ))}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
-// Mock trades data for demo (replace with your actual data)
-const mockTrades = [
-  { date: "2025-02-03", pnl: -27, percentage: 28.57 },
-  { date: "2025-02-04", pnl: -187, percentage: 28.57 },
-  { date: "2025-02-05", pnl: -322, percentage: 38.46 },
-  { date: "2025-02-06", pnl: 173, percentage: 0.0 },
-  { date: "2025-02-07", pnl: -44, percentage: 0.0 },
-  { date: "2025-02-10", pnl: -174, percentage: 50.0 },
-  { date: "2025-02-11", pnl: 115, percentage: 66.67 },
-  { date: "2025-02-12", pnl: 45, percentage: 40.0 },
-  { date: "2025-02-13", pnl: 47, percentage: 83.33 },
-  { date: "2025-02-14", pnl: -322, percentage: 33.33 },
-  { date: "2025-02-17", pnl: 45, percentage: 33.33 },
-  { date: "2025-02-18", pnl: 27, percentage: 40.0 },
-  { date: "2025-02-19", pnl: -70, percentage: 45.45 },
-  { date: "2025-02-20", pnl: -79, percentage: 12.5 },
-  { date: "2025-02-24", pnl: -143, percentage: 40.0 },
-  { date: "2025-02-25", pnl: 58.7, percentage: 70.0 },
-  { date: "2025-02-26", pnl: 45, percentage: 60.0 },
-  { date: "2025-02-27", pnl: -159, percentage: 76.9 },
-  { date: "2025-02-28", pnl: 37, percentage: 56.25 },
-];
-
-export default () => <CalendarCard trades={mockTrades} />;
+export default CalendarCard;
