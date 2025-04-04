@@ -37,16 +37,14 @@ const DrawdownCard = ({ maxDrawdown = -842, recoveryFactor = 0.65, data = [] }) 
       {
         label: "Cumulative P&L",
         data: pnlPoints,
-        stepped: true,
         fill: true,
         pointRadius: 0,
+        tension: 0, // straight lines
         borderWidth: 2,
         borderColor: "#22c55e",
         backgroundColor: (ctx) => {
           const chart = ctx.chart;
           const { chartArea, ctx: canvas } = chart;
-
-          // Prevent crash on first render
           if (!chartArea) return "rgba(0,0,0,0)";
 
           const gradient = canvas.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
@@ -56,6 +54,8 @@ const DrawdownCard = ({ maxDrawdown = -842, recoveryFactor = 0.65, data = [] }) 
           gradient.addColorStop(1, "rgba(239,68,68,0.2)");
           return gradient;
         },
+        hoverBackgroundColor: "#22c55e",
+        hoverBorderWidth: 3,
       },
     ],
   };
@@ -63,34 +63,35 @@ const DrawdownCard = ({ maxDrawdown = -842, recoveryFactor = 0.65, data = [] }) 
   const options = {
     responsive: true,
     maintainAspectRatio: false,
-    animation: { duration: 1000 },
     interaction: {
-      mode: "index",
+      mode: "nearest",
       intersect: false,
     },
     plugins: {
       legend: { display: false },
       tooltip: {
-        callbacks: {
-          label: (ctx) => {
-            const val = ctx.parsed.y;
-            return `${ctx.label}: ${val < 0 ? "-$" : "$"}${Math.abs(val).toLocaleString()}`;
-          },
-        },
+        enabled: true,
         backgroundColor: "#111827",
         titleColor: "#f9fafb",
         bodyColor: "#f9fafb",
         padding: 10,
         cornerRadius: 6,
+        callbacks: {
+          label: (ctx) => {
+            const val = ctx.parsed.y;
+            return `P&L: ${val < 0 ? "-$" : "$"}${Math.abs(val).toLocaleString()}`;
+          },
+          title: () => null,
+        },
+        displayColors: false,
       },
+    },
+    animation: {
+      duration: 1000,
     },
     scales: {
       x: {
-        ticks: {
-          color: "#6b7280",
-          font: { size: 11, family: "'Inter', sans-serif" },
-        },
-        grid: { display: false },
+        display: false,
       },
       y: {
         ticks: {
@@ -148,7 +149,7 @@ const DrawdownCard = ({ maxDrawdown = -842, recoveryFactor = 0.65, data = [] }) 
       </div>
 
       {/* Mini Chart */}
-      <div className="mt-2 h-[120px] w-full">
+      <div className="mt-2 h-[120px] w-full px-1">
         <Line ref={chartRef} data={chartData} options={options} />
       </div>
     </motion.div>
