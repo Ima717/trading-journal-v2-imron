@@ -185,7 +185,7 @@ const CalendarCard = ({ trades = [] }) => {
           </AnimatePresence>
         </div>
 
-        <div className="w-[150px] flex flex-col gap-1 pt-[42px]">
+        <div className="w-[150px] flex flex-col gap-1 mt-[42px]">
           {weeklyStats.map((week, index) => (
             <div
               key={`week-${index}`}
