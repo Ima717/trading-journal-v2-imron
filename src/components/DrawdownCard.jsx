@@ -37,7 +37,7 @@ const DrawdownCard = ({ maxDrawdown = -905, recoveryFactor = 0.38, data = [] }) 
       {
         label: "Cumulative P&L",
         data: pnlPoints,
-        tension: 0, // keep it straight, no smoothing
+        tension: 0,
         pointRadius: 0,
         fill: true,
         borderWidth: 2,
@@ -48,10 +48,10 @@ const DrawdownCard = ({ maxDrawdown = -905, recoveryFactor = 0.38, data = [] }) 
           if (!chartArea) return "rgba(0,0,0,0)";
 
           const gradient = canvas.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-          gradient.addColorStop(0, "rgba(34,197,94,0.35)"); // stronger green
+          gradient.addColorStop(0, "rgba(34,197,94,0.35)");
           gradient.addColorStop(0.5, "rgba(255,255,255,0)");
           gradient.addColorStop(0.5, "rgba(255,255,255,0)");
-          gradient.addColorStop(1, "rgba(239,68,68,0.35)"); // stronger red
+          gradient.addColorStop(1, "rgba(239,68,68,0.35)");
           return gradient;
         },
       },
@@ -82,7 +82,7 @@ const DrawdownCard = ({ maxDrawdown = -905, recoveryFactor = 0.38, data = [] }) 
     },
     scales: {
       x: {
-        display: false, // remove axis + ticks
+        display: false,
       },
       y: {
         ticks: {
@@ -103,9 +103,9 @@ const DrawdownCard = ({ maxDrawdown = -905, recoveryFactor = 0.38, data = [] }) 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="w-full bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200/60 p-5 shadow-lg flex flex-col gap-4"
+      className="w-full h-full flex flex-col gap-4"
     >
-      {/* Header */}
+      {/* Top Section */}
       <div className="flex justify-between items-center">
         <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
           Max Drawdown
@@ -139,8 +139,8 @@ const DrawdownCard = ({ maxDrawdown = -905, recoveryFactor = 0.38, data = [] }) 
         </span>
       </div>
 
-      {/* Chart - taller */}
-      <div className="h-[160px] w-full -mx-5 px-5">
+      {/* Expanded Chart */}
+      <div className="flex-grow -mx-4 px-4">
         <Line ref={chartRef} data={chartData} options={options} />
       </div>
     </motion.div>
