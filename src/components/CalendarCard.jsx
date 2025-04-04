@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect, useState as useStateAlias } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Settings } from "lucide-react";
 import dayjs from "dayjs";
@@ -7,7 +7,7 @@ import { Tooltip as ReactTooltip } from "react-tooltip";
 const CalendarCard = ({ trades = [] }) => {
   const [currentMonth, setCurrentMonth] = useState(dayjs());
   const [animating, setAnimating] = useState(false);
-  const [headerHeight, setHeaderHeight] = useStateAlias(0);
+  const [headerHeight, setHeaderHeight] = useState(0);
   const headerRef = useRef(null);
 
   useEffect(() => {
