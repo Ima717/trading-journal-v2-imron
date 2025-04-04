@@ -13,7 +13,6 @@ import { motion } from "framer-motion";
 import TradeTabs from "../components/TradeTabs";
 import ChartTagPerformance from "../components/ChartTagPerformance";
 import ChartZellaScore from "../components/ChartZellaScore";
-import CalendarWidget from "../components/CalendarWidget";
 import StatCard from "../components/StatCard";
 import ChartEquityCurve from "../components/ChartEquityCurve";
 import ChartSymbolDistribution from "../components/ChartSymbolDistribution";
@@ -223,12 +222,6 @@ const Dashboard = () => {
                     />
                   </ChartCard>
                 </motion.div>
-              </div>
-
-              <div className="mb-6">
-                <ChartCard title="Calendar">
-                  <CalendarWidget />
-                </ChartCard>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
