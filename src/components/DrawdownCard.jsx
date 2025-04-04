@@ -1,46 +1,145 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { ArrowDown } from "lucide-react";
+import {
+  Chart as ChartJS,
+  LineElement,
+  PointElement,
+  LinearScale,
+  CategoryScale,
+  Tooltip,
+  Filler,
+} from "chart.js";
+import { Line } from "react-chartjs-2";
 
-const DrawdownCard = ({ maxDrawdown = -842, recoveryFactor = 0.65 }) => {
+ChartJS.register(
+  LineElement,
+  PointElement,
+  LinearScale,
+  CategoryScale,
+  Tooltip,
+  Filler
+);
+
+const DrawdownCard = ({ maxDrawdown = -842, recoveryFactor = 0.65, data = [] }) => {
+  const chartRef = useRef(null);
+
   const drawdownAbs = Math.abs(maxDrawdown);
-  const maxRange = 1000; // Adjust this to your typical max DRAWDOWN range
+  const maxRange = 1000;
   const percent = Math.min((drawdownAbs / maxRange) * 100, 100);
+
+  const labels = data.map((d) => d.date);
+  const pnlPoints = data.map((d) => d.pnl);
+
+  const chartData = {
+    labels,
+    datasets: [
+      {
+        label: "Cumulative P&L",
+        data: pnlPoints,
+        stepped: true,
+        fill: true,
+        pointRadius: 0,
+        borderWidth: 2,
+        borderColor: (ctx) => {
+          const { chart } = ctx;
+          const { ctx: canvas } = chart;
+          const gradient = canvas.createLinearGradient(0, 0, 0, chart.height);
+          gradient.addColorStop(0, "#22c55e");
+          gradient.addColorStop(1, "#ef4444");
+          return gradient;
+        },
+        backgroundColor: (ctx) => {
+          const { chart } = ctx;
+          const { ctx: canvas, chartArea } = chart;
+
+          const gradient = canvas.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          gradient.addColorStop(0, "rgba(34,197,94,0.2)");
+          gradient.addColorStop(0.5, "rgba(255,255,255,0)");
+          gradient.addColorStop(0.5, "rgba(255,255,255,0)");
+          gradient.addColorStop(1, "rgba(239,68,68,0.2)");
+          return gradient;
+        },
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 1000 },
+    interaction: {
+      mode: "index",
+      intersect: false,
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => {
+            const val = ctx.parsed.y;
+            return `${ctx.label}: ${val < 0 ? "-$" : "$"}${Math.abs(val).toLocaleString()}`;
+          },
+        },
+        backgroundColor: "#111827",
+        titleColor: "#f9fafb",
+        bodyColor: "#f9fafb",
+        padding: 10,
+        cornerRadius: 6,
+      },
+    },
+    scales: {
+      x: {
+        ticks: {
+          color: "#6b7280",
+          font: { size: 11, family: "'Inter', sans-serif" },
+        },
+        grid: { display: false },
+      },
+      y: {
+        ticks: {
+          color: "#6b7280",
+          font: { size: 11, family: "'Inter', sans-serif" },
+          callback: (val) => `$${val}`,
+        },
+        grid: {
+          color: "rgba(229,231,235,0.15)",
+          borderDash: [6, 6],
+        },
+      },
+    },
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="w-full bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200/60 p-5 shadow-lg"
+      transition={{ duration: 0.6 }}
+      className="w-full bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200/60 p-5 shadow-lg flex flex-col gap-4"
     >
-      {/* Max Drawdown */}
-      <div className="flex justify-between items-center mb-2">
-        <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
           Max Drawdown
         </h3>
         <span className="text-sm text-red-600 font-semibold flex items-center gap-1">
-          <ArrowDown size={14} />
-          -${drawdownAbs.toFixed(2)}
+          <ArrowDown size={14} /> ${drawdownAbs.toFixed(2)}
         </span>
       </div>
 
-      {/* Bar */}
-      <div className="relative w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-4">
+      {/* Progress */}
+      <div className="w-full h-3 rounded-full bg-gray-200 dark:bg-zinc-700 relative overflow-hidden">
         <div
-          className="absolute top-0 left-0 h-2 rounded-full"
-          style={{
-            width: `${percent}%`,
-            background: "linear-gradient(to right, #f87171, #b91c1c)",
-          }}
+          className="absolute top-0 left-0 h-3 rounded-full bg-gradient-to-r from-red-400 to-red-700"
+          style={{ width: `${percent}%` }}
         />
       </div>
 
-      {/* Recovery Factor */}
-      <div className="flex justify-between items-center text-xs">
+      {/* Recovery */}
+      <div className="flex justify-between items-center text-sm">
         <span className="text-gray-500 dark:text-gray-400">Recovery Factor</span>
         <span
-          className={`font-semibold px-2 py-0.5 rounded-full ${
+          className={`font-semibold px-2 py-0.5 rounded-full text-xs ${
             recoveryFactor > 1
               ? "bg-green-100 text-green-700"
               : recoveryFactor > 0.5
@@ -50,6 +149,11 @@ const DrawdownCard = ({ maxDrawdown = -842, recoveryFactor = 0.65 }) => {
         >
           {recoveryFactor.toFixed(2)}
         </span>
+      </div>
+
+      {/* Compact Area Chart */}
+      <div className="mt-2 h-[120px] w-full">
+        <Line ref={chartRef} data={chartData} options={options} />
       </div>
     </motion.div>
   );
