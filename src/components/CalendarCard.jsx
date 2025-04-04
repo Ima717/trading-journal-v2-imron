@@ -141,11 +141,11 @@ const CalendarCard = ({ trades = [] }) => {
           <AnimatePresence mode="wait">
             <motion.div
               key={currentMonth.format("MM-YYYY")}
-              initial={{ opacity: 0, filter: "blur(5px)" }}
-              animate={{ opacity: 1, filter: "blur(0px)" }}
-              exit={{ opacity: 0, filter: "blur(5px)" }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               transition={{ duration: 0.2, ease: "easeInOut" }}
-              className="grid grid-cols-7 gap-1 text-sm text-gray-800 dark:text-white will-change-[opacity,filter] transform-gpu"
+              className="grid grid-cols-7 gap-1 text-sm text-gray-800 dark:text-white"
             >
               {Array.from({ length: firstDayOfWeek }).map((_, i) => (
                 <div key={`empty-${i}`} style={{ height: rowHeight }} className="rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800" />
@@ -198,11 +198,11 @@ const CalendarCard = ({ trades = [] }) => {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentMonth.format("MM-YYYY") + "-weeks"}
-            initial={{ opacity: 0, filter: "blur(4px)" }}
-            animate={{ opacity: 1, filter: "blur(0px)" }}
-            exit={{ opacity: 0, filter: "blur(4px)" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.2, ease: "easeInOut" }}
-            className="w-[150px] flex flex-col gap-1 will-change-[opacity,filter] transform-gpu"
+            className="w-[150px] flex flex-col gap-1"
             style={{ marginTop: `${headerHeight + 11}px` }}
           >
             {weeklyStats.map((week, index) => (
