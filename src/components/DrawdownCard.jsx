@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import { motion } from "framer-motion";
 import { ArrowDown } from "lucide-react";
 import {
@@ -21,7 +21,7 @@ ChartJS.register(
   Filler
 );
 
-const DrawdownCard = ({ maxDrawdown = -842, recoveryFactor = 0.65, data = [] }) => {
+const DrawdownCard = ({ maxDrawdown = -905, recoveryFactor = 0.38, data = [] }) => {
   const chartRef = useRef(null);
 
   const drawdownAbs = Math.abs(maxDrawdown);
@@ -37,25 +37,23 @@ const DrawdownCard = ({ maxDrawdown = -842, recoveryFactor = 0.65, data = [] }) 
       {
         label: "Cumulative P&L",
         data: pnlPoints,
-        fill: true,
+        tension: 0, // keep it straight, no smoothing
         pointRadius: 0,
-        tension: 0, // straight lines
+        fill: true,
         borderWidth: 2,
-        borderColor: "#22c55e",
+        borderColor: "#10b981",
         backgroundColor: (ctx) => {
           const chart = ctx.chart;
           const { chartArea, ctx: canvas } = chart;
           if (!chartArea) return "rgba(0,0,0,0)";
 
           const gradient = canvas.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-          gradient.addColorStop(0, "rgba(34,197,94,0.2)");
+          gradient.addColorStop(0, "rgba(34,197,94,0.35)"); // stronger green
           gradient.addColorStop(0.5, "rgba(255,255,255,0)");
           gradient.addColorStop(0.5, "rgba(255,255,255,0)");
-          gradient.addColorStop(1, "rgba(239,68,68,0.2)");
+          gradient.addColorStop(1, "rgba(239,68,68,0.35)"); // stronger red
           return gradient;
         },
-        hoverBackgroundColor: "#22c55e",
-        hoverBorderWidth: 3,
       },
     ],
   };
@@ -63,19 +61,16 @@ const DrawdownCard = ({ maxDrawdown = -842, recoveryFactor = 0.65, data = [] }) 
   const options = {
     responsive: true,
     maintainAspectRatio: false,
-    interaction: {
-      mode: "nearest",
-      intersect: false,
-    },
+    interaction: { mode: "nearest", intersect: false },
     plugins: {
       legend: { display: false },
       tooltip: {
-        enabled: true,
         backgroundColor: "#111827",
         titleColor: "#f9fafb",
         bodyColor: "#f9fafb",
-        padding: 10,
+        padding: 8,
         cornerRadius: 6,
+        displayColors: false,
         callbacks: {
           label: (ctx) => {
             const val = ctx.parsed.y;
@@ -83,15 +78,11 @@ const DrawdownCard = ({ maxDrawdown = -842, recoveryFactor = 0.65, data = [] }) 
           },
           title: () => null,
         },
-        displayColors: false,
       },
-    },
-    animation: {
-      duration: 1000,
     },
     scales: {
       x: {
-        display: false,
+        display: false, // remove axis + ticks
       },
       y: {
         ticks: {
@@ -148,8 +139,8 @@ const DrawdownCard = ({ maxDrawdown = -842, recoveryFactor = 0.65, data = [] }) 
         </span>
       </div>
 
-      {/* Mini Chart */}
-      <div className="mt-2 h-[120px] w-full px-1">
+      {/* Chart - expanded & clean */}
+      <div className="h-[120px] w-full -mx-5 px-5">
         <Line ref={chartRef} data={chartData} options={options} />
       </div>
     </motion.div>
