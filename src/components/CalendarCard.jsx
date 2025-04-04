@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useEffect, useState as useStateAlias } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Settings } from "lucide-react";
 import dayjs from "dayjs";
@@ -7,9 +7,16 @@ import { Tooltip as ReactTooltip } from "react-tooltip";
 const CalendarCard = ({ trades = [] }) => {
   const [currentMonth, setCurrentMonth] = useState(dayjs());
   const [animating, setAnimating] = useState(false);
+  const [headerHeight, setHeaderHeight] = useStateAlias(0);
+  const headerRef = useRef(null);
+
+  useEffect(() => {
+    if (headerRef.current) {
+      setHeaderHeight(headerRef.current.offsetHeight);
+    }
+  }, []);
 
   const startOfMonth = currentMonth.startOf("month");
-  const endOfMonth = currentMonth.endOf("month");
   const daysInMonth = currentMonth.daysInMonth();
   const firstDayOfWeek = startOfMonth.day();
   const days = Array.from({ length: daysInMonth }, (_, i) =>
@@ -121,7 +128,7 @@ const CalendarCard = ({ trades = [] }) => {
 
       <div className="flex flex-1 gap-4 items-start">
         <div className="flex-1">
-          <div className="grid grid-cols-7 gap-1 text-sm text-center text-gray-500 dark:text-gray-400 mb-3">
+          <div ref={headerRef} className="grid grid-cols-7 gap-1 text-sm text-center text-gray-500 dark:text-gray-400 mb-3">
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
               <div key={d} className="font-medium p-2">
                 {d}
@@ -185,7 +192,7 @@ const CalendarCard = ({ trades = [] }) => {
           </AnimatePresence>
         </div>
 
-        <div className="w-[150px] flex flex-col gap-1 mt-[42px]">
+        <div className="w-[150px] flex flex-col gap-1" style={{ marginTop: `${headerHeight}px` }}>
           {weeklyStats.map((week, index) => (
             <div
               key={`week-${index}`}
