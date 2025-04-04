@@ -119,9 +119,9 @@ const CalendarCard = ({ trades = [] }) => {
         </div>
       </div>
 
-      <div className="flex flex-1 gap-0 items-start">
+      <div className="flex flex-1 gap-4 items-start">
         <div className="flex-1">
-          <div className="grid grid-cols-7 gap-0 text-sm text-center text-gray-500 dark:text-gray-400 mb-2">
+          <div className="grid grid-cols-7 gap-1 text-sm text-center text-gray-500 dark:text-gray-400 mb-3">
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
               <div key={d} className="font-medium p-2">
                 {d}
@@ -136,10 +136,10 @@ const CalendarCard = ({ trades = [] }) => {
               animate={{ opacity: 1, filter: "blur(0px)" }}
               exit={{ opacity: 0, filter: "blur(5px)" }}
               transition={{ duration: 0.4, ease: "easeInOut" }}
-              className="grid grid-cols-7 gap-0 text-sm text-gray-800 dark:text-white"
+              className="grid grid-cols-7 gap-1 text-sm text-gray-800 dark:text-white"
             >
               {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-                <div key={`empty-${i}`} style={{ height: rowHeight }} className="border border-gray-200 dark:border-zinc-700" />
+                <div key={`empty-${i}`} style={{ height: rowHeight }} className="rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800" />
               ))}
               {days.map((date) => {
                 const key = date.format("YYYY-MM-DD");
@@ -149,11 +149,11 @@ const CalendarCard = ({ trades = [] }) => {
                 const tooltipId = `tooltip-${key}`;
 
                 return (
-                  <div key={key} style={{ height: rowHeight }} className="flex items-center justify-center border border-gray-200 dark:border-zinc-700">
+                  <div key={key} style={{ height: rowHeight }} className="rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800">
                     <motion.div
                       data-tooltip-id={tooltipId}
                       data-tooltip-content={pnl !== undefined ? `${key}: ${pnl < 0 ? "-" : ""}$${Math.abs(pnl).toFixed(2)} | Trades: ${tradesCount}` : null}
-                      className={`rounded-lg w-full h-full flex flex-col items-center justify-center cursor-pointer transition-all duration-200 p-2
+                      className={`w-full h-full flex flex-col items-center justify-center cursor-pointer transition-all duration-200 p-2
                         ${pnl !== undefined
                           ? pnl >= 0
                             ? "bg-green-200/60 dark:bg-green-900/40 border-green-400 dark:border-green-700"
@@ -185,12 +185,12 @@ const CalendarCard = ({ trades = [] }) => {
           </AnimatePresence>
         </div>
 
-        <div className="w-[150px] flex flex-col gap-0 pt-[42px]">
+        <div className="w-[150px] flex flex-col gap-1 pt-[42px]">
           {weeklyStats.map((week, index) => (
             <div
               key={`week-${index}`}
               style={{ height: rowHeight }}
-              className="bg-gray-50 dark:bg-zinc-700 rounded-lg p-3 text-sm flex flex-col items-center justify-center border border-gray-200 dark:border-zinc-700"
+              className="bg-white dark:bg-zinc-800 rounded-md px-3 py-2 text-sm flex flex-col items-center justify-center border border-gray-200 dark:border-zinc-700"
             >
               <div className="text-gray-500 dark:text-gray-400">Week {index + 1}</div>
               <div className={`text-lg font-semibold ${week.weekPnL >= 0 ? "text-green-600" : "text-red-600"}`}>
