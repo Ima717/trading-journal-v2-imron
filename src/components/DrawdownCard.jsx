@@ -82,7 +82,7 @@ const DrawdownCard = ({ maxDrawdown = -905, recoveryFactor = 0.38, data = [] }) 
     },
     scales: {
       x: {
-        display: false,
+        display: false, // ⛔ Hide x-axis
       },
       y: {
         ticks: {
@@ -103,11 +103,11 @@ const DrawdownCard = ({ maxDrawdown = -905, recoveryFactor = 0.38, data = [] }) 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="w-full h-full flex flex-col gap-4"
+      className="w-full h-full flex flex-col"
     >
-      {/* Top Section */}
-      <div className="flex justify-between items-center">
-        <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+      {/* Title and Max DD */}
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="text-sm font-semibold text-gray-800 dark:text-white">
           Max Drawdown
         </h3>
         <span className="text-sm text-red-600 font-semibold flex items-center gap-1">
@@ -116,7 +116,7 @@ const DrawdownCard = ({ maxDrawdown = -905, recoveryFactor = 0.38, data = [] }) 
       </div>
 
       {/* Progress Bar */}
-      <div className="w-full h-3 rounded-full bg-gray-200 dark:bg-zinc-700 relative overflow-hidden">
+      <div className="w-full h-3 rounded-full bg-gray-200 dark:bg-zinc-700 relative overflow-hidden mb-2">
         <div
           className="absolute top-0 left-0 h-3 rounded-full bg-gradient-to-r from-red-400 to-red-700"
           style={{ width: `${percent}%` }}
@@ -124,7 +124,7 @@ const DrawdownCard = ({ maxDrawdown = -905, recoveryFactor = 0.38, data = [] }) 
       </div>
 
       {/* Recovery Factor */}
-      <div className="flex justify-between items-center text-sm">
+      <div className="flex justify-between items-center text-sm mb-2">
         <span className="text-gray-500 dark:text-gray-400">Recovery Factor</span>
         <span
           className={`font-semibold px-2 py-0.5 rounded-full text-xs ${
@@ -139,7 +139,7 @@ const DrawdownCard = ({ maxDrawdown = -905, recoveryFactor = 0.38, data = [] }) 
         </span>
       </div>
 
-      {/* Expanded Chart */}
+      {/* Chart */}
       <div className="flex-grow -mx-4 px-4">
         <Line ref={chartRef} data={chartData} options={options} />
       </div>
