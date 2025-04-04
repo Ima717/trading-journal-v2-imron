@@ -16,6 +16,15 @@ const CalendarCard = ({ trades = [] }) => {
     startOfMonth.add(i, "day")
   );
 
+  // Calculate the number of weeks (5 or 6)
+  const totalWeeks = Math.ceil((firstDayOfWeek + daysInMonth) / 7);
+
+  // Calculate dynamic row height
+  const headerHeight = 60; // Approximate height of the header (adjust if needed)
+  const weekdayHeight = 40; // Height of the weekday row
+  const availableHeight = 850 - headerHeight - weekdayHeight; // Total height minus header and weekdays
+  const rowHeight = availableHeight / totalWeeks; // Dynamic row height
+
   // 🔍 Build date-to-analytics map (PnL, number of trades, percentage)
   const tradeMap = useMemo(() => {
     const map = { pnl: {}, tradesCount: {}, percentage: {} };
@@ -80,14 +89,14 @@ const CalendarCard = ({ trades = [] }) => {
     if (animating) return;
     setAnimating(true);
     setCurrentMonth((prev) => prev.subtract(1, "month"));
-    setTimeout(() => setAnimating(false), 400);
+    setTimeout(() => setAnimating(false), 250);
   };
 
   const handleNextMonth = () => {
     if (animating) return;
     setAnimating(true);
     setCurrentMonth((prev) => prev.add(1, "month"));
-    setTimeout(() => setAnimating(false), 400);
+    setTimeout(() => setAnimating(false), 250);
   };
 
   return (
@@ -101,9 +110,12 @@ const CalendarCard = ({ trades = [] }) => {
           >
             <ChevronLeft size={18} />
           </button>
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
-            {currentMonth.format("MMMM YYYY")}
-          </h2>
+          {/* Placeholder for longest month name to fix arrow positions */}
+          <div className="relative w-[120px] text-center">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white absolute left-1/2 transform -translate-x-1/2">
+              {currentMonth.format("MMMM YYYY")}
+            </h2>
+          </div>
           <button
             onClick={handleNextMonth}
             className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
@@ -135,7 +147,7 @@ const CalendarCard = ({ trades = [] }) => {
       </div>
 
       {/* Main Content: Calendar + Weekly Stats */}
-      <div className="flex flex-1 gap-0">
+      <div className="flex flex-1 gap-4">
         {/* Calendar Grid */}
         <div className="flex-1">
           {/* Weekdays */}
@@ -148,93 +160,93 @@ const CalendarCard = ({ trades = [] }) => {
           </div>
 
           {/* Animated Month */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentMonth.format("MM-YYYY")}
-              initial={{ opacity: 0, filter: "blur(5px)" }}
-              animate={{ opacity: 1, filter: "blur(0px)" }}
-              exit={{ opacity: 0, filter: "blur(5px)" }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
-              className="grid grid-cols-7 gap-0 text-sm text-gray-800 dark:text-white"
-            >
-              {Array.from({ length: firstDayOfWeek }).map((_, i) => (
+          <div className="grid grid-cols-7 gap-0 text-sm text-gray-800 dark:text-white">
+            {Array.from({ length: firstDayOfWeek }).map((_, i) => (
+              <div
+                key={`empty-${i}`}
+                className={`h-[${rowHeight}px] mr-1 border border-gray-200 dark:border-zinc-700`}
+              />
+            ))}
+
+            {days.map((date) => {
+              const key = date.format("YYYY-MM-DD");
+              const pnl = tradeMap.pnl[key];
+              const tradesCount = tradeMap.tradesCount[key];
+              const percentage = tradeMap.percentage[key];
+              const tooltipId = `tooltip-${key}`;
+
+              return (
                 <div
-                  key={`empty-${i}`}
-                  className="h-[120px] mr-1 border border-gray-200 dark:border-zinc-700"
-                />
-              ))}
-
-              {days.map((date) => {
-                const key = date.format("YYYY-MM-DD");
-                const pnl = tradeMap.pnl[key];
-                const tradesCount = tradeMap.tradesCount[key];
-                const percentage = tradeMap.percentage[key];
-                const tooltipId = `tooltip-${key}`;
-
-                return (
+                  key={key}
+                  className={`h-[${rowHeight}px] flex items-center justify-center mr-1 border border-gray-200 dark:border-zinc-700`}
+                >
                   <div
-                    key={key}
-                    className="h-[120px] flex items-center justify-center mr-1 border border-gray-200 dark:border-zinc-700"
-                  >
-                    <motion.div
-                      data-tooltip-id={tooltipId}
-                      data-tooltip-content={
+                    data-tooltip-id={tooltipId}
+                    data-tooltip-content={
+                      pnl !== undefined
+                        ? `${key}: ${pnl < 0 ? "-" : ""}$${Math.abs(pnl).toFixed(2)} | Trades: ${tradesCount}`
+                        : null
+                    }
+                    className={`rounded-lg w-full h-full flex flex-col items-center justify-center cursor-pointer transition-all duration-200 p-2
+                      ${
                         pnl !== undefined
-                          ? `${key}: ${pnl < 0 ? "-" : ""}$${Math.abs(pnl).toFixed(2)} | Trades: ${tradesCount}`
-                          : null
-                      }
-                      className={`rounded-lg w-full h-full flex flex-col items-center justify-center cursor-pointer transition-all duration-200 p-2
-                        ${
-                          pnl !== undefined
-                            ? pnl >= 0
-                              ? "bg-green-100/50 dark:bg-green-900/30 border-green-300 dark:border-green-700"
-                              : "bg-red-100/50 dark:bg-red-900/30 border-red-300 dark:border-red-700"
-                            : "hover:bg-purple-100/60 dark:hover:bg-purple-900/30 border-transparent hover:border-purple-400 dark:hover:border-purple-600"
-                        }`}
-                    >
-                      <span className="font-medium">{date.date()}</span>
-                      {pnl !== undefined && (
-                        <>
-                          <span
-                            className={`text-xs font-semibold ${
-                              pnl >= 0 ? "text-green-600" : "text-red-600"
-                            }`}
-                          >
-                            {pnl >= 0 ? "+" : ""}${pnl.toFixed(1)}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            {percentage}%
-                          </span>
-                          <span className="text-xs text-gray-400">
-                            {tradesCount} trades
-                          </span>
-                        </>
-                      )}
-                    </motion.div>
-
+                          ? pnl >= 0
+                            ? "bg-green-200/50 dark:bg-green-800/30 border-green-400 dark:border-green-600"
+                            : "bg-red-200/50 dark:bg-red-800/30 border-red-400 dark:border-red-600"
+                          : "hover:bg-purple-100/60 dark:hover:bg-purple-900/30 border-transparent hover:border-purple-400 dark:hover:border-purple-600"
+                      }`}
+                  >
+                    <AnimatePresence mode="wait">
+                      <motion.span
+                        key={`${key}-${currentMonth.format("MM-YYYY")}`}
+                        initial={{ opacity: 0, filter: "blur(5px)" }}
+                        animate={{ opacity: 1, filter: "blur(0px)" }}
+                        exit={{ opacity: 0, filter: "blur(5px)" }}
+                        transition={{ duration: 0.25, ease: "easeInOut" }}
+                        className="font-medium"
+                      >
+                        {date.date()}
+                      </motion.span>
+                    </AnimatePresence>
                     {pnl !== undefined && (
-                      <ReactTooltip
-                        id={tooltipId}
-                        place="top"
-                        className="z-[1000] text-xs px-2 py-1 rounded shadow-lg bg-gray-900 text-white"
-                      />
+                      <>
+                        <span
+                          className={`text-xs font-semibold ${
+                            pnl >= 0 ? "text-green-600" : "text-red-600"
+                         
+                          }`}
+                        >
+                          {pnl >= 0 ? "+" : ""}${pnl.toFixed(1)}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {percentage}%
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          {tradesCount} trades
+                        </span>
+                      </>
                     )}
                   </div>
-                );
-              })}
-            </motion.div>
-          </AnimatePresence>
+
+                  {pnl !== undefined && (
+                    <ReactTooltip
+                      id={tooltipId}
+                      place="top"
+                      className="z-[1000] text-xs px-2 py-1 rounded shadow-lg bg-gray-900 text-white"
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Vertical Separator Line */}
-        <div className="w-px bg-gray-200 dark:bg-zinc-700 mx-2"></div>
-
         {/* Weekly Stats */}
-        <div className="w-[150px] flex flex-col gap-0">
+        <div className="w-[150px] flex flex-col gap-1">
           {weeklyStats.map((week, index) => (
             <div
               key={`week-${index}`}
-              className="bg-gray-50 dark:bg-zinc-700 rounded-lg p-3 text-sm h-[120px] flex flex-col items-center justify-center border border-gray-200 dark:border-zinc-700"
+              className={`bg-gray-50 dark:bg-zinc-700 rounded-lg p-3 text-sm h-[${rowHeight}px] flex flex-col items-center justify-center border border-gray-200 dark:border-zinc-700`}
             >
               <div className="text-gray-500 dark:text-gray-400">
                 Week {index + 1}
