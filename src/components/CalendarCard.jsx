@@ -42,20 +42,6 @@ const CalendarCard = ({ trades = [] }) => {
     return map;
   }, [trades]);
 
-  const monthlyStats = useMemo(() => {
-    let totalPnL = 0;
-    let tradingDays = 0;
-    let totalTrades = 0;
-    Object.keys(tradeMap.pnl).forEach((date) => {
-      if (dayjs(date).isSame(currentMonth, "month")) {
-        totalPnL += tradeMap.pnl[date];
-        totalTrades += tradeMap.tradesCount[date];
-        tradingDays++;
-      }
-    });
-    return { totalPnL, tradingDays, totalTrades };
-  }, [tradeMap, currentMonth]);
-
   const weeklyStats = useMemo(() => {
     const weeks = [];
     let currentWeek = [];
@@ -82,6 +68,20 @@ const CalendarCard = ({ trades = [] }) => {
     return weeks;
   }, [tradeMap, days]);
 
+  const monthlyStats = useMemo(() => {
+    let totalPnL = 0;
+    let tradingDays = 0;
+    let totalTrades = 0;
+    Object.keys(tradeMap.pnl).forEach((date) => {
+      if (dayjs(date).isSame(currentMonth, "month")) {
+        totalPnL += tradeMap.pnl[date];
+        totalTrades += tradeMap.tradesCount[date];
+        tradingDays++;
+      }
+    });
+    return { totalPnL, tradingDays, totalTrades };
+  }, [tradeMap, currentMonth]);
+
   const handlePrevMonth = () => {
     if (animating) return;
     setAnimating(true);
@@ -98,15 +98,22 @@ const CalendarCard = ({ trades = [] }) => {
 
   return (
     <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200/60 p-5 shadow-lg w-full h-[850px] flex flex-col">
+      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <button onClick={handlePrevMonth} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
+          <button
+            onClick={handlePrevMonth}
+            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
+          >
             <ChevronLeft size={18} />
           </button>
           <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
             {currentMonth.format("MMMM YYYY")}
           </h2>
-          <button onClick={handleNextMonth} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
+          <button
+            onClick={handleNextMonth}
+            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
+          >
             <ChevronRight size={18} />
           </button>
           <button className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white transition-colors">
@@ -114,21 +121,34 @@ const CalendarCard = ({ trades = [] }) => {
           </button>
         </div>
         <div className="flex items-center gap-3">
-          <span className={`text-lg font-semibold ${monthlyStats.totalPnL >= 0 ? "text-green-600" : "text-red-600"}`}>
-            {monthlyStats.totalPnL >= 0 ? "+" : ""}${monthlyStats.totalPnL.toFixed(0)}
+          <span
+            className={`text-lg font-semibold ${
+              monthlyStats.totalPnL >= 0 ? "text-green-600" : "text-red-600"
+            }`}
+          >
+            {monthlyStats.totalPnL >= 0 ? "+" : ""}
+            ${monthlyStats.totalPnL.toFixed(0)}
           </span>
           <span className="text-sm text-gray-500 dark:text-gray-400">
             {monthlyStats.tradingDays} days
           </span>
-          <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors" title="Settings (coming soon)">
+          <button
+            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
+            title="Settings (coming soon)"
+          >
             <Settings size={18} />
           </button>
         </div>
       </div>
 
+      {/* Main Layout */}
       <div className="flex flex-1 gap-4 items-start">
+        {/* Calendar Grid */}
         <div className="flex-1">
-          <div ref={headerRef} className="grid grid-cols-7 gap-1 text-sm text-center text-gray-500 dark:text-gray-400 mb-3">
+          <div
+            ref={headerRef}
+            className="grid grid-cols-7 gap-1 text-sm text-center text-gray-500 dark:text-gray-400 mb-3"
+          >
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
               <div key={d} className="font-medium p-2">
                 {d}
@@ -146,7 +166,11 @@ const CalendarCard = ({ trades = [] }) => {
               className="grid grid-cols-7 gap-1 text-sm text-gray-800 dark:text-white"
             >
               {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-                <div key={`empty-${i}`} style={{ height: rowHeight }} className="rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800" />
+                <div
+                  key={`empty-${i}`}
+                  style={{ height: rowHeight }}
+                  className="rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800"
+                />
               ))}
               {days.map((date) => {
                 const key = date.format("YYYY-MM-DD");
@@ -156,25 +180,46 @@ const CalendarCard = ({ trades = [] }) => {
                 const tooltipId = `tooltip-${key}`;
 
                 return (
-                  <div key={key} style={{ height: rowHeight }} className="rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800">
+                  <div
+                    key={key}
+                    style={{ height: rowHeight }}
+                    className="rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800"
+                  >
                     <motion.div
                       data-tooltip-id={tooltipId}
-                      data-tooltip-content={pnl !== undefined ? `${key}: ${pnl < 0 ? "-" : ""}$${Math.abs(pnl).toFixed(2)} | Trades: ${tradesCount}` : null}
+                      data-tooltip-content={
+                        pnl !== undefined
+                          ? `${key}: ${
+                              pnl < 0 ? "-" : ""
+                            }$${Math.abs(pnl).toFixed(2)} | Trades: ${tradesCount}`
+                          : null
+                      }
                       className={`w-full h-full flex flex-col items-center justify-center cursor-pointer transition-all duration-200 p-2
-                        ${pnl !== undefined
-                          ? pnl >= 0
-                            ? "bg-green-200/60 dark:bg-green-900/40 border-green-400 dark:border-green-700"
-                            : "bg-red-200/60 dark:bg-red-900/40 border-red-400 dark:border-red-700"
-                          : "hover:bg-purple-100/60 dark:hover:bg-purple-900/30 border-transparent hover:border-purple-400 dark:hover:border-purple-600"}`}
+                        ${
+                          pnl !== undefined
+                            ? pnl >= 0
+                              ? "bg-green-200/60 dark:bg-green-900/40 border-green-400 dark:border-green-700"
+                              : "bg-red-200/60 dark:bg-red-900/40 border-red-400 dark:border-red-700"
+                            : "hover:bg-purple-100/60 dark:hover:bg-purple-900/30 border-transparent hover:border-purple-400 dark:hover:border-purple-600"
+                        }`}
                     >
                       <span className="font-medium">{date.date()}</span>
                       {pnl !== undefined && (
                         <>
-                          <span className={`text-xs font-semibold ${pnl >= 0 ? "text-green-700" : "text-red-700"}`}>
-                            {pnl >= 0 ? "+" : ""}${pnl.toFixed(1)}
+                          <span
+                            className={`text-xs font-semibold ${
+                              pnl >= 0 ? "text-green-700" : "text-red-700"
+                            }`}
+                          >
+                            {pnl >= 0 ? "+" : ""}
+                            ${pnl.toFixed(1)}
                           </span>
-                          <span className="text-xs text-gray-500">{percentage}%</span>
-                          <span className="text-xs text-gray-400">{tradesCount} trades</span>
+                          <span className="text-xs text-gray-500">
+                            {percentage}%
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            {tradesCount} trades
+                          </span>
                         </>
                       )}
                     </motion.div>
@@ -192,19 +237,34 @@ const CalendarCard = ({ trades = [] }) => {
           </AnimatePresence>
         </div>
 
-        <div className="w-[150px] flex flex-col gap-1" style={{ marginTop: `${headerHeight}px` }}>
+        {/* Weekly Stats */}
+        <div
+          className="w-[150px] flex flex-col gap-1"
+          style={{ marginTop: `${headerHeight}px` }}
+        >
           {weeklyStats.map((week, index) => (
             <div
               key={`week-${index}`}
               style={{ height: rowHeight }}
               className="bg-white dark:bg-zinc-800 rounded-md px-3 py-2 text-sm flex flex-col items-center justify-center border border-gray-200 dark:border-zinc-700"
             >
-              <div className="text-gray-500 dark:text-gray-400">Week {index + 1}</div>
-              <div className={`text-lg font-semibold ${week.weekPnL >= 0 ? "text-green-600" : "text-red-600"}`}>
-                {week.weekPnL >= 0 ? "+" : ""}${week.weekPnL.toFixed(1)}
+              <div className="text-gray-500 dark:text-gray-400">
+                Week {index + 1}
               </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">{week.tradingDays} days</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">{week.totalTrades} trades</div>
+              <div
+                className={`text-lg font-semibold ${
+                  week.weekPnL >= 0 ? "text-green-600" : "text-red-600"
+                }`}
+              >
+                {week.weekPnL >= 0 ? "+" : ""}
+                ${week.weekPnL.toFixed(1)}
+              </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                {week.tradingDays} days
+              </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                {week.totalTrades} trades
+              </div>
             </div>
           ))}
         </div>
