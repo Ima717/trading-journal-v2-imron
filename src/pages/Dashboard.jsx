@@ -216,7 +216,7 @@ const Dashboard = () => {
               {/* Calendar & Trade History Section */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-stretch">
                 <motion.div whileHover={{ y: -4, scale: 1.015 }} transition={{ type: "spring", stiffness: 260, damping: 20 }} className="lg:col-span-2 h-full">
-                  <CalendarCard />
+                  <CalendarCard trades={filteredTrades} />
                 </motion.div>
 
                 <motion.div whileHover={{ y: -4, scale: 1.015 }} transition={{ type: "spring", stiffness: 260, damping: 20 }} className="h-full">
