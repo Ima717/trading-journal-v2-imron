@@ -303,7 +303,15 @@ const CalendarCard = ({ trades = [] }) => {
                 <div
                   key={`empty-${i}`}
                   style={{ height: rowHeight }}
-                  className="rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800"
+className={`rounded-md 
+  ${
+    pnl !== undefined
+      ? pnl >= 0
+        ? "border-green-400 dark:border-green-600"
+        : "border-red-400 dark:border-red-600"
+      : "border-gray-200 dark:border-zinc-700"
+  } 
+  bg-gray-50 dark:bg-zinc-800`}
                 />
               ))}
               {days.map((date) => {
