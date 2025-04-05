@@ -18,6 +18,7 @@ const CalendarCard = ({ trades = [] }) => {
 
   const headerRef = useRef(null);
   const settingsRef = useRef(null);
+  const settingsButtonRef = useRef(null); // Add a ref for the settings button
 
   // Load settings from localStorage on mount
   useEffect(() => {
@@ -39,10 +40,16 @@ const CalendarCard = ({ trades = [] }) => {
     }
   }, []);
 
-  // Auto-close settings on outside click
+  // Auto-close settings on outside click, but ignore clicks on the settings button
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (settingsRef.current && !settingsRef.current.contains(event.target)) {
+      // Check if the click is outside the dropdown and not on the settings button
+      if (
+        settingsRef.current &&
+        !settingsRef.current.contains(event.target) &&
+        settingsButtonRef.current &&
+        !settingsButtonRef.current.contains(event.target)
+      ) {
         setSettingsOpen(false);
       }
     };
@@ -205,7 +212,8 @@ const CalendarCard = ({ trades = [] }) => {
             {monthlyStats.tradingDays} days
           </span>
           <button
-            onClick={() => setSettingsOpen((prev) => (prev ? false : true))}
+            ref={settingsButtonRef} // Add ref to the settings button
+            onClick={() => setSettingsOpen((prev) => !prev)} // Simplified toggle
             className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
             title="Settings"
           >
