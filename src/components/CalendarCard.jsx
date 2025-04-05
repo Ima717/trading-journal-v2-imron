@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Settings } from "lucide-react";
+import { ChevronLeft, ChevronRight, Settings, CheckCircle } from "lucide-react";
 import dayjs from "dayjs";
 import { Tooltip as ReactTooltip } from "react-tooltip";
 
@@ -212,7 +212,7 @@ const CalendarCard = ({ trades = [] }) => {
             <Settings size={18} />
           </button>
 
-          {/* Settings Dropdown */}
+          {/* Enhanced Settings Dropdown */}
           <AnimatePresence>
             {settingsOpen && (
               <motion.div
@@ -220,48 +220,154 @@ const CalendarCard = ({ trades = [] }) => {
                 initial={{ opacity: 0, y: -10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
-                className="absolute top-10 right-0 w-72 bg-white dark:bg-zinc-700 rounded-lg shadow-lg p-5 z-50 border border-gray-200 dark:border-zinc-600"
+                transition={{ duration: 0.2, ease: "easeInOut", type: "spring", stiffness: 300, damping: 20 }}
+                className="absolute top-10 right-0 w-72 bg-gradient-to-br from-white to-gray-50 dark:from-zinc-700 dark:to-zinc-800 rounded-lg shadow-xl p-6 z-50 border border-gray-200 dark:border-zinc-600"
               >
                 <div className="text-sm text-gray-800 dark:text-gray-200">
-                  <h3 className="font-semibold text-base mb-3 border-b border-gray-200 dark:border-zinc-600 pb-1">Stats</h3>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer">Show Daily P&L</span>
-                    <input
-                      type="checkbox"
-                      checked={settings.showDailyPnL}
-                      onChange={() => toggleSetting("showDailyPnL")}
-                      className="toggle-checkbox appearance-none w-5 h-5 border-2 border-gray-300 dark:border-zinc-500 rounded-md checked:bg-blue-500 checked:border-blue-500 transition-colors"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer">Show Day Win Rate</span>
-                    <input
-                      type="checkbox"
-                      checked={settings.showWinRate}
-                      onChange={() => toggleSetting("showWinRate")}
-                      className="toggle-checkbox appearance-none w-5 h-5 border-2 border-gray-300 dark:border-zinc-500 rounded-md checked:bg-blue-500 checked:border-blue-500 transition-colors"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer">Show Number of Trades</span>
-                    <input
-                      type="checkbox"
-                      checked={settings.showTradesCount}
-                      onChange={() => toggleSetting("showTradesCount")}
-                      className="toggle-checkbox appearance-none w-5 h-5 border-2 border-gray-300 dark:border-zinc-500 rounded-md checked:bg-blue-500 checked:border-blue-500 transition-colors"
-                    />
+                  <h3 className="font-semibold text-lg mb-4 border-b border-gray-200 dark:border-zinc-600 pb-2 flex items-center">
+                    <span className="text-gray-700 dark:text-gray-300">Stats</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <motion.label
+                        className="flex items-center space-x-2 cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <span>Show Daily P&L</span>
+                        {settings.showDailyPnL && (
+                          <CheckCircle size={14} className="text-green-500" />
+                        )}
+                      </motion.label>
+                      <div className="relative inline-block w-10 h-5">
+                        <input
+                          type="checkbox"
+                          checked={settings.showDailyPnL}
+                          onChange={() => toggleSetting("showDailyPnL")}
+                          className="opacity-0 w-0 h-0"
+                        />
+                        <motion.div
+                          className={`absolute top-0 left-0 w-10 h-5 rounded-full transition-colors duration-200 ${
+                            settings.showDailyPnL
+                              ? "bg-blue-500"
+                              : "bg-gray-300 dark:bg-zinc-500"
+                          }`}
+                        />
+                        <motion.div
+                          className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm"
+                          animate={{
+                            x: settings.showDailyPnL ? 22 : 2,
+                          }}
+                          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <motion.label
+                        className="flex items-center space-x-2 cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <span>Show Day Win Rate</span>
+                        {settings.showWinRate && (
+                          <CheckCircle size={14} className="text-green-500" />
+                        )}
+                      </motion.label>
+                      <div className="relative inline-block w-10 h-5">
+                        <input
+                          type="checkbox"
+                          checked={settings.showWinRate}
+                          onChange={() => toggleSetting("showWinRate")}
+                          className="opacity-0 w-0 h-0"
+                        />
+                        <motion.div
+                          className={`absolute top-0 left-0 w-10 h-5 rounded-full transition-colors duration-200 ${
+                            settings.showWinRate
+                              ? "bg-blue-500"
+                              : "bg-gray-300 dark:bg-zinc-500"
+                          }`}
+                        />
+                        <motion.div
+                          className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm"
+                          animate={{
+                            x: settings.showWinRate ? 22 : 2,
+                          }}
+                          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <motion.label
+                        className="flex items-center space-x-2 cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <span>Show Number of Trades</span>
+                        {settings.showTradesCount && (
+                          <CheckCircle size={14} className="text-green-500" />
+                        )}
+                      </motion.label>
+                      <div className="relative inline-block w-10 h-5">
+                        <input
+                          type="checkbox"
+                          checked={settings.showTradesCount}
+                          onChange={() => toggleSetting("showTradesCount")}
+                          className="opacity-0 w-0 h-0"
+                        />
+                        <motion.div
+                          className={`absolute top-0 left-0 w-10 h-5 rounded-full transition-colors duration-200 ${
+                            settings.showTradesCount
+                              ? "bg-blue-500"
+                              : "bg-gray-300 dark:bg-zinc-500"
+                          }`}
+                        />
+                        <motion.div
+                          className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm"
+                          animate={{
+                            x: settings.showTradesCount ? 22 : 2,
+                          }}
+                          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                        />
+                      </div>
+                    </div>
                   </div>
 
-                  <h3 className="font-semibold text-base mb-3 border-b border-gray-200 dark:border-zinc-600 pb-1">Visuals</h3>
+                  <h3 className="font-semibold text-lg mt-6 mb-4 border-b border-gray-200 dark:border-zinc-600 pb-2 flex items-center">
+                    <span className="text-gray-700 dark:text-gray-300">Visuals</span>
+                  </h3>
                   <div className="flex items-center justify-between">
-                    <span className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer">Color Intensity Mode</span>
-                    <input
-                      type="checkbox"
-                      checked={settings.colorIntensityMode}
-                      onChange={() => toggleSetting("colorIntensityMode")}
-                      className="toggle-checkbox appearance-none w-5 h-5 border-2 border-gray-300 dark:border-zinc-500 rounded-md checked:bg-blue-500 checked:border-blue-500 transition-colors"
-                    />
+                    <motion.label
+                      className="flex items-center space-x-2 cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <span>Color Intensity Mode</span>
+                      {settings.colorIntensityMode && (
+                        <CheckCircle size={14} className="text-green-500" />
+                      )}
+                    </motion.label>
+                    <div className="relative inline-block w-10 h-5">
+                      <input
+                        type="checkbox"
+                        checked={settings.colorIntensityMode}
+                        onChange={() => toggleSetting("colorIntensityMode")}
+                        className="opacity-0 w-0 h-0"
+                      />
+                      <motion.div
+                        className={`absolute top-0 left-0 w-10 h-5 rounded-full transition-colors duration-200 ${
+                          settings.colorIntensityMode
+                            ? "bg-blue-500"
+                            : "bg-gray-300 dark:bg-zinc-500"
+                        }`}
+                      />
+                      <motion.div
+                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm"
+                        animate={{
+                          x: settings.colorIntensityMode ? 22 : 2,
+                        }}
+                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                      />
+                    </div>
                   </div>
                 </div>
               </motion.div>
