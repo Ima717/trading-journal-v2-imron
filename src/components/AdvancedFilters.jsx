@@ -1,55 +1,92 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useFilters } from "../context/FilterContext";
+import { Check, Filter } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { SlidersHorizontal } from "lucide-react";
 
-const filterData = {
-  Setup: ["Breakout", "Pullback", "Reversal"],
-  Market: ["Bullish", "Bearish", "Sideways"],
-  Session: ["Pre-market", "Regular", "After-hours"],
+const filterConfig = {
+  General: [
+    "Instrument",
+    "Intraday/Multiday",
+    "Open/Closed",
+    "Reviewed/Unreviewed",
+    "Side",
+    "Symbol",
+    "Status",
+    "Trade rating",
+  ],
+  Tags: ["Mistakes", "Successes"],
 };
 
 const AdvancedFilters = () => {
   const [open, setOpen] = useState(false);
-  const [selectedFilters, setSelectedFilters] = useState({});
-  const panelRef = useRef(null);
+  const [activeTab, setActiveTab] = useState("General");
+  const [selected, setSelected] = useState({});
+  const [presets, setPresets] = useState([]);
+
+  const { setSelectedFilters, triggerRefresh } = useFilters();
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (panelRef.current && !panelRef.current.contains(e.target)) {
+    const saved = localStorage.getItem("filterPresets");
+    if (saved) setPresets(JSON.parse(saved));
+  }, []);
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (open && dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    window.addEventListener("mousedown", handleClick);
+    return () => window.removeEventListener("mousedown", handleClick);
+  }, [open]);
 
-  const toggleFilter = (category, value) => {
-    setSelectedFilters((prev) => {
-      const existing = prev[category] || [];
-      const newValues = existing.includes(value)
-        ? existing.filter((v) => v !== value)
-        : [...existing, value];
-      return { ...prev, [category]: newValues };
+  const toggleOption = (tab, value) => {
+    setSelected((prev) => {
+      const current = prev[tab] || [];
+      const exists = current.includes(value);
+      const updated = exists
+        ? current.filter((v) => v !== value)
+        : [...current, value];
+      return { ...prev, [tab]: updated };
     });
   };
 
-  const resetFilters = () => setSelectedFilters({});
-  const applyFilters = () => setOpen(false);
-  const cancelFilters = () => setOpen(false);
+  const resetAll = () => {
+    setSelected({});
+    setSelectedFilters({});
+    triggerRefresh();
+  };
 
-  const countSelected = Object.values(selectedFilters).flat().length;
+  const applyFilters = () => {
+    setSelectedFilters(selected);
+    setOpen(false);
+    triggerRefresh();
+  };
+
+  const savePreset = () => {
+    const name = prompt("Enter preset name:");
+    if (!name) return;
+    const newPresets = [...presets, { name, selected }];
+    setPresets(newPresets);
+    localStorage.setItem("filterPresets", JSON.stringify(newPresets));
+  };
+
+  const badgeCount = Object.values(selected).flat().length;
 
   return (
-    <div className="relative">
+    <div className="relative z-40" ref={dropdownRef}>
       <button
-        onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-2 px-3 py-2 rounded-md text-sm border border-gray-300 dark:border-zinc-600 hover:bg-gray-100 dark:hover:bg-zinc-700 transition"
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1 px-4 py-2 bg-white border rounded shadow-sm text-sm font-medium hover:bg-gray-100 relative"
+        aria-haspopup="true"
+        aria-expanded={open}
       >
-        <SlidersHorizontal size={16} />
-        Filters
-        {countSelected > 0 && (
-          <span className="ml-1 bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">
-            {countSelected}
+        <Filter className="text-purple-600" size={16} />
+        <span>Filters</span>
+        {badgeCount > 0 && (
+          <span className="ml-2 bg-purple-600 text-white text-xs rounded-full px-2 py-0.5">
+            {badgeCount}
           </span>
         )}
       </button>
@@ -57,55 +94,85 @@ const AdvancedFilters = () => {
       <AnimatePresence>
         {open && (
           <motion.div
-            ref={panelRef}
-            initial={{ opacity: 0, scale: 0.95, y: -10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="absolute right-0 mt-2 w-80 bg-white dark:bg-zinc-800 shadow-lg rounded-xl z-50 border border-gray-200 dark:border-zinc-700 p-4"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="absolute top-12 right-0 w-[400px] bg-white shadow-2xl border rounded-xl overflow-hidden z-50"
+            role="dialog"
+            aria-label="Advanced filters"
           >
-            {Object.keys(filterData).map((category) => (
-              <div key={category} className="mb-4">
-                <h4 className="text-xs uppercase font-semibold mb-2 text-gray-500 dark:text-gray-400">{category}</h4>
-                <div className="flex flex-wrap gap-2">
-                  {filterData[category].map((item) => (
-                    <label
-                      key={item}
-                      className={`text-sm px-3 py-1 rounded-md border cursor-pointer transition ${
-                        (selectedFilters[category] || []).includes(item)
-                          ? "bg-blue-500 text-white border-blue-500"
-                          : "bg-gray-100 dark:bg-zinc-700 border-gray-300 dark:border-zinc-600 text-gray-800 dark:text-gray-200"
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={(selectedFilters[category] || []).includes(item)}
-                        onChange={() => toggleFilter(category, item)}
-                        className="hidden"
-                      />
-                      {item}
-                    </label>
-                  ))}
-                </div>
+            <div className="flex h-full">
+              {/* Sidebar Tabs */}
+              <div className="w-1/3 border-r">
+                {Object.keys(filterConfig).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`w-full text-left px-4 py-2 text-sm ${
+                      activeTab === tab
+                        ? "bg-purple-100 font-semibold text-purple-700"
+                        : "hover:bg-gray-100"
+                    } transition-colors duration-200`}
+                  >
+                    {tab}
+                  </button>
+                ))}
               </div>
-            ))}
 
-            <div className="flex justify-between border-t pt-3 mt-4">
-              <button onClick={resetFilters} className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-white">
+              {/* Filter Options */}
+              <div className="w-2/3 p-3 overflow-y-auto max-h-[260px]">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeTab}
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    transition={{
+                      duration: 0.25,
+                      ease: [0.25, 1, 0.5, 1],
+                    }}
+                    layout
+                    layoutRoot
+                    className="space-y-2"
+                  >
+                    {filterConfig[activeTab].map((item) => {
+                      const selectedItems = selected[activeTab] || [];
+                      const isSelected = selectedItems.includes(item);
+                      return (
+                        <button
+                          key={item}
+                          onClick={() => toggleOption(activeTab, item)}
+                          className={`w-full flex items-center justify-between px-4 py-2 text-sm rounded-full border ${
+                            isSelected
+                              ? "bg-purple-600 text-white border-purple-600"
+                              : "bg-gray-100 hover:bg-gray-200 text-gray-800"
+                          }`}
+                        >
+                          {item}
+                          {isSelected && <Check size={14} />}
+                        </button>
+                      );
+                    })}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-between items-center border-t px-4 py-3">
+              <button onClick={resetAll} className="text-xs text-purple-600 hover:underline">
                 Reset all
               </button>
               <div className="flex gap-2">
-                <button
-                  onClick={cancelFilters}
-                  className="text-sm px-3 py-1 rounded-md bg-gray-100 dark:bg-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-600"
-                >
+                <button onClick={() => setOpen(false)} className="text-sm text-gray-600 hover:text-gray-800">
                   Cancel
                 </button>
                 <button
                   onClick={applyFilters}
-                  className="text-sm px-3 py-1 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+                  className="px-4 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700"
                 >
-                  Apply
+                  Apply filters
                 </button>
               </div>
             </div>
@@ -117,3 +184,4 @@ const AdvancedFilters = () => {
 };
 
 export default AdvancedFilters;
+
