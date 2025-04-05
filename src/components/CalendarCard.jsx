@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Settings, CheckCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Settings } from "lucide-react";
 import dayjs from "dayjs";
 import { Tooltip as ReactTooltip } from "react-tooltip";
 
@@ -18,7 +18,7 @@ const CalendarCard = ({ trades = [] }) => {
 
   const headerRef = useRef(null);
   const settingsRef = useRef(null);
-  const settingsButtonRef = useRef(null); // Add a ref for the settings button
+  const settingsButtonRef = useRef(null);
 
   // Load settings from localStorage on mount
   useEffect(() => {
@@ -43,7 +43,6 @@ const CalendarCard = ({ trades = [] }) => {
   // Auto-close settings on outside click, but ignore clicks on the settings button
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Check if the click is outside the dropdown and not on the settings button
       if (
         settingsRef.current &&
         !settingsRef.current.contains(event.target) &&
@@ -197,23 +196,29 @@ const CalendarCard = ({ trades = [] }) => {
         </div>
         <div className="flex items-center gap-3 relative">
           <AnimatePresence mode="wait">
-            <motion.span
+            <motion.div
               key={currentMonth.format("MM-YYYY") + "-totalPnL"}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2, ease: "easeInOut" }}
-              className={`text-lg font-semibold ${monthlyStats.totalPnL >= 0 ? "text-green-600" : "text-red-600"}`}
+              className={`border px-3 py-1 rounded-lg shadow-sm ${
+                monthlyStats.totalPnL >= 0
+                  ? "border-green-300 dark:border-green-600 bg-green-100/50 dark:bg-green-900/30 text-green-600"
+                  : "border-red-300 dark:border-red-600 bg-red-100/50 dark:bg-red-900/30 text-red-600"
+              }`}
             >
-              {monthlyStats.totalPnL >= 0 ? "+" : ""}${monthlyStats.totalPnL.toFixed(0)}
-            </motion.span>
+              <span className="text-lg font-semibold">
+                {monthlyStats.totalPnL >= 0 ? "+" : ""}${monthlyStats.totalPnL.toFixed(0)}
+              </span>
+            </motion.div>
           </AnimatePresence>
           <span className="text-sm text-gray-500 dark:text-gray-400">
             {monthlyStats.tradingDays} days
           </span>
           <button
-            ref={settingsButtonRef} // Add ref to the settings button
-            onClick={() => setSettingsOpen((prev) => !prev)} // Simplified toggle
+            ref={settingsButtonRef}
+            onClick={() => setSettingsOpen((prev) => !prev)}
             className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
             title="Settings"
           >
@@ -244,9 +249,6 @@ const CalendarCard = ({ trades = [] }) => {
                         whileTap={{ scale: 0.98 }}
                       >
                         <span>Show Daily P&L</span>
-                        {settings.showDailyPnL && (
-                          <CheckCircle size={14} className="text-green-500" />
-                        )}
                       </motion.label>
                       <label className="relative inline-block w-10 h-5 cursor-pointer">
                         <input
@@ -280,9 +282,6 @@ const CalendarCard = ({ trades = [] }) => {
                         whileTap={{ scale: 0.98 }}
                       >
                         <span>Show Day Win Rate</span>
-                        {settings.showWinRate && (
-                          <CheckCircle size={14} className="text-green-500" />
-                        )}
                       </motion.label>
                       <label className="relative inline-block w-10 h-5 cursor-pointer">
                         <input
@@ -316,9 +315,6 @@ const CalendarCard = ({ trades = [] }) => {
                         whileTap={{ scale: 0.98 }}
                       >
                         <span>Show Number of Trades</span>
-                        {settings.showTradesCount && (
-                          <CheckCircle size={14} className="text-green-500" />
-                        )}
                       </motion.label>
                       <label className="relative inline-block w-10 h-5 cursor-pointer">
                         <input
@@ -357,9 +353,6 @@ const CalendarCard = ({ trades = [] }) => {
                       whileTap={{ scale: 0.98 }}
                     >
                       <span>Color Intensity Mode</span>
-                      {settings.colorIntensityMode && (
-                        <CheckCircle size={14} className="text-green-500" />
-                      )}
                     </motion.label>
                     <label className="relative inline-block w-10 h-5 cursor-pointer">
                       <input
