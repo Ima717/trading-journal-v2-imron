@@ -265,12 +265,16 @@ const CalendarCard = ({ trades = [] }) => {
         {/* Calendar Days */}
         <div className="flex-1">
           <div ref={headerRef} className="grid grid-cols-7 gap-1 text-sm text-center text-gray-500 dark:text-gray-400 mb-3">
-            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-              <div key={d} className="font-medium p-2">
-                {d}
-              </div>
-            ))}
-          </div>
+  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+    <div
+      key={d}
+      className="bg-purple-50 dark:bg-zinc-700 border border-purple-200 dark:border-zinc-600 rounded-xl py-2 font-semibold text-purple-700 dark:text-white"
+    >
+      {d}
+    </div>
+  ))}
+</div>
+
 
           <AnimatePresence mode="wait">
             <motion.div
