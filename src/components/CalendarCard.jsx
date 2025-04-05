@@ -97,7 +97,7 @@ const CalendarCard = ({ trades = [] }) => {
   };
 
   return (
-  <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200/60 p-5 shadow-none w-full h-[850px] flex flex-col transition-none transform-none hover:scale-100 hover:shadow-none">
+    <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200/60 p-5 shadow-none w-full h-[850px] flex flex-col transition-none transform-none hover:scale-100 hover:shadow-none">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
@@ -162,14 +162,18 @@ const CalendarCard = ({ trades = [] }) => {
                     <div
                       data-tooltip-id={tooltipId}
                       data-tooltip-content={pnl !== undefined ? `${key}: ${pnl < 0 ? "-" : ""}$${Math.abs(pnl).toFixed(2)} | Trades: ${tradesCount}` : null}
-                      className={`w-full h-full flex flex-col items-center justify-center cursor-pointer transition-all duration-200 p-2
+                      className={`relative w-full h-full flex flex-col items-center justify-center cursor-pointer transition-all duration-200 p-2
                         ${pnl !== undefined
                           ? pnl >= 0
                             ? "bg-green-200/60 dark:bg-green-900/40 border-green-400 dark:border-green-700"
                             : "bg-red-200/60 dark:bg-red-900/40 border-red-400 dark:border-red-700"
                           : "hover:bg-purple-100/60 dark:hover:bg-purple-900/30 border-transparent hover:border-purple-400 dark:hover:border-purple-600"}`}
                     >
-                      <span className="font-medium">{date.date()}</span>
+                      {/* Moved day number to top-right */}
+                      <span className="absolute top-1 right-2 text-xs font-semibold text-gray-600 dark:text-gray-300">
+                        {date.date()}
+                      </span>
+
                       {pnl !== undefined && (
                         <>
                           <span className={`text-xs font-semibold ${pnl >= 0 ? "text-green-700" : "text-red-700"}`}>
