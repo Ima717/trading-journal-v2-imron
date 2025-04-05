@@ -185,7 +185,7 @@ const CalendarCard = ({ trades = [] }) => {
   }}
   className="text-sm border border-gray-200 dark:border-zinc-700 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 px-2 py-1 rounded-md hover:bg-gray-200 dark:hover:bg-zinc-700 transition-all duration-200"
 >
-  This month
+  Current month
 </button>
 
         </div>
