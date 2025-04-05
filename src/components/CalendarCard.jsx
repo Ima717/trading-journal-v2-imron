@@ -264,16 +264,20 @@ const CalendarCard = ({ trades = [] }) => {
       <div className="flex flex-1 gap-4 items-start">
         {/* Calendar Days */}
         <div className="flex-1">
-          <div ref={headerRef} className="grid grid-cols-7 gap-1 text-sm text-center text-gray-500 dark:text-gray-400 mb-3">
+          <div
+  ref={headerRef}
+  className="grid grid-cols-7 gap-1 text-sm text-center text-gray-700 dark:text-gray-300 mb-3"
+>
   {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
     <div
       key={d}
-      className="bg-purple-50 dark:bg-zinc-700 border border-purple-200 dark:border-zinc-600 rounded-xl py-2 font-semibold text-purple-700 dark:text-white"
+      className="border border-gray-300 dark:border-zinc-600 rounded-md py-1 font-medium bg-white dark:bg-zinc-800"
     >
       {d}
     </div>
   ))}
 </div>
+
 
 
           <AnimatePresence mode="wait">
