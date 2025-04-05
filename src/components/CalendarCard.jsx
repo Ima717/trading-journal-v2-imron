@@ -321,8 +321,12 @@ const CalendarCard = ({ trades = [] }) => {
                     className={`rounded-md border ${
                       pnl !== undefined
                         ? pnl >= 0
-                          ? "border-green-400 dark:border-green-700"
-                          : "border-red-400 dark:border-red-700"
+                          ? isExtremeDay
+                            ? "border-green-500 dark:border-green-600"
+                            : "border-green-400 dark:border-green-700"
+                          : isExtremeDay
+                          ? "border-red-400 dark:border-red-500"
+                          : "border-red-300 dark:border-red-600"
                         : "border-gray-200 dark:border-zinc-700"
                     } bg-gray-50 dark:bg-zinc-800 ${
                       isTodayDate ? "relative shadow-[0_0_8px_rgba(255,215,0,0.5)]" : ""
