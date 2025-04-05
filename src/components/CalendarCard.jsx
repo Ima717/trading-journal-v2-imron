@@ -230,6 +230,7 @@ const CalendarCard = ({ trades = [] }) => {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <motion.label
+                        htmlFor="showDailyPnL"
                         className="flex items-center space-x-2 cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
@@ -239,12 +240,13 @@ const CalendarCard = ({ trades = [] }) => {
                           <CheckCircle size={14} className="text-green-500" />
                         )}
                       </motion.label>
-                      <div className="relative inline-block w-10 h-5">
+                      <label className="relative inline-block w-10 h-5 cursor-pointer">
                         <input
+                          id="showDailyPnL"
                           type="checkbox"
                           checked={settings.showDailyPnL}
                           onChange={() => toggleSetting("showDailyPnL")}
-                          className="opacity-0 w-0 h-0"
+                          className="absolute opacity-0 w-0 h-0"
                         />
                         <motion.div
                           className={`absolute top-0 left-0 w-10 h-5 rounded-full transition-colors duration-200 ${
@@ -260,10 +262,11 @@ const CalendarCard = ({ trades = [] }) => {
                           }}
                           transition={{ type: "spring", stiffness: 300, damping: 20 }}
                         />
-                      </div>
+                      </label>
                     </div>
                     <div className="flex items-center justify-between">
                       <motion.label
+                        htmlFor="showWinRate"
                         className="flex items-center space-x-2 cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
@@ -273,12 +276,13 @@ const CalendarCard = ({ trades = [] }) => {
                           <CheckCircle size={14} className="text-green-500" />
                         )}
                       </motion.label>
-                      <div className="relative inline-block w-10 h-5">
+                      <label className="relative inline-block w-10 h-5 cursor-pointer">
                         <input
+                          id="showWinRate"
                           type="checkbox"
                           checked={settings.showWinRate}
                           onChange={() => toggleSetting("showWinRate")}
-                          className="opacity-0 w-0 h-0"
+                          className="absolute opacity-0 w-0 h-0"
                         />
                         <motion.div
                           className={`absolute top-0 left-0 w-10 h-5 rounded-full transition-colors duration-200 ${
@@ -294,10 +298,11 @@ const CalendarCard = ({ trades = [] }) => {
                           }}
                           transition={{ type: "spring", stiffness: 300, damping: 20 }}
                         />
-                      </div>
+                      </label>
                     </div>
                     <div className="flex items-center justify-between">
                       <motion.label
+                        htmlFor="showTradesCount"
                         className="flex items-center space-x-2 cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
@@ -307,12 +312,13 @@ const CalendarCard = ({ trades = [] }) => {
                           <CheckCircle size={14} className="text-green-500" />
                         )}
                       </motion.label>
-                      <div className="relative inline-block w-10 h-5">
+                      <label className="relative inline-block w-10 h-5 cursor-pointer">
                         <input
+                          id="showTradesCount"
                           type="checkbox"
                           checked={settings.showTradesCount}
                           onChange={() => toggleSetting("showTradesCount")}
-                          className="opacity-0 w-0 h-0"
+                          className="absolute opacity-0 w-0 h-0"
                         />
                         <motion.div
                           className={`absolute top-0 left-0 w-10 h-5 rounded-full transition-colors duration-200 ${
@@ -328,7 +334,7 @@ const CalendarCard = ({ trades = [] }) => {
                           }}
                           transition={{ type: "spring", stiffness: 300, damping: 20 }}
                         />
-                      </div>
+                      </label>
                     </div>
                   </div>
 
@@ -337,6 +343,7 @@ const CalendarCard = ({ trades = [] }) => {
                   </h3>
                   <div className="flex items-center justify-between">
                     <motion.label
+                      htmlFor="colorIntensityMode"
                       className="flex items-center space-x-2 cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
@@ -346,12 +353,13 @@ const CalendarCard = ({ trades = [] }) => {
                         <CheckCircle size={14} className="text-green-500" />
                       )}
                     </motion.label>
-                    <div className="relative inline-block w-10 h-5">
+                    <label className="relative inline-block w-10 h-5 cursor-pointer">
                       <input
+                        id="colorIntensityMode"
                         type="checkbox"
                         checked={settings.colorIntensityMode}
                         onChange={() => toggleSetting("colorIntensityMode")}
-                        className="opacity-0 w-0 h-0"
+                        className="absolute opacity-0 w-0 h-0"
                       />
                       <motion.div
                         className={`absolute top-0 left-0 w-10 h-5 rounded-full transition-colors duration-200 ${
@@ -367,7 +375,7 @@ const CalendarCard = ({ trades = [] }) => {
                         }}
                         transition={{ type: "spring", stiffness: 300, damping: 20 }}
                       />
-                    </div>
+                    </label>
                   </div>
                 </div>
               </motion.div>
