@@ -1,4 +1,3 @@
-// Updated CalendarCard with all the requested enhancements
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Settings } from "lucide-react";
@@ -10,26 +9,18 @@ const CalendarCard = ({ trades = [] }) => {
   const [animating, setAnimating] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(0);
   const headerRef = useRef(null);
-  const dropdownRef = useRef(null);
-
   const [showDropdown, setShowDropdown] = useState(false);
   const [showPnL, setShowPnL] = useState(() => JSON.parse(localStorage.getItem("showPnL")) ?? true);
   const [showWinRate, setShowWinRate] = useState(() => JSON.parse(localStorage.getItem("showWinRate")) ?? false);
   const [showTrades, setShowTrades] = useState(() => JSON.parse(localStorage.getItem("showTrades")) ?? false);
   const [heatmapMode, setHeatmapMode] = useState(() => JSON.parse(localStorage.getItem("heatmapMode")) ?? false);
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     if (headerRef.current) {
       setHeaderHeight(headerRef.current.offsetHeight);
     }
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem("showPnL", showPnL);
-    localStorage.setItem("showWinRate", showWinRate);
-    localStorage.setItem("showTrades", showTrades);
-    localStorage.setItem("heatmapMode", heatmapMode);
-  }, [showPnL, showWinRate, showTrades, heatmapMode]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -40,6 +31,13 @@ const CalendarCard = ({ trades = [] }) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("showPnL", showPnL);
+    localStorage.setItem("showWinRate", showWinRate);
+    localStorage.setItem("showTrades", showTrades);
+    localStorage.setItem("heatmapMode", heatmapMode);
+  }, [showPnL, showWinRate, showTrades, heatmapMode]);
 
   const startOfMonth = currentMonth.startOf("month");
   const daysInMonth = currentMonth.daysInMonth();
@@ -84,9 +82,15 @@ const CalendarCard = ({ trades = [] }) => {
     days.forEach((day, index) => {
       currentWeek.push(day);
       if (day.day() === 6 || index === days.length - 1) {
-        const weekPnL = currentWeek.reduce((sum, d) => sum + (tradeMap.pnl[d.format("YYYY-MM-DD")] || 0), 0);
+        const weekPnL = currentWeek.reduce((sum, d) => {
+          const key = d.format("YYYY-MM-DD");
+          return sum + (tradeMap.pnl[key] || 0);
+        }, 0);
         const tradingDays = currentWeek.filter((d) => tradeMap.pnl[d.format("YYYY-MM-DD")]).length;
-        const totalTrades = currentWeek.reduce((sum, d) => sum + (tradeMap.tradesCount[d.format("YYYY-MM-DD")] || 0), 0);
+        const totalTrades = currentWeek.reduce((sum, d) => {
+          const key = d.format("YYYY-MM-DD");
+          return sum + (tradeMap.tradesCount[key] || 0);
+        }, 0);
         weeks.push({ weekPnL, tradingDays, totalTrades });
         currentWeek = [];
       }
@@ -125,17 +129,19 @@ const CalendarCard = ({ trades = [] }) => {
           <button onClick={handleNextMonth} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
             <ChevronRight size={18} />
           </button>
+          <button className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white transition-colors">
+            This month
+          </button>
         </div>
         <div className="flex items-center gap-3 relative">
           <span className={`text-lg font-semibold ${monthlyStats.totalPnL >= 0 ? "text-green-600" : "text-red-600"}`}>
-            {monthlyStats.totalPnL >= 0 ? "+" : ""}${monthlyStats.totalPnL.toFixed(0)}
+            {monthlyStats.totalPnL >= 0 ? "+" : "-"}${Math.abs(monthlyStats.totalPnL.toFixed(0))}
           </span>
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            {monthlyStats.tradingDays} days
-          </span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">{monthlyStats.tradingDays} days</span>
           <button
-            onClick={() => setShowDropdown(!showDropdown)}
+            onClick={() => setShowDropdown((prev) => !prev)}
             className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
+            title="Settings"
           >
             <Settings size={18} />
           </button>
@@ -143,25 +149,29 @@ const CalendarCard = ({ trades = [] }) => {
           {showDropdown && (
             <motion.div
               ref={dropdownRef}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="absolute top-10 right-0 w-64 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-lg p-4 z-50"
+              className="absolute top-10 right-0 w-60 bg-white dark:bg-zinc-900 rounded-xl border shadow-xl p-4 z-50"
             >
               <div className="mb-2 font-bold text-gray-700 dark:text-white">Stats</div>
               <label className="flex justify-between items-center text-sm mb-2 text-gray-700 dark:text-gray-300">
-                Show P&L <input type="checkbox" checked={showPnL} onChange={() => setShowPnL(!showPnL)} />
+                Show P&L
+                <input type="checkbox" checked={showPnL} onChange={() => setShowPnL(!showPnL)} />
               </label>
               <label className="flex justify-between items-center text-sm mb-2 text-gray-700 dark:text-gray-300">
-                Win Rate <input type="checkbox" checked={showWinRate} onChange={() => setShowWinRate(!showWinRate)} />
+                Win Rate
+                <input type="checkbox" checked={showWinRate} onChange={() => setShowWinRate(!showWinRate)} />
               </label>
               <label className="flex justify-between items-center text-sm mb-4 text-gray-700 dark:text-gray-300">
-                Trades <input type="checkbox" checked={showTrades} onChange={() => setShowTrades(!showTrades)} />
+                Trades Count
+                <input type="checkbox" checked={showTrades} onChange={() => setShowTrades(!showTrades)} />
               </label>
               <div className="mb-2 font-bold text-gray-700 dark:text-white">Visuals</div>
               <label className="flex justify-between items-center text-sm text-gray-700 dark:text-gray-300">
-                Heatmap <input type="checkbox" checked={heatmapMode} onChange={() => setHeatmapMode(!heatmapMode)} />
+                Heatmap Mode
+                <input type="checkbox" checked={heatmapMode} onChange={() => setHeatmapMode(!heatmapMode)} />
               </label>
             </motion.div>
           )}
@@ -169,7 +179,6 @@ const CalendarCard = ({ trades = [] }) => {
       </div>
 
       <div className="flex flex-1 gap-4 items-start">
-        {/* Calendar days */}
         <div className="flex-1">
           <div ref={headerRef} className="grid grid-cols-7 gap-1 text-sm text-center text-gray-500 dark:text-gray-400 mb-3">
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
@@ -195,30 +204,20 @@ const CalendarCard = ({ trades = [] }) => {
                 const tradesCount = tradeMap.tradesCount[key];
                 const percentage = tradeMap.percentage[key];
                 const isToday = key === today;
-                const isPositive = pnl >= 0;
+                const baseClass = pnl !== undefined
+                  ? pnl >= 0
+                    ? "bg-green-200/40 border-green-400 dark:border-green-600"
+                    : "bg-red-200/40 border-red-400 dark:border-red-600"
+                  : "hover:bg-purple-100/40 dark:hover:bg-purple-800/30 border-transparent hover:border-purple-400 dark:hover:border-purple-600";
 
-                const bgClass = pnl !== undefined
-                  ? isPositive
-                    ? "bg-green-100 dark:bg-green-900/40 border-green-400 dark:border-green-700"
-                    : "bg-red-100 dark:bg-red-900/40 border-red-400 dark:border-red-700"
-                  : "hover:bg-purple-100/60 dark:hover:bg-purple-900/30 border-transparent hover:border-purple-400 dark:hover:border-purple-600";
+                const ring = isToday ? "ring-2 ring-blue-400 ring-offset-2 ring-offset-white dark:ring-offset-zinc-800 rounded-full" : "";
 
                 return (
-                  <div
-                    key={key}
-                    style={{ height: rowHeight }}
-                    className={`relative rounded-md border ${bgClass}`}
-                  >
-                    <div className="absolute top-1 right-2 text-xs font-semibold text-gray-600 dark:text-gray-300">
-                      <div className={`rounded-full w-5 h-5 flex items-center justify-center ${isToday ? "ring-2 ring-blue-500" : ""}`}>
-                        {date.date()}
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-center justify-center h-full p-2 cursor-pointer hover:scale-[1.02] transition-transform duration-150">
+                  <div key={key} style={{ height: rowHeight }} className={`rounded-md border ${baseClass}`}>
+                    <div className="relative w-full h-full flex flex-col items-center justify-center cursor-pointer transition-all duration-200 p-2">
+                      <span className={`absolute top-1 right-2 text-xs font-semibold text-gray-600 dark:text-gray-300 ${ring}`}>{date.date()}</span>
                       {showPnL && pnl !== undefined && (
-                        <span className={`text-xs font-semibold ${isPositive ? "text-green-700" : "text-red-700"}`}>
-                          {isPositive ? "+" : ""}${pnl.toFixed(1)}
-                        </span>
+                        <span className={`text-xs font-semibold ${pnl >= 0 ? "text-green-700" : "text-red-700"}`}>{pnl >= 0 ? "+" : "-"}${Math.abs(pnl).toFixed(1)}</span>
                       )}
                       {showWinRate && percentage !== 0 && (
                         <span className="text-xs text-gray-500">{percentage}%</span>
@@ -234,7 +233,6 @@ const CalendarCard = ({ trades = [] }) => {
           </AnimatePresence>
         </div>
 
-        {/* Weekly stats */}
         <motion.div
           key={currentMonth.format("MM-YYYY") + "-weeks"}
           initial={{ opacity: 0 }}
@@ -252,7 +250,7 @@ const CalendarCard = ({ trades = [] }) => {
             >
               <div className="text-gray-500 dark:text-gray-400">Week {index + 1}</div>
               <div className={`text-lg font-semibold ${week.weekPnL >= 0 ? "text-green-600" : "text-red-600"}`}>
-                {week.weekPnL >= 0 ? "+" : ""}${week.weekPnL.toFixed(1)}
+                {week.weekPnL >= 0 ? "+" : "-"}${Math.abs(week.weekPnL).toFixed(1)}
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-400">{week.tradingDays} days</div>
               <div className="text-xs text-gray-500 dark:text-gray-400">{week.totalTrades} trades</div>
