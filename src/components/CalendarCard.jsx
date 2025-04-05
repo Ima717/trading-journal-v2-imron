@@ -176,18 +176,17 @@ const CalendarCard = ({ trades = [] }) => {
             <ChevronRight size={18} />
           </button>
           <button
-  onClick={() => {
-    if (!dayjs().isSame(currentMonth, "month")) {
-      setAnimating(true);
-      setCurrentMonth(dayjs());
-      setTimeout(() => setAnimating(false), 400);
-    }
-  }}
-  className="text-sm border border-gray-200 dark:border-zinc-700 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 px-2 py-1 rounded-md hover:bg-gray-200 dark:hover:bg-zinc-700 transition-all duration-200"
->
-  Current month
-</button>
-
+            onClick={() => {
+              if (!dayjs().isSame(currentMonth, "month")) {
+                setAnimating(true);
+                setCurrentMonth(dayjs());
+                setTimeout(() => setAnimating(false), 400);
+              }
+            }}
+            className="text-sm border border-gray-200 dark:border-zinc-700 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 px-2 py-1 rounded-md hover:bg-gray-200 dark:hover:bg-zinc-700 transition-all duration-200"
+          >
+            Current month
+          </button>
         </div>
         <div className="flex items-center gap-3 relative">
           <AnimatePresence mode="wait">
@@ -275,20 +274,18 @@ const CalendarCard = ({ trades = [] }) => {
         {/* Calendar Days */}
         <div className="flex-1">
           <div
-  ref={headerRef}
-  className="grid grid-cols-7 gap-1 text-sm text-center text-gray-700 dark:text-gray-300 mb-3"
->
-  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-    <div
-      key={d}
-      className="border border-gray-300 dark:border-zinc-600 rounded-md py-1 font-medium bg-white dark:bg-zinc-800"
-    >
-      {d}
-    </div>
-  ))}
-</div>
-
-
+            ref={headerRef}
+            className="grid grid-cols-7 gap-1 text-sm text-center text-gray-700 dark:text-gray-300 mb-3"
+          >
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+              <div
+                key={d}
+                className="border border-gray-300 dark:border-zinc-600 rounded-md py-1 font-medium bg-white dark:bg-zinc-800"
+              >
+                {d}
+              </div>
+            ))}
+          </div>
 
           <AnimatePresence mode="wait">
             <motion.div
@@ -303,8 +300,7 @@ const CalendarCard = ({ trades = [] }) => {
                 <div
                   key={`empty-${i}`}
                   style={{ height: rowHeight }}
-                  className={`rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 ...`}
-
+                  className="rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800"
                 />
               ))}
               {days.map((date) => {
@@ -322,7 +318,13 @@ const CalendarCard = ({ trades = [] }) => {
                   <div
                     key={key}
                     style={{ height: rowHeight }}
-                    className={`rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 ${
+                    className={`rounded-md border ${
+                      pnl !== undefined
+                        ? pnl >= 0
+                          ? "border-green-400 dark:border-green-700"
+                          : "border-red-400 dark:border-red-700"
+                        : "border-gray-200 dark:border-zinc-700"
+                    } bg-gray-50 dark:bg-zinc-800 ${
                       isTodayDate ? "relative shadow-[0_0_8px_rgba(255,215,0,0.5)]" : ""
                     }`}
                   >
