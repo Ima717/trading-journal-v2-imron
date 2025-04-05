@@ -180,23 +180,14 @@ const CalendarCard = ({ trades = [] }) => {
           </button>
         </div>
         <div className="flex items-center gap-3 relative">
-          <AnimatePresence mode="wait">
-            <motion.span
-              key={currentMonth.format("MM-YYYY") + "-totalPnL"}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2, ease: "easeInOut" }}
-              className={`text-lg font-semibold ${monthlyStats.totalPnL >= 0 ? "text-green-600" : "text-red-600"}`}
-            >
-              {monthlyStats.totalPnL >= 0 ? "+" : ""}${monthlyStats.totalPnL.toFixed(0)}
-            </motion.span>
-          </AnimatePresence>
+          <span className={`text-lg font-semibold ${monthlyStats.totalPnL >= 0 ? "text-green-600" : "text-red-600"}`}>
+            {monthlyStats.totalPnL >= 0 ? "+" : ""}${monthlyStats.totalPnL.toFixed(0)}
+          </span>
           <span className="text-sm text-gray-500 dark:text-gray-400">
             {monthlyStats.tradingDays} days
           </span>
           <button
-            onClick={() => setSettingsOpen((prev) => (prev ? false : true))}
+            onClick={() => setSettingsOpen(!settingsOpen)}
             className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
             title="Settings"
           >
@@ -208,50 +199,50 @@ const CalendarCard = ({ trades = [] }) => {
             {settingsOpen && (
               <motion.div
                 ref={settingsRef}
-                initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
-                className="absolute top-10 right-0 w-72 bg-white dark:bg-zinc-700 rounded-lg shadow-lg p-5 z-50 border border-gray-200 dark:border-zinc-600"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="absolute top-10 right-0 w-64 bg-white dark:bg-zinc-700 rounded-lg shadow-lg p-4 z-50 border border-gray-200 dark:border-zinc-600"
               >
                 <div className="text-sm text-gray-800 dark:text-gray-200">
-                  <h3 className="font-semibold text-base mb-3 border-b border-gray-200 dark:border-zinc-600 pb-1">Stats</h3>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer">Show Daily P&L</span>
+                  <h3 className="font-semibold mb-2">Stats</h3>
+                  <div className="flex items-center justify-between mb-2">
+                    <span>Show Daily P&L</span>
                     <input
                       type="checkbox"
                       checked={settings.showDailyPnL}
                       onChange={() => toggleSetting("showDailyPnL")}
-                      className="toggle-checkbox appearance-none w-5 h-5 border-2 border-gray-300 dark:border-zinc-500 rounded-md checked:bg-blue-500 checked:border-blue-500 transition-colors"
+                      className="toggle-checkbox"
                     />
                   </div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer">Show Day Win Rate</span>
+                  <div className="flex items-center justify-between mb-2">
+                    <span>Show Day Win Rate</span>
                     <input
                       type="checkbox"
                       checked={settings.showWinRate}
                       onChange={() => toggleSetting("showWinRate")}
-                      className="toggle-checkbox appearance-none w-5 h-5 border-2 border-gray-300 dark:border-zinc-500 rounded-md checked:bg-blue-500 checked:border-blue-500 transition-colors"
+                      className="toggle-checkbox"
                     />
                   </div>
                   <div className="flex items-center justify-between mb-4">
-                    <span className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer">Show Number of Trades</span>
+                    <span>Show Number of Trades</span>
                     <input
                       type="checkbox"
                       checked={settings.showTradesCount}
                       onChange={() => toggleSetting("showTradesCount")}
-                      className="toggle-checkbox appearance-none w-5 h-5 border-2 border-gray-300 dark:border-zinc-500 rounded-md checked:bg-blue-500 checked:border-blue-500 transition-colors"
+                      className="toggle-checkbox"
                     />
                   </div>
 
-                  <h3 className="font-semibold text-base mb-3 border-b border-gray-200 dark:border-zinc-600 pb-1">Visuals</h3>
+                  <h3 className="font-semibold mb-2">Visuals</h3>
                   <div className="flex items-center justify-between">
-                    <span className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer">Color Intensity Mode</span>
+                    <span>Color Intensity Mode</span>
                     <input
                       type="checkbox"
                       checked={settings.colorIntensityMode}
                       onChange={() => toggleSetting("colorIntensityMode")}
-                      className="toggle-checkbox appearance-none w-5 h-5 border-2 border-gray-300 dark:border-zinc-500 rounded-md checked:bg-blue-500 checked:border-blue-500 transition-colors"
+                      className="toggle-checkbox"
                     />
                   </div>
                 </div>
@@ -318,13 +309,16 @@ const CalendarCard = ({ trades = [] }) => {
                         ${
                           pnl !== undefined
                             ? pnl >= 0
-                              ? isExtremeDay
-                                ? "bg-green-300/60 dark:bg-green-800/50 border-green-500 dark:border-green-600 shadow-[0_0_10px_rgba(34,197,94,0.7)]"
-                                : "bg-green-200/60 dark:bg-green-900/40 border-green-400 dark:border-green-700"
-                              : isExtremeDay
-                              ? "bg-red-300/60 dark:bg-red-800/50 border-red-500 dark:border-red-600 shadow-[0_0_10px_rgba(239,68,68,0.7)]"
+                              ? "bg-green-200/60 dark:bg-green-900/40 border-green-400 dark:border-green-700"
                               : "bg-red-200/60 dark:bg-red-900/40 border-red-400 dark:border-red-700"
                             : "hover:bg-purple-100/60 dark:hover:bg-purple-900/30 border-transparent hover:border-purple-400 dark:hover:border-purple-600"
+                        }
+                        ${
+                          isExtremeDay
+                            ? pnl >= 0
+                              ? "shadow-[0_0_10px_rgba(34,197,94,0.7)]"
+                              : "shadow-[0_0_10px_rgba(239,68,68,0.7)]"
+                            : ""
                         }`}
                     >
                       <span className="absolute top-1 right-2 text-xs font-semibold text-gray-600 dark:text-gray-300">
@@ -333,7 +327,7 @@ const CalendarCard = ({ trades = [] }) => {
                       {pnl !== undefined && (
                         <>
                           {settings.showDailyPnL && (
-                            <span className={`text-sm font-semibold ${pnl >= 0 ? "text-green-700" : "text-red-700"}`}>
+                            <span className={`text-xs font-semibold ${pnl >= 0 ? "text-green-700" : "text-red-700"}`}>
                               {pnl >= 0 ? "+" : ""}${pnl.toFixed(1)}
                             </span>
                           )}
