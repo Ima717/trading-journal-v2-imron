@@ -168,18 +168,18 @@ const CalendarCard = ({ trades = [] }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-[#0e0e10] rounded-2xl border ring-1 ring-gray-200 dark:ring-[#2c2c31] p-5 shadow-none w-full h-[850px] flex flex-col transition-none transform-none hover:scale-100 hover:shadow-none">
+    <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200/60 p-5 shadow-none w-full h-[850px] flex flex-col transition-none transform-none hover:scale-100 hover:shadow-none">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <button onClick={handlePrevMonth} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-[#2c2c31] transition-colors">
-            <ChevronLeft size={18} className="text-gray-600 dark:text-[#f0f0f3]" />
+          <button onClick={handlePrevMonth} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
+            <ChevronLeft size={18} />
           </button>
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-[#f0f0f3]">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
             {currentMonth.format("MMMM YYYY")}
           </h2>
-          <button onClick={handleNextMonth} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-[#2c2c31] transition-colors">
-            <ChevronRight size={18} className="text-gray-600 dark:text-[#f0f0f3]" />
+          <button onClick={handleNextMonth} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
+            <ChevronRight size={18} />
           </button>
           <button
             onClick={() => {
@@ -189,7 +189,7 @@ const CalendarCard = ({ trades = [] }) => {
                 setTimeout(() => setAnimating(false), 400);
               }
             }}
-            className="text-sm border ring-1 ring-gray-200 dark:ring-[#2c2c31] bg-gray-100 dark:bg-[#1c1c1f] text-gray-600 dark:text-[#9ca3af] px-2 py-1 rounded-md hover:bg-gray-200 dark:hover:bg-[#2c2c31] transition-all duration-200"
+            className="text-sm border border-gray-200 dark:border-zinc-700 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 px-2 py-1 rounded-md hover:bg-gray-200 dark:hover:bg-zinc-700 transition-all duration-200"
           >
             Current month
           </button>
@@ -204,8 +204,8 @@ const CalendarCard = ({ trades = [] }) => {
               transition={{ duration: 0.2, ease: "easeInOut" }}
               className={`border px-3 py-1 rounded-lg shadow-sm ${
                 monthlyStats.totalPnL >= 0
-                  ? "border-green-300 dark:border-[#22c55e] bg-green-100/50 dark:bg-[#22c55e]/10 text-[#22c55e]"
-                  : "border-red-300 dark:border-[#ef4444] bg-red-100/50 dark:bg-[#ef4444]/10 text-[#ef4444]"
+                  ? "border-green-300 dark:border-green-600 bg-green-100/50 dark:bg-green-900/30 text-green-600"
+                  : "border-red-300 dark:border-red-600 bg-red-100/50 dark:bg-red-900/30 text-red-600"
               }`}
             >
               <span className="text-lg font-semibold">
@@ -213,16 +213,16 @@ const CalendarCard = ({ trades = [] }) => {
               </span>
             </motion.div>
           </AnimatePresence>
-          <span className="text-sm text-gray-500 dark:text-[#9ca3af]">
+          <span className="text-sm text-gray-500 dark:text-gray-400">
             {monthlyStats.tradingDays} days
           </span>
           <button
             ref={settingsButtonRef}
             onClick={() => setSettingsOpen((prev) => !prev)}
-            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-[#2c2c31] transition-colors"
+            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
             title="Settings"
           >
-            <Settings size={18} className="text-gray-600 dark:text-[#f0f0f3]" />
+            <Settings size={18} />
           </button>
 
           {/* Enhanced Settings Dropdown */}
@@ -234,17 +234,17 @@ const CalendarCard = ({ trades = [] }) => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.2, ease: "easeInOut", type: "spring", stiffness: 300, damping: 20 }}
-                className="absolute top-10 right-0 w-72 bg-gradient-to-br from-white to-gray-50 dark:bg-[#1c1c1f] rounded-lg shadow-xl p-6 z-50 border ring-1 ring-gray-200 dark:ring-[#2c2c31]"
+                className="absolute top-10 right-0 w-72 bg-gradient-to-br from-white to-gray-50 dark:from-zinc-700 dark:to-zinc-800 rounded-lg shadow-xl p-6 z-50 border border-gray-200 dark:border-zinc-600"
               >
-                <div className="text-sm text-gray-800 dark:text-[#f0f0f3]">
-                  <h3 className="font-semibold text-lg mb-4 border-b border-gray-200 dark:border-[#2c2c31] pb-2 flex items-center">
-                    <span className="text-gray-700 dark:text-[#9ca3af]">Stats</span>
+                <div className="text-sm text-gray-800 dark:text-gray-200">
+                  <h3 className="font-semibold text-lg mb-4 border-b border-gray-200 dark:border-zinc-600 pb-2 flex items-center">
+                    <span className="text-gray-700 dark:text-gray-300">Stats</span>
                   </h3>
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <motion.label
                         htmlFor="showDailyPnL"
-                        className="flex items-center space-x-2 cursor-pointer hover:text-gray-600 dark:hover:text-[#f0f0f3] transition-colors"
+                        className="flex items-center space-x-2 cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
@@ -262,11 +262,11 @@ const CalendarCard = ({ trades = [] }) => {
                           className={`absolute top-0 left-0 w-10 h-5 rounded-full transition-colors duration-200 ${
                             settings.showDailyPnL
                               ? "bg-blue-500"
-                              : "bg-gray-300 dark:bg-[#2c2c31]"
+                              : "bg-gray-300 dark:bg-zinc-500"
                           }`}
                         />
                         <motion.div
-                          className="absolute top-0.5 w-4 h-4 bg-white dark:bg-[#f0f0f3] rounded-full shadow-sm"
+                          className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm"
                           animate={{
                             x: settings.showDailyPnL ? 22 : 2,
                           }}
@@ -277,7 +277,7 @@ const CalendarCard = ({ trades = [] }) => {
                     <div className="flex items-center justify-between">
                       <motion.label
                         htmlFor="showWinRate"
-                        className="flex items-center space-x-2 cursor-pointer hover:text-gray-600 dark:hover:text-[#f0f0f3] transition-colors"
+                        className="flex items-center space-x-2 cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
@@ -295,11 +295,11 @@ const CalendarCard = ({ trades = [] }) => {
                           className={`absolute top-0 left-0 w-10 h-5 rounded-full transition-colors duration-200 ${
                             settings.showWinRate
                               ? "bg-blue-500"
-                              : "bg-gray-300 dark:bg-[#2c2c31]"
+                              : "bg-gray-300 dark:bg-zinc-500"
                           }`}
                         />
                         <motion.div
-                          className="absolute top-0.5 w-4 h-4 bg-white dark:bg-[#f0f0f3] rounded-full shadow-sm"
+                          className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm"
                           animate={{
                             x: settings.showWinRate ? 22 : 2,
                           }}
@@ -310,7 +310,7 @@ const CalendarCard = ({ trades = [] }) => {
                     <div className="flex items-center justify-between">
                       <motion.label
                         htmlFor="showTradesCount"
-                        className="flex items-center space-x-2 cursor-pointer hover:text-gray-600 dark:hover:text-[#f0f0f3] transition-colors"
+                        className="flex items-center space-x-2 cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
@@ -328,11 +328,11 @@ const CalendarCard = ({ trades = [] }) => {
                           className={`absolute top-0 left-0 w-10 h-5 rounded-full transition-colors duration-200 ${
                             settings.showTradesCount
                               ? "bg-blue-500"
-                              : "bg-gray-300 dark:bg-[#2c2c31]"
+                              : "bg-gray-300 dark:bg-zinc-500"
                           }`}
                         />
                         <motion.div
-                          className="absolute top-0.5 w-4 h-4 bg-white dark:bg-[#f0f0f3] rounded-full shadow-sm"
+                          className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm"
                           animate={{
                             x: settings.showTradesCount ? 22 : 2,
                           }}
@@ -342,13 +342,13 @@ const CalendarCard = ({ trades = [] }) => {
                     </div>
                   </div>
 
-                  <h3 className="font-semibold text-lg mt-6 mb-4 border-b border-gray-200 dark:border-[#2c2c31] pb-2 flex items-center">
-                    <span className="text-gray-700 dark:text-[#9ca3af]">Visuals</span>
+                  <h3 className="font-semibold text-lg mt-6 mb-4 border-b border-gray-200 dark:border-zinc-600 pb-2 flex items-center">
+                    <span className="text-gray-700 dark:text-gray-300">Visuals</span>
                   </h3>
                   <div className="flex items-center justify-between">
                     <motion.label
                       htmlFor="colorIntensityMode"
-                      className="flex items-center space-x-2 cursor-pointer hover:text-gray-600 dark:hover:text-[#f0f0f3] transition-colors"
+                      className="flex items-center space-x-2 cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
@@ -366,11 +366,11 @@ const CalendarCard = ({ trades = [] }) => {
                         className={`absolute top-0 left-0 w-10 h-5 rounded-full transition-colors duration-200 ${
                           settings.colorIntensityMode
                             ? "bg-blue-500"
-                            : "bg-gray-300 dark:bg-[#2c2c31]"
+                            : "bg-gray-300 dark:bg-zinc-500"
                         }`}
                       />
                       <motion.div
-                        className="absolute top-0.5 w-4 h-4 bg-white dark:bg-[#f0f0f3] rounded-full shadow-sm"
+                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm"
                         animate={{
                           x: settings.colorIntensityMode ? 22 : 2,
                         }}
@@ -390,12 +390,12 @@ const CalendarCard = ({ trades = [] }) => {
         <div className="flex-1">
           <div
             ref={headerRef}
-            className="grid grid-cols-7 gap-1 text-sm text-center text-gray-700 dark:text-[#9ca3af] mb-3"
+            className="grid grid-cols-7 gap-1 text-sm text-center text-gray-700 dark:text-gray-300 mb-3"
           >
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
               <div
                 key={d}
-                className="border ring-1 ring-gray-300 dark:ring-[#2c2c31] rounded-md py-1 font-medium bg-white dark:bg-[#1c1c1f]"
+                className="border border-gray-300 dark:border-zinc-600 rounded-md py-1 font-medium bg-white dark:bg-zinc-800"
               >
                 {d}
               </div>
@@ -409,13 +409,13 @@ const CalendarCard = ({ trades = [] }) => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2, ease: "easeInOut" }}
-              className="grid grid-cols-7 gap-1 text-sm text-gray-800 dark:text-[#f0f0f3]"
+              className="grid grid-cols-7 gap-1 text-sm text-gray-800 dark:text-white"
             >
               {Array.from({ length: firstDayOfWeek }).map((_, i) => (
                 <div
                   key={`empty-${i}`}
                   style={{ height: rowHeight }}
-                  className="rounded-md border ring-1 ring-gray-200 dark:ring-[#2c2c31] bg-gray-50 dark:bg-[#1c1c1f]"
+                  className="rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800"
                 />
               ))}
               {days.map((date) => {
@@ -433,18 +433,18 @@ const CalendarCard = ({ trades = [] }) => {
                   <div
                     key={key}
                     style={{ height: rowHeight }}
-                    className={`rounded-md border ring-1 ${
+                    className={`rounded-md border ${
                       pnl !== undefined
                         ? pnl >= 0
                           ? isExtremeDay
-                            ? "ring-green-500 dark:ring-[#22c55e]"
-                            : "ring-green-400 dark:ring-[#22c55e]"
+                            ? "border-green-500 dark:border-green-600"
+                            : "border-green-400 dark:border-green-700"
                           : isExtremeDay
-                          ? "ring-red-400 dark:ring-[#ef4444]"
-                          : "ring-red-300 dark:ring-[#ef4444]"
-                        : "ring-gray-200 dark:ring-[#2c2c31]"
-                    } bg-gray-50 dark:bg-[#1c1c1f] ${
-                      isTodayDate ? "outline outline-2 outline-accent/50 rounded-xl" : ""
+                          ? "border-red-400 dark:border-red-500"
+                          : "border-red-300 dark:border-red-600"
+                        : "border-gray-200 dark:border-zinc-700"
+                    } bg-gray-50 dark:bg-zinc-800 ${
+                      isTodayDate ? "relative shadow-[0_0_8px_rgba(255,215,0,0.5)]" : ""
                     }`}
                   >
                     <div
@@ -459,29 +459,29 @@ const CalendarCard = ({ trades = [] }) => {
                           pnl !== undefined
                             ? pnl >= 0
                               ? isExtremeDay
-                                ? "bg-[#22c55e]/10 dark:bg-[#22c55e]/10 hover:bg-[#2c2c31] hover:shadow-[0_0_4px_#22c55e33] ring-green-500 dark:ring-[#22c55e]"
-                                : "bg-[#22c55e]/10 dark:bg-[#22c55e]/10 hover:bg-[#2c2c31] hover:shadow-[0_0_4px_#22c55e33] ring-green-400 dark:ring-[#22c55e]"
+                                ? "bg-green-300/60 dark:bg-green-800/50 border-green-500 dark:border-green-600 shadow-[0_0_10px_rgba(34,197,94,0.7)]"
+                                : "bg-green-200/60 dark:bg-green-900/40 border-green-400 dark:border-green-700"
                               : isExtremeDay
-                              ? "bg-[#ef4444]/10 dark:bg-[#ef4444]/10 hover:bg-[#2c2c31] hover:shadow-[0_0_4px_#ef444433] ring-red-500 dark:ring-[#ef4444]"
-                              : "bg-[#ef4444]/10 dark:bg-[#ef4444]/10 hover:bg-[#2c2c31] hover:shadow-[0_0_4px_#ef444433] ring-red-400 dark:ring-[#ef4444]"
-                            : "hover:bg-[#2c2c31] ring-gray-200 dark:ring-[#2c2c31]"
+                              ? "bg-red-300/60 dark:bg-red-800/50 border-red-500 dark:border-red-600 shadow-[0_0_10px_rgba(239,68,68,0.7)]"
+                              : "bg-red-200/60 dark:bg-red-900/40 border-red-400 dark:border-red-700"
+                            : "hover:bg-purple-100/60 dark:hover:bg-purple-900/30 border-transparent hover:border-purple-400 dark:hover:border-purple-600"
                         }`}
                     >
-                      <span className="absolute top-1 right-2 text-xs font-semibold text-gray-600 dark:text-[#9ca3af]">
+                      <span className="absolute top-1 right-2 text-xs font-semibold text-gray-600 dark:text-gray-300">
                         {date.date()}
                       </span>
                       {pnl !== undefined && (
                         <>
                           {settings.showDailyPnL && (
-                            <span className={`text-sm font-semibold ${pnl >= 0 ? "text-[#22c55e]" : "text-[#ef4444]"}`}>
+                            <span className={`text-sm font-semibold ${pnl >= 0 ? "text-green-700" : "text-red-700"}`}>
                               {pnl >= 0 ? "+" : ""}${pnl.toFixed(1)}
                             </span>
                           )}
                           {settings.showWinRate && (
-                            <span className="text-xs text-gray-500 dark:text-[#9ca3af]">{percentage}%</span>
+                            <span className="text-xs text-gray-500">{percentage}%</span>
                           )}
                           {settings.showTradesCount && (
-                            <span className="text-xs text-gray-400 dark:text-[#9ca3af]">{tradesCount} trades</span>
+                            <span className="text-xs text-gray-400">{tradesCount} trades</span>
                           )}
                         </>
                       )}
@@ -490,7 +490,7 @@ const CalendarCard = ({ trades = [] }) => {
                       <ReactTooltip
                         id={tooltipId}
                         place="top"
-                        className="z-[1000] text-xs px-2 py-1 rounded shadow-lg bg-gray-900 dark:bg-[#1c1c1f] text-white dark:text-[#f0f0f3]"
+                        className="z-[1000] text-xs px-2 py-1 rounded shadow-lg bg-gray-900 text-white"
                       />
                     )}
                   </div>
@@ -515,14 +515,14 @@ const CalendarCard = ({ trades = [] }) => {
               <div
                 key={`week-${index}`}
                 style={{ height: rowHeight }}
-                className="bg-white dark:bg-[#1c1c1f] rounded-md px-3 py-2 text-sm flex flex-col items-center justify-center border ring-1 ring-gray-200 dark:ring-[#2c2c31]"
+                className="bg-white dark:bg-zinc-800 rounded-md px-3 py-2 text-sm flex flex-col items-center justify-center border border-gray-200 dark:border-zinc-700"
               >
-                <div className="text-gray-500 dark:text-[#9ca3af]">Week {index + 1}</div>
-                <div className={`text-lg font-semibold ${week.weekPnL >= 0 ? "text-[#22c55e]" : "text-[#ef4444]"}`}>
+                <div className="text-gray-500 dark:text-gray-400">Week {index + 1}</div>
+                <div className={`text-lg font-semibold ${week.weekPnL >= 0 ? "text-green-600" : "text-red-600"}`}>
                   {week.weekPnL >= 0 ? "+" : ""}${week.weekPnL.toFixed(1)}
                 </div>
-                <div className="text-xs text-gray-500 dark:text-[#9ca3af]">{week.tradingDays} days</div>
-                <div className="text-xs text-gray-500 dark:text-[#9ca3af]">{week.totalTrades} trades</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">{week.tradingDays} days</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">{week.totalTrades} trades</div>
               </div>
             ))}
           </motion.div>
