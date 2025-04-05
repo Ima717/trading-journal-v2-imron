@@ -215,14 +215,15 @@ const Dashboard = () => {
 
               {/* Calendar & Trade History Section */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-stretch">
-                <motion.div whileHover={{ y: -4, scale: 1.015 }} transition={{ type: "spring", stiffness: 260, damping: 20 }} className="lg:col-span-2 h-full">
-                  <CalendarCard trades={filteredTrades} />
-                </motion.div>
+  <div className="lg:col-span-2 h-full">
+    <CalendarCard trades={filteredTrades} />
+  </div>
 
-                <motion.div whileHover={{ y: -4, scale: 1.015 }} transition={{ type: "spring", stiffness: 260, damping: 20 }} className="h-full">
-                  <RecentTradesCard />
-                </motion.div>
-              </div>
+  <div className="h-full">
+    <RecentTradesCard />
+  </div>
+</div>
+
 
               {/* Charts */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
