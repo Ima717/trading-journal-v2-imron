@@ -175,9 +175,19 @@ const CalendarCard = ({ trades = [] }) => {
           <button onClick={handleNextMonth} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
             <ChevronRight size={18} />
           </button>
-          <button className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white transition-colors">
-            This month
-          </button>
+          <button
+  onClick={() => {
+    if (!dayjs().isSame(currentMonth, "month")) {
+      setAnimating(true);
+      setCurrentMonth(dayjs());
+      setTimeout(() => setAnimating(false), 400);
+    }
+  }}
+  className="text-sm border border-gray-200 dark:border-zinc-700 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 px-2 py-1 rounded-md hover:bg-gray-200 dark:hover:bg-zinc-700 transition-all duration-200"
+>
+  This month
+</button>
+
         </div>
         <div className="flex items-center gap-3 relative">
           <AnimatePresence mode="wait">
