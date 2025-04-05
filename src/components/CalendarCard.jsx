@@ -62,7 +62,24 @@ const CalendarCard = ({ trades = [] }) => {
   const totalWeeks = Math.ceil((firstDayOfWeek + daysInMonth) / 7);
   const rowHeight = 700 / totalWeeks;
 
-  // Find most profitable and most loss-making days for Color Intensity Mode
+  // Define tradeMap first
+  const tradeMap = useMemo(() => {
+    const map = { pnl: {}, tradesCount: {}, percentage: {} };
+    trades.forEach((t) => {
+      const date = dayjs(t.date).format("YYYY-MM-DD");
+      if (!map.pnl[date]) {
+        map.pnl[date] = 0;
+        map.tradesCount[date] = 0;
+        map.percentage[date] = 0;
+      }
+      map.pnl[date] += t.pnl || 0;
+      map.tradesCount[date] += 1;
+      map.percentage[date] = t.percentage || 0;
+    });
+    return map;
+  }, [trades]);
+
+  // Define extremeDays after tradeMap
   const extremeDays = useMemo(() => {
     let mostProfit = { date: null, pnl: -Infinity };
     let mostLoss = { date: null, pnl: Infinity };
@@ -81,22 +98,6 @@ const CalendarCard = ({ trades = [] }) => {
 
     return { mostProfit: mostProfit.date, mostLoss: mostLoss.date };
   }, [tradeMap, currentMonth]);
-
-  const tradeMap = useMemo(() => {
-    const map = { pnl: {}, tradesCount: {}, percentage: {} };
-    trades.forEach((t) => {
-      const date = dayjs(t.date).format("YYYY-MM-DD");
-      if (!map.pnl[date]) {
-        map.pnl[date] = 0;
-        map.tradesCount[date] = 0;
-        map.percentage[date] = 0;
-      }
-      map.pnl[date] += t.pnl || 0;
-      map.tradesCount[date] += 1;
-      map.percentage[date] = t.percentage || 0;
-    });
-    return map;
-  }, [trades]);
 
   const monthlyStats = useMemo(() => {
     let totalPnL = 0;
