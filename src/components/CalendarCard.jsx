@@ -437,6 +437,7 @@ const CalendarCard = ({ trades = [] }) => {
                     settings.colorIntensityMode &&
                     (key === extremeDays.mostProfit || key === extremeDays.mostLoss);
                   const isTodayDate = isToday(date);
+                  const isWeekend = date.day() === 0 || date.day() === 6; // 0 = Sunday, 6 = Saturday
 
                   return (
                     <div
@@ -452,7 +453,7 @@ const CalendarCard = ({ trades = [] }) => {
                             ? "border-red-400 dark:border-red-500"
                             : "border-red-300 dark:border-red-600"
                           : "border-gray-200 dark:border-zinc-700"
-                      } bg-gray-50 dark:bg-zinc-800 ${
+                      } ${isWeekend ? "bg-gray-100 dark:bg-zinc-900" : "bg-gray-50 dark:bg-zinc-800"} ${
                         isTodayDate ? "relative shadow-[0_0_8px_rgba(255,215,0,0.5)]" : ""
                       }`}
                     >
@@ -476,7 +477,7 @@ const CalendarCard = ({ trades = [] }) => {
                               : ""
                           }`}
                       >
-                        <span className="absolute top-1 right-2 text-xs font-semibold text-gray-600 dark:text-gray-300 tracking-wide">
+                        <span className="absolute top-1 right-2 text-base font-semibold text-gray-600 dark:text-gray-300 tracking-wide">
                           {date.date()}
                         </span>
                         {pnl !== undefined && (
