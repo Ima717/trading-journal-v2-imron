@@ -11,15 +11,18 @@ const AddTrade = () => {
   const { triggerRefresh } = useFilters();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
+    assetType: "option", // Changed from instrumentType to match schema
     symbol: "",
-    instrumentType: "option",
-    date: "",
-    quantity: "",
     entryPrice: "",
     exitPrice: "",
+    entryTime: "", // New: ISO timestamp
+    exitTime: "",  // New: ISO timestamp
+    quantity: "",
+    direction: "long", // New: long/short
+    status: "closed",  // New: open/closed
     fees: "",
     commissions: "",
-    pnl: 0, // Will be auto-calculated
+    pnl: 0, // Auto-calculated
     tags: "",
     notes: "",
     playbook: "",
@@ -83,21 +86,21 @@ const AddTrade = () => {
       const commissions = parseFloat(formData.commissions) || 0;
 
       let calculatedPnL = 0;
-      if (formData.instrumentType === "option") {
-        // Options PnL: ((Exit Price - Entry Price) * Quantity * 100) - Fees - Commissions
+      if (formData.assetType === "option") {
         calculatedPnL = ((exitPrice - entryPrice) * quantity * 100) - fees - commissions;
-      } else if (formData.instrumentType === "future") {
-        // Futures PnL: (Exit Price - Entry Price) × (Tick Value / Tick Size) × Quantity
-        const tickData = futuresTickValues[formData.symbol] || { tickSize: 0.25, tickValue: 12.50 }; // Default to ES if symbol not found
+      } else if (formData.assetType === "future") {
+        const tickData = futuresTickValues[formData.symbol] || { tickSize: 0.25, tickValue: 12.50 };
         const ticks = (exitPrice - entryPrice) / tickData.tickSize;
         calculatedPnL = ticks * tickData.tickValue * quantity;
+      } else if (formData.assetType === "stock") {
+        calculatedPnL = ((exitPrice - entryPrice) * quantity) - fees - commissions;
       }
 
       setFormData((prev) => ({ ...prev, pnl: calculatedPnL.toFixed(2) }));
     };
 
     calculatePnL();
-  }, [formData.entryPrice, formData.exitPrice, formData.quantity, formData.fees, formData.commissions, formData.instrumentType, formData.symbol]);
+  }, [formData.entryPrice, formData.exitPrice, formData.quantity, formData.fees, formData.commissions, formData.assetType, formData.symbol]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -165,23 +168,27 @@ const AddTrade = () => {
     try {
       const tradesRef = collection(db, "users", user.uid, "trades");
       const tradeData = {
+        assetType: formData.assetType,
         symbol: formData.symbol,
-        instrumentType: formData.instrumentType,
-        date: formData.date,
-        quantity: parseFloat(formData.quantity) || 0,
         entryPrice: parseFloat(formData.entryPrice) || 0,
         exitPrice: parseFloat(formData.exitPrice) || 0,
+        entryTime: formData.entryTime || new Date().toISOString(), // Default to now if empty
+        exitTime: formData.exitTime || new Date().toISOString(),
+        quantity: parseFloat(formData.quantity) || 0,
+        direction: formData.direction,
+        status: formData.status,
         fees: parseFloat(formData.fees) || 0,
         commissions: parseFloat(formData.commissions) || 0,
         pnl: parseFloat(formData.pnl) || 0,
-        result: parseFloat(formData.pnl) >= 0 ? "win" : "loss",
         tags: formData.tags ? formData.tags.split(",").map((tag) => tag.trim()) : [],
         notes: formData.notes,
         playbook: formData.playbook,
         tradeRating: formData.tradeRating,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
-      if (formData.instrumentType === "option") {
+      if (formData.assetType === "option") {
         tradeData.optionDetails = {
           type: formData.optionDetails.type,
           strikePrice: parseFloat(formData.optionDetails.strikePrice) || 0,
@@ -191,12 +198,15 @@ const AddTrade = () => {
             strikePrice: parseFloat(leg.strikePrice) || 0,
             quantity: parseInt(leg.quantity) || 0,
           })),
+          multiplier: 100, // Standard for options
         };
-      } else if (formData.instrumentType === "future") {
+      } else if (formData.assetType === "future") {
+        const tickData = futuresTickValues[formData.symbol] || { tickSize: 0.25, tickValue: 12.50 };
         tradeData.futureDetails = {
           contractType: formData.futureDetails.contractType,
           contractSize: parseInt(formData.futureDetails.contractSize) || 0,
           margin: parseFloat(formData.futureDetails.margin) || 0,
+          multiplier: tickData.tickValue / tickData.tickSize, // Derived from tick values
         };
       }
 
@@ -224,6 +234,21 @@ const AddTrade = () => {
         <div className="bg-white dark:bg-zinc-900 shadow rounded-2xl p-4 sm:p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Asset Type</label>
+              <select
+                name="assetType"
+                value={formData.assetType}
+                onChange={handleChange}
+                className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                required
+              >
+                <option value="stock">Stock</option>
+                <option value="option">Option</option>
+                <option value="future">Future</option>
+                <option value="investment">Investment</option>
+              </select>
+            </div>
+            <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Symbol</label>
               <select
                 name="symbol"
@@ -239,24 +264,22 @@ const AddTrade = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Instrument Type</label>
-              <select
-                name="instrumentType"
-                value={formData.instrumentType}
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Entry Time</label>
+              <input
+                type="datetime-local"
+                name="entryTime"
+                value={formData.entryTime}
                 onChange={handleChange}
                 className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
                 required
-              >
-                <option value="option">Option</option>
-                <option value="future">Future</option>
-              </select>
+              />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Exit Time</label>
               <input
-                type="date"
-                name="date"
-                value={formData.date}
+                type="datetime-local"
+                name="exitTime"
+                value={formData.exitTime}
                 onChange={handleChange}
                 className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
                 required
@@ -299,6 +322,32 @@ const AddTrade = () => {
                 />
               </div>
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Direction</label>
+              <select
+                name="direction"
+                value={formData.direction}
+                onChange={handleChange}
+                className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                required
+              >
+                <option value="long">Long</option>
+                <option value="short">Short</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="mt-1 block w-full border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm p-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                required
+              >
+                <option value="open">Open</option>
+                <option value="closed">Closed</option>
+              </select>
+            </div>
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Fees</label>
@@ -332,7 +381,7 @@ const AddTrade = () => {
               />
             </div>
 
-            {formData.instrumentType === "option" && (
+            {formData.assetType === "option" && (
               <div className="space-y-4 border-t border-gray-200 dark:border-zinc-700 pt-4">
                 <h3 className="text-lg font-semibold text-zinc-800 dark:text-white">Option Details</h3>
                 <div>
@@ -418,7 +467,7 @@ const AddTrade = () => {
               </div>
             )}
 
-            {formData.instrumentType === "future" && (
+            {formData.assetType === "future" && (
               <div className="space-y-4 border-t border-gray-200 dark:border-zinc-700 pt-4">
                 <h3 className="text-lg font-semibold text-zinc-800 dark:text-white">Future Details</h3>
                 <div>
