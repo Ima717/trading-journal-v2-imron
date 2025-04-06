@@ -176,7 +176,7 @@ const CalendarCard = ({ trades = [] }) => {
   };
 
   return (
-    <div className="border-transparent bg-gradient-to-r from-blue-500/20 to-purple-500/20 p-[1px] rounded-2xl shadow-none w-full h-[850px] flex flex-col transition-none transform-none hover:scale-100 hover:shadow-none">
+    <div className="border-transparent bg-gradient-to-r from-blue-500/20 to-purple-500/20 p-[1px] rounded-2xl shadow-none w-full h-[870px] flex flex-col transition-none transform-none hover:scale-100 hover:shadow-none">
       <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200/60 p-5 flex flex-col h-full">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
