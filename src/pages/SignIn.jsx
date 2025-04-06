@@ -2,18 +2,21 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../utils/firebase";
+import { useAuth } from "../context/AuthContext"; // Import useAuth
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { setUser } = useAuth(); // Get setUser from context
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate("/"); // Redirect to dashboard
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      setUser(userCredential.user); // Update context with real user
+      navigate("/"); // Redirect to Dashboard
     } catch (err) {
       setError(err.message);
     }
