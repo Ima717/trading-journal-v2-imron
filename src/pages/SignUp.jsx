@@ -8,23 +8,26 @@ const SignUp = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [message, setMessage] = useState(""); // For success message
+  const [message, setMessage] = useState("");
   const navigate = useNavigate();
-  const { setUser } = useAuth(); // Integrate with AuthContext
+  const { setUser } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setMessage("");
     try {
+      // Create user and get userCredential
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      await userCredential.user.sendEmailVerification(); // Send verification email
-      setUser(userCredential.user); // Update context
+      // Send email verification
+      await userCredential.user.sendEmailVerification();
+      // Update AuthContext
+      setUser(userCredential.user);
       setMessage("Account created! Please check your email to verify your account.");
-      // Optionally sign out to enforce verification
+      // Sign out to enforce verification
       await auth.signOut();
       setUser(null);
-      // Uncomment the next line if you want to redirect to sign-in instead of staying on sign-up page
+      // Optional: redirect to sign-in
       // navigate("/signin");
     } catch (err) {
       setError(err.message);
