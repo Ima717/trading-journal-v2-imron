@@ -219,10 +219,10 @@ const Dashboard = () => {
     <CalendarCard trades={filteredTrades} />
   </div>
 
-  <div className="h-full">
-    <RecentTradesCard />
-  </div>
-</div>
+              <div className="h-full">
+                {console.log("Filtered Trades:", filteredTrades)}
+                <RecentTradesCard trades={filteredTrades} />
+              </div>
 
 
               {/* Charts */}
