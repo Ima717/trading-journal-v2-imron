@@ -103,6 +103,9 @@ const CalendarCard = ({ trades = [] }) => {
       }
     });
 
+    // Debugging log to verify extremeDays
+    console.log("extremeDays:", { mostProfit, mostLoss });
+
     return { mostProfit: mostProfit.date, mostLoss: mostLoss.date };
   }, [tradeMap, currentMonth]);
 
@@ -419,7 +422,7 @@ const CalendarCard = ({ trades = [] }) => {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         data-tooltip-id="tooltip-colorIntensityMode"
-                        data-tooltip-content="Highlight the most profitable and loss-making days with deeper colors"
+                        data-tooltip-content="Highlight the most profitable and loss-making days with a neon glow"
                       >
                         <span>Color Intensity Mode</span>
                       </motion.label>
@@ -512,7 +515,8 @@ const CalendarCard = ({ trades = [] }) => {
                   const tooltipId = `tooltip-${key}`;
                   const isExtremeDay =
                     settings.colorIntensityMode &&
-                    (key === extremeDays.mostProfit || key === extremeDays.mostLoss);
+                    (extremeDays.mostProfit !== null && key === extremeDays.mostProfit ||
+                     extremeDays.mostLoss !== null && key === extremeDays.mostLoss);
                   const isTodayDate = isToday(date);
                   const isLastDayOfWeek = (index + firstDayOfWeek + 1) % 7 === 0;
 
