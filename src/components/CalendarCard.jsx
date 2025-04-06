@@ -529,12 +529,12 @@ const CalendarCard = ({ trades = [] }) => {
                       } ${
                         pnl !== undefined
                           ? pnl >= 0
-                            ? isExtremeDay
-                              ? "ring-[#34d399] bg-gradient-to-br from-[#34d399]/20 to-[#34d399]/10"
-                              : "ring-[#34d399] bg-gradient-to-br from-[#34d399]/10 to-[#34d399]/5"
-                            : isExtremeDay
-                            ? "ring-[#f9a8a8] bg-gradient-to-br from-[#f9a8a8]/20 to-[#f9a8a8]/10"
-                            : "ring-[#f9a8a8] bg-gradient-to-br from-[#f9a8a8]/10 to-[#f9a8a8]/5"
+                            ? `ring-[#34d399] bg-gradient-to-br from-[#34d399]/10 to-[#34d399]/5 ${
+                                isExtremeDay ? "shadow-[0_0_10px_rgba(52,211,153,0.7)]" : ""
+                              }`
+                            : `ring-[#f9a8a8] bg-gradient-to-br from-[#f9a8a8]/10 to-[#f9a8a8]/5 ${
+                                isExtremeDay ? "shadow-[0_0_10px_rgba(249,168,168,0.7)]" : ""
+                              }`
                           : "ring-gray-200 bg-gray-50"
                       } ${isTodayDate ? "outline outline-2 outline-[#34d399]/50 rounded-xl" : ""}`}
                     >
