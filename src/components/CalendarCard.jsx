@@ -20,9 +20,6 @@ const CalendarCard = ({ trades = [] }) => {
   const settingsRef = useRef(null);
   const settingsButtonRef = useRef(null);
 
-  // Log the trades prop to verify its contents
-  console.log("Trades prop:", trades);
-
   // Load settings from localStorage on mount
   useEffect(() => {
     const savedSettings = localStorage.getItem("calendarSettings");
@@ -34,8 +31,6 @@ const CalendarCard = ({ trades = [] }) => {
   // Save settings to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem("calendarSettings", JSON.stringify(settings));
-    console.log("Settings Applied");
-    console.log("Color Intensity Mode:", settings.colorIntensityMode);
   }, [settings]);
 
   // Measure header height for alignment
@@ -87,7 +82,6 @@ const CalendarCard = ({ trades = [] }) => {
       map.tradesCount[date] += 1;
       map.percentage[date] = t.percentage || 0;
     });
-    console.log("tradeMap:", map);
     return map;
   }, [trades]);
 
@@ -99,7 +93,6 @@ const CalendarCard = ({ trades = [] }) => {
     Object.keys(tradeMap.pnl).forEach((date) => {
       if (dayjs(date).isSame(currentMonth, "month")) {
         const pnl = tradeMap.pnl[date];
-        console.log(`Processing date: ${date}, P&L: ${pnl}`);
         if (pnl > mostProfit.pnl) {
           mostProfit = { date, pnl };
         }
@@ -109,7 +102,6 @@ const CalendarCard = ({ trades = [] }) => {
       }
     });
 
-    console.log("extremeDays:", { mostProfit, mostLoss });
     return { mostProfit: mostProfit.date, mostLoss: mostLoss.date };
   }, [tradeMap, currentMonth]);
 
@@ -171,474 +163,370 @@ const CalendarCard = ({ trades = [] }) => {
     setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const resetSettings = () => {
-    setSettings({
-      showDailyPnL: true,
-      showWinRate: true,
-      showTradesCount: true,
-      colorIntensityMode: false,
-    });
-  };
-
   const isToday = (date) => {
     return dayjs().isSame(date, "day");
   };
 
-  const handleCompareMonths = () => {
-    console.log("Compare Months feature: To be implemented");
-  };
-
-  // Format P/L values: remove ".0" for whole numbers, show one decimal place otherwise
-  const formatPnL = (value) => {
-    if (Number.isInteger(value)) {
-      return value.toFixed(0); // No decimals for whole numbers
-    }
-    return value.toFixed(1); // One decimal place for non-whole numbers
-  };
-
-  // Check if there are trades for the current month
-  const hasTradesForCurrentMonth = Object.keys(tradeMap.pnl).some((date) =>
-    dayjs(date).isSame(currentMonth, "month")
-  );
-
   return (
-    <div className="border-transparent bg-gradient-to-r from-blue-500/20 to-purple-500/20 p-[1px] rounded-2xl shadow-none w-full h-[850px] flex flex-col transition-none transform-none hover:scale-100 hover:shadow-none">
-      <div className="bg-white rounded-2xl ring-1 ring-gray-200 p-5 flex flex-col h-full">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handlePrevMonth}
-              onKeyDown={(e) => e.key === "Enter" && handlePrevMonth()}
-              aria-label="Previous month"
-              className="p-1 rounded hover:bg-gray-100 transition-colors"
-            >
-              <ChevronLeft size={18} className="text-gray-600" />
-            </button>
-            <h2 className="text-lg font-semibold text-gray-800 tracking-wide">
-              {currentMonth.format("MMMM YYYY")}
-            </h2>
-            <button
-              onClick={handleNextMonth}
-              onKeyDown={(e) => e.key === "Enter" && handleNextMonth()}
-              aria-label="Next month"
-              className="p-1 rounded hover:bg-gray-100 transition-colors"
-            >
-              <ChevronRight size={18} className="text-gray-600" />
-            </button>
-            <button
-              onClick={() => {
-                if (!dayjs().isSame(currentMonth, "month")) {
-                  setAnimating(true);
-                  setCurrentMonth(dayjs());
-                  setTimeout(() => setAnimating(false), 400);
-                }
-              }}
-              onKeyDown={(e) =>
-                e.key === "Enter" &&
-                !dayjs().isSame(currentMonth, "month") &&
-                setCurrentMonth(dayjs())
+    <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200/60 p-5 shadow-none w-full h-[850px] flex flex-col transition-none transform-none hover:scale-100 hover:shadow-none">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <button onClick={handlePrevMonth} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
+            <ChevronLeft size={18} />
+          </button>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+            {currentMonth.format("MMMM YYYY")}
+          </h2>
+          <button onClick={handleNextMonth} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
+            <ChevronRight size={18} />
+          </button>
+          <button
+            onClick={() => {
+              if (!dayjs().isSame(currentMonth, "month")) {
+                setAnimating(true);
+                setCurrentMonth(dayjs());
+                setTimeout(() => setAnimating(false), 400);
               }
-              aria-label="Go to current month"
-              className="text-sm border ring-2 ring-blue-500/50 bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-gray-600 px-3 py-1.5 rounded-md hover:bg-gradient-to-r hover:from-blue-500/30 hover:to-purple-500/30 hover:ring-blue-500 hover:shadow-[0_0_4px_rgba(59,130,246,0.3)] transition-all duration-200"
+            }}
+            className="text-sm border border-gray-200 dark:border-zinc-700 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 px-2 py-1 rounded-md hover:bg-gray-200 dark:hover:bg-zinc-700 transition-all duration-200"
+          >
+            Current month
+          </button>
+        </div>
+        <div className="flex items-center gap-3 relative">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentMonth.format("MM-YYYY") + "-totalPnL"}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className={`border px-3 py-1 rounded-lg shadow-sm ${
+                monthlyStats.totalPnL >= 0
+                  ? "border-green-300 dark:border-green-600 bg-green-100/50 dark:bg-green-900/30 text-green-600"
+                  : "border-red-300 dark:border-red-600 bg-red-100/50 dark:bg-red-900/30 text-red-600"
+              }`}
             >
-              This month
-            </button>
-            <button
-              onClick={handleCompareMonths}
-              onKeyDown={(e) => e.key === "Enter" && handleCompareMonths()}
-              aria-label="Compare months"
-              className="text-sm border ring-2 ring-blue-500/50 bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-gray-600 px-3 py-1.5 rounded-md hover:bg-gradient-to-r hover:from-blue-500/30 hover:to-purple-500/30 hover:ring-blue-500 hover:shadow-[0_0_4px_rgba(59,130,246,0.3)] transition-all duration-200"
-            >
-              Compare Months
-            </button>
-          </div>
-          <div className="flex items-center gap-3 relative">
-            <AnimatePresence mode="wait">
+              <span className="text-lg font-semibold">
+                {monthlyStats.totalPnL >= 0 ? "+" : ""}${monthlyStats.totalPnL.toFixed(0)}
+              </span>
+            </motion.div>
+          </AnimatePresence>
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            {monthlyStats.tradingDays} days
+          </span>
+          <button
+            ref={settingsButtonRef}
+            onClick={() => setSettingsOpen((prev) => !prev)}
+            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
+            title="Settings"
+          >
+            <Settings size={18} />
+          </button>
+
+          {/* Enhanced Settings Dropdown */}
+          <AnimatePresence>
+            {settingsOpen && (
               <motion.div
-                key={currentMonth.format("MM-YYYY") + "-totalPnL"}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
-                className={`border px-3 py-1 rounded-lg shadow-sm ${
-                  monthlyStats.totalPnL >= 0
-                    ? "border-[#34d399] bg-[#34d399]/10 text-[#34d399]"
-                    : "border-[#f9a8a8] bg-[#f9a8a8]/10 text-[#f9a8a8]"
-                }`}
+                ref={settingsRef}
+                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                transition={{ duration: 0.2, ease: "easeInOut", type: "spring", stiffness: 300, damping: 20 }}
+                className="absolute top-10 right-0 w-72 bg-gradient-to-br from-white to-gray-50 dark:from-zinc-700 dark:to-zinc-800 rounded-lg shadow-xl p-6 z-50 border border-gray-200 dark:border-zinc-600"
               >
-                <span className="text-lg font-semibold tracking-wide">
-                  {monthlyStats.totalPnL >= 0 ? "+" : ""}${formatPnL(monthlyStats.totalPnL)}
-                </span>
-              </motion.div>
-            </AnimatePresence>
-            <span className="text-sm text-gray-500 tracking-wide">{monthlyStats.tradingDays} days</span>
-            <button
-              ref={settingsButtonRef}
-              onClick={() => setSettingsOpen((prev) => !prev)}
-              onKeyDown={(e) => e.key === "Enter" && setSettingsOpen((prev) => !prev)}
-              aria-label="Open settings"
-              className="p-1 rounded hover:bg-gray-100 transition-colors"
-            >
-              <Settings size={18} className="text-gray-600" />
-            </button>
-
-            {/* Enhanced Settings Dropdown */}
-            <AnimatePresence>
-              {settingsOpen && (
-                <motion.div
-                  ref={settingsRef}
-                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                  transition={{ duration: 0.2, ease: "easeInOut", type: "spring", stiffness: 300, damping: 20 }}
-                  className="absolute top-10 right-0 w-72 bg-gradient-to-br from-white to-gray-50 rounded-lg shadow-xl p-6 z-50 border ring-1 ring-gray-200"
-                >
-                  <div className="text-sm text-gray-800 tracking-wide">
-                    <h3 className="font-semibold text-lg mb-4 border-b border-gray-200 pb-2 flex items-center">
-                      <span className="text-gray-700">Stats</span>
-                    </h3>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <motion.label
-                          htmlFor="showDailyPnL"
-                          className="flex items-center space-x-2 cursor-pointer hover:text-gray-600 transition-colors"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          data-tooltip-id="tooltip-showDailyPnL"
-                          data-tooltip-content="Show the daily profit/loss in each cell"
-                        >
-                          <span>Show Daily P&L</span>
-                        </motion.label>
-                        <label className="relative inline-block w-10 h-5 cursor-pointer">
-                          <input
-                            id="showDailyPnL"
-                            type="checkbox"
-                            checked={settings.showDailyPnL}
-                            onChange={() => toggleSetting("showDailyPnL")}
-                            onKeyDown={(e) => e.key === "Enter" && toggleSetting("showDailyPnL")}
-                            className="absolute opacity-0 w-0 h-0"
-                            aria-label="Toggle Show Daily P&L"
-                          />
-                          <motion.div
-                            className={`absolute top-0 left-0 w-10 h-5 rounded-full transition-colors duration-200 ease-in-out ${
-                              settings.showDailyPnL ? "bg-blue-500" : "bg-gray-300"
-                            }`}
-                          />
-                          <motion.div
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm"
-                            animate={{
-                              x: settings.showDailyPnL ? 22 : 2,
-                            }}
-                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                          />
-                        </label>
-                        <ReactTooltip
-                          id="tooltip-showDailyPnL"
-                          place="top"
-                          className="z-[1000] text-xs px-2 py-1 rounded shadow-lg bg-gray-900 text-white"
-                        />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <motion.label
-                          htmlFor="showWinRate"
-                          className="flex items-center space-x-2 cursor-pointer hover:text-gray-600 transition-colors"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          data-tooltip-id="tooltip-showWinRate"
-                          data-tooltip-content="Show the win rate percentage in each cell"
-                        >
-                          <span>Show Day Win Rate</span>
-                        </motion.label>
-                        <label className="relative inline-block w-10 h-5 cursor-pointer">
-                          <input
-                            id="showWinRate"
-                            type="checkbox"
-                            checked={settings.showWinRate}
-                            onChange={() => toggleSetting("showWinRate")}
-                            onKeyDown={(e) => e.key === "Enter" && toggleSetting("showWinRate")}
-                            className="absolute opacity-0 w-0 h-0"
-                            aria-label="Toggle Show Day Win Rate"
-                          />
-                          <motion.div
-                            className={`absolute top-0 left-0 w-10 h-5 rounded-full transition-colors duration-200 ease-in-out ${
-                              settings.showWinRate ? "bg-blue-500" : "bg-gray-300"
-                            }`}
-                          />
-                          <motion.div
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm"
-                            animate={{
-                              x: settings.showWinRate ? 22 : 2,
-                            }}
-                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                          />
-                        </label>
-                        <ReactTooltip
-                          id="tooltip-showWinRate"
-                          place="top"
-                          className="z-[1000] text-xs px-2 py-1 rounded shadow-lg bg-gray-900 text-white"
-                        />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <motion.label
-                          htmlFor="showTradesCount"
-                          className="flex items-center space-x-2 cursor-pointer hover:text-gray-600 transition-colors"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          data-tooltip-id="tooltip-showTradesCount"
-                          data-tooltip-content="Show the number of trades in each cell"
-                        >
-                          <span>Show Number of Trades</span>
-                        </motion.label>
-                        <label className="relative inline-block w-10 h-5 cursor-pointer">
-                          <input
-                            id="showTradesCount"
-                            type="checkbox"
-                            checked={settings.showTradesCount}
-                            onChange={() => toggleSetting("showTradesCount")}
-                            onKeyDown={(e) => e.key === "Enter" && toggleSetting("showTradesCount")}
-                            className="absolute opacity-0 w-0 h-0"
-                            aria-label="Toggle Show Number of Trades"
-                          />
-                          <motion.div
-                            className={`absolute top-0 left-0 w-10 h-5 rounded-full transition-colors duration-200 ease-in-out ${
-                              settings.showTradesCount ? "bg-blue-500" : "bg-gray-300"
-                            }`}
-                          />
-                          <motion.div
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm"
-                            animate={{
-                              x: settings.showTradesCount ? 22 : 2,
-                            }}
-                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                          />
-                        </label>
-                        <ReactTooltip
-                          id="tooltip-showTradesCount"
-                          place="top"
-                          className="z-[1000] text-xs px-2 py-1 rounded shadow-lg bg-gray-900 text-white"
-                        />
-                      </div>
-                    </div>
-
-                    <h3 className="font-semibold text-lg mt-6 mb-4 border-b border-gray-200 pb-2 flex items-center">
-                      <span className="text-gray-700">Visuals</span>
-                    </h3>
+                <div className="text-sm text-gray-800 dark:text-gray-200">
+                  <h3 className="font-semibold text-lg mb-4 border-b border-gray-200 dark:border-zinc-600 pb-2 flex items-center">
+                    <span className="text-gray-700 dark:text-gray-300">Stats</span>
+                  </h3>
+                  <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <motion.label
-                        htmlFor="colorIntensityMode"
-                        className="flex items-center space-x-2 cursor-pointer hover:text-gray-600 transition-colors"
+                        htmlFor="showDailyPnL"
+                        className="flex items-center space-x-2 cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        data-tooltip-id="tooltip-colorIntensityMode"
-                        data-tooltip-content="Highlight the most profitable and loss-making days with a neon glow"
                       >
-                        <span>Color Intensity Mode</span>
+                        <span>Show Daily P&L</span>
                       </motion.label>
                       <label className="relative inline-block w-10 h-5 cursor-pointer">
                         <input
-                          id="colorIntensityMode"
+                          id="showDailyPnL"
                           type="checkbox"
-                          checked={settings.colorIntensityMode}
-                          onChange={() => toggleSetting("colorIntensityMode")}
-                          onKeyDown={(e) => e.key === "Enter" && toggleSetting("colorIntensityMode")}
+                          checked={settings.showDailyPnL}
+                          onChange={() => toggleSetting("showDailyPnL")}
                           className="absolute opacity-0 w-0 h-0"
-                          aria-label="Toggle Color Intensity Mode"
                         />
                         <motion.div
-                          className={`absolute top-0 left-0 w-10 h-5 rounded-full transition-colors duration-200 ease-in-out ${
-                            settings.colorIntensityMode ? "bg-blue-500" : "bg-gray-300"
+                          className={`absolute top-0 left-0 w-10 h-5 rounded-full transition-colors duration-200 ${
+                            settings.showDailyPnL
+                              ? "bg-blue-500"
+                              : "bg-gray-300 dark:bg-zinc-500"
                           }`}
                         />
                         <motion.div
                           className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm"
                           animate={{
-                            x: settings.colorIntensityMode ? 22 : 2,
+                            x: settings.showDailyPnL ? 22 : 2,
                           }}
                           transition={{ type: "spring", stiffness: 300, damping: 20 }}
                         />
                       </label>
-                      <ReactTooltip
-                        id="tooltip-colorIntensityMode"
-                        place="top"
-                        className="z-[1000] text-xs px-2 py-1 rounded shadow-lg bg-gray-900 text-white"
-                      />
                     </div>
-                    <button
-                      onClick={resetSettings}
-                      onKeyDown={(e) => e.key === "Enter" && resetSettings()}
-                      aria-label="Reset settings to default"
-                      className="mt-4 w-full text-sm border ring-1 ring-gray-200 bg-gray-100 text-gray-600 px-2 py-1 rounded-md hover:bg-gray-200 transition-all duration-200"
-                    >
-                      Reset to Default
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-
-        <div className="flex flex-1 gap-4 items-start">
-          {/* Fallback UI Message if No Trades */}
-          {!hasTradesForCurrentMonth && settings.colorIntensityMode && (
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center text-gray-500">
-              No trades available for this month to highlight extreme days.
-            </div>
-          )}
-
-          {/* Calendar Days */}
-          <div className="flex-1">
-            <div
-              ref={headerRef}
-              className="grid grid-cols-7 gap-2 text-sm text-center text-gray-700 mb-3 tracking-wide"
-            >
-              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-                <div
-                  key={d}
-                  className="border ring-1 ring-gray-300 rounded-md py-1 font-medium bg-white"
-                >
-                  {d}
-                </div>
-              ))}
-            </div>
-
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentMonth.format("MM-YYYY")}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
-                className="grid grid-cols-7 gap-2 text-sm text-gray-800"
-              >
-                {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-                  <motion.div
-                    key={`empty-${i}`}
-                    style={{ height: rowHeight }}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2, ease: "easeInOut" }}
-                    className="rounded-md border ring-1 ring-gray-200 bg-[#f3f4f6] shadow-md"
-                  />
-                ))}
-                {days.map((date, index) => {
-                  const key = date.format("YYYY-MM-DD");
-                  const pnl = tradeMap.pnl[key];
-                  const tradesCount = tradeMap.tradesCount[key];
-                  const percentage = tradeMap.percentage[key];
-                  const tooltipId = `tooltip-${key}`;
-                  const isExtremeDay =
-                    settings.colorIntensityMode &&
-                    (extremeDays.mostProfit !== null && key === extremeDays.mostProfit ||
-                     extremeDays.mostLoss !== null && key === extremeDays.mostLoss);
-                  const isTodayDate = isToday(date);
-                  const isLastDayOfWeek = (index + firstDayOfWeek + 1) % 7 === 0;
-
-                  // Log isExtremeDay for debugging
-                  console.log(`Day: ${key}, isExtremeDay: ${isExtremeDay}`);
-
-                  return (
-                    <motion.div
-                      key={key}
-                      style={{ height: rowHeight }}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2, ease: "easeInOut" }}
-                      className={`rounded-md border ring-1 shadow-md ${
-                        isLastDayOfWeek ? "border-b-2 border-gray-300" : ""
-                      } ${
-                        pnl !== undefined
-                          ? pnl >= 0
-                            ? `ring-[#34d399] bg-gradient-to-br from-[#34d399]/10 to-[#34d399]/5 ${
-                                isExtremeDay ? "shadow-[0_0_10px_rgba(52,211,153,0.7)]" : ""
-                              }`
-                            : `ring-[#f9a8a8] bg-gradient-to-br from-[#f9a8a8]/10 to-[#f9a8a8]/5 ${
-                                isExtremeDay ? "shadow-[0_0_10px_rgba(249,168,168,0.7)]" : ""
-                              }`
-                          : "ring-gray-200 bg-gray-50"
-                      } ${isTodayDate ? "outline outline-2 outline-[#34d399]/50 rounded-xl" : ""}`}
-                    >
-                      <div
-                        data-tooltip-id={tooltipId}
-                        data-tooltip-content={
-                          pnl !== undefined
-                            ? `Date: ${key}\nP&L: ${pnl < 0 ? "-" : ""}$${Math.abs(pnl).toFixed(2)}\nTrades: ${tradesCount}`
-                            : null
-                        }
-                        className={`relative w-full h-full flex flex-col items-center justify-center cursor-pointer transition-all duration-200 p-4 hover:scale-105 hover:shadow-[0_0_8px_rgba(59,130,246,0.3)] ${
-                          pnl !== undefined
-                            ? "hover:bg-gradient-to-br from-purple-100/60 to-blue-100/60 hover:ring-purple-400"
-                            : "hover:bg-purple-100/60 hover:ring-purple-400"
-                        }`}
+                    <div className="flex items-center justify-between">
+                      <motion.label
+                        htmlFor="showWinRate"
+                        className="flex items-center space-x-2 cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                       >
-                        <span className="absolute top-2 right-2 text-base font-semibold text-gray-600 tracking-wide">
-                          {date.date()}
-                        </span>
-                        {pnl !== undefined && (
-                          <div className="flex flex-col items-center space-y-1">
-                            {settings.showDailyPnL && (
-                              <span className={`text-lg font-sans font-bold tracking-wide ${pnl >= 0 ? "text-[#34d399]" : "text-[#f9a8a8]"}`}>
-                                {pnl >= 0 ? "+" : ""}${formatPnL(pnl)}
-                              </span>
-                            )}
-                            {settings.showWinRate && (
-                              <span className="text-xs font-medium text-gray-500 tracking-wide">{percentage}%</span>
-                            )}
-                            {settings.showTradesCount && (
-                              <span className="text-xs font-medium text-gray-400 tracking-wide">{tradesCount} trades</span>
-                            )}
-                            {/* Mini Sparkline (simulated with a gradient bar) */}
-                            {tradesCount > 1 && (
-                              <div className="w-12 h-2 bg-gradient-to-r from-[#34d399] to-[#f9a8a8] rounded-full opacity-50"></div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                      {pnl !== undefined && (
-                        <ReactTooltip
-                          id={tooltipId}
-                          place="top"
-                          className="z-[1000] text-xs px-2 py-1 rounded shadow-lg bg-gray-900 text-white"
+                        <span>Show Day Win Rate</span>
+                      </motion.label>
+                      <label className="relative inline-block w-10 h-5 cursor-pointer">
+                        <input
+                          id="showWinRate"
+                          type="checkbox"
+                          checked={settings.showWinRate}
+                          onChange={() => toggleSetting("showWinRate")}
+                          className="absolute opacity-0 w-0 h-0"
                         />
-                      )}
-                    </motion.div>
-                  );
-                })}
+                        <motion.div
+                          className={`absolute top-0 left-0 w-10 h-5 rounded-full transition-colors duration-200 ${
+                            settings.showWinRate
+                              ? "bg-blue-500"
+                              : "bg-gray-300 dark:bg-zinc-500"
+                          }`}
+                        />
+                        <motion.div
+                          className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm"
+                          animate={{
+                            x: settings.showWinRate ? 22 : 2,
+                          }}
+                          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                        />
+                      </label>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <motion.label
+                        htmlFor="showTradesCount"
+                        className="flex items-center space-x-2 cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <span>Show Number of Trades</span>
+                      </motion.label>
+                      <label className="relative inline-block w-10 h-5 cursor-pointer">
+                        <input
+                          id="showTradesCount"
+                          type="checkbox"
+                          checked={settings.showTradesCount}
+                          onChange={() => toggleSetting("showTradesCount")}
+                          className="absolute opacity-0 w-0 h-0"
+                        />
+                        <motion.div
+                          className={`absolute top-0 left-0 w-10 h-5 rounded-full transition-colors duration-200 ${
+                            settings.showTradesCount
+                              ? "bg-blue-500"
+                              : "bg-gray-300 dark:bg-zinc-500"
+                          }`}
+                        />
+                        <motion.div
+                          className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm"
+                          animate={{
+                            x: settings.showTradesCount ? 22 : 2,
+                          }}
+                          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  <h3 className="font-semibold text-lg mt-6 mb-4 border-b border-gray-200 dark:border-zinc-600 pb-2 flex items-center">
+                    <span className="text-gray-700 dark:text-gray-300">Visuals</span>
+                  </h3>
+                  <div className="flex items-center justify-between">
+                    <motion.label
+                      htmlFor="colorIntensityMode"
+                      className="flex items-center space-x-2 cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <span>Color Intensity Mode</span>
+                    </motion.label>
+                    <label className="relative inline-block w-10 h-5 cursor-pointer">
+                      <input
+                        id="colorIntensityMode"
+                        type="checkbox"
+                        checked={settings.colorIntensityMode}
+                        onChange={() => toggleSetting("colorIntensityMode")}
+                        className="absolute opacity-0 w-0 h-0"
+                      />
+                      <motion.div
+                        className={`absolute top-0 left-0 w-10 h-5 rounded-full transition-colors duration-200 ${
+                          settings.colorIntensityMode
+                            ? "bg-blue-500"
+                            : "bg-gray-300 dark:bg-zinc-500"
+                        }`}
+                      />
+                      <motion.div
+                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm"
+                        animate={{
+                          x: settings.colorIntensityMode ? 22 : 2,
+                        }}
+                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                      />
+                    </label>
+                  </div>
+                </div>
               </motion.div>
-            </AnimatePresence>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      <div className="flex flex-1 gap-4 items-start">
+        {/* Calendar Days */}
+        <div className="flex-1">
+          <div
+            ref={headerRef}
+            className="grid grid-cols-7 gap-1 text-sm text-center text-gray-700 dark:text-gray-300 mb-3"
+          >
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+              <div
+                key={d}
+                className="border border-gray-300 dark:border-zinc-600 rounded-md py-1 font-medium bg-white dark:bg-zinc-800"
+              >
+                {d}
+              </div>
+            ))}
           </div>
 
-          {/* Weekly Stats with animation */}
           <AnimatePresence mode="wait">
             <motion.div
-              key={currentMonth.format("MM-YYYY") + "-weeks"}
+              key={currentMonth.format("MM-YYYY")}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2, ease: "easeInOut" }}
-              className="w-[150px] flex flex-col gap-2"
-              style={{ marginTop: `${headerHeight + 11}px` }}
+              className="grid grid-cols-7 gap-1 text-sm text-gray-800 dark:text-white"
             >
-              {weeklyStats.map((week, index) => (
+              {Array.from({ length: firstDayOfWeek }).map((_, i) => (
                 <div
-                  key={`week-${index}`}
+                  key={`empty-${i}`}
                   style={{ height: rowHeight }}
-                  className="bg-white rounded-md px-3 py-2 text-sm flex flex-col items-center justify-center border ring-1 ring-gray-200 shadow-md"
-                >
-                  <div className="text-gray-500 font-medium tracking-wide">Week {index + 1}</div>
-                  <div className={`text-lg font-bold ${week.weekPnL >= 0 ? "text-[#34d399]" : "text-[#f9a8a8]"} tracking-wide`}>
-                    {week.weekPnL >= 0 ? "+" : ""}${formatPnL(week.weekPnL)}
-                  </div>
-                  <div className="text-xs font-medium text-gray-500 tracking-wide">{week.tradingDays} days</div>
-                  <div className="text-xs font-medium text-gray-400 tracking-wide">{week.totalTrades} trades</div>
-                </div>
+                  className="rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800"
+                />
               ))}
+              {days.map((date) => {
+                const key = date.format("YYYY-MM-DD");
+                const pnl = tradeMap.pnl[key];
+                const tradesCount = tradeMap.tradesCount[key];
+                const percentage = tradeMap.percentage[key];
+                const tooltipId = `tooltip-${key}`;
+                const isExtremeDay =
+                  settings.colorIntensityMode &&
+                  (key === extremeDays.mostProfit || key === extremeDays.mostLoss);
+                const isTodayDate = isToday(date);
+
+                return (
+                  <div
+                    key={key}
+                    style={{ height: rowHeight }}
+                    className={`rounded-md border ${
+                      pnl !== undefined
+                        ? pnl >= 0
+                          ? isExtremeDay
+                            ? "border-green-500 dark:border-green-600"
+                            : "border-green-400 dark:border-green-700"
+                          : isExtremeDay
+                          ? "border-red-400 dark:border-red-500"
+                          : "border-red-300 dark:border-red-600"
+                        : "border-gray-200 dark:border-zinc-700"
+                    } bg-gray-50 dark:bg-zinc-800 ${
+                      isTodayDate ? "relative shadow-[0_0_8px_rgba(255,215,0,0.5)]" : ""
+                    }`}
+                  >
+                    <div
+                      data-tooltip-id={tooltipId}
+                      data-tooltip-content={
+                        pnl !== undefined
+                          ? `${key}: ${pnl < 0 ? "-" : ""}$${Math.abs(pnl).toFixed(2)} | Trades: ${tradesCount}`
+                          : null
+                      }
+                      className={`relative w-full h-full flex flex-col items-center justify-center cursor-pointer transition-all duration-200 p-2
+                        ${
+                          pnl !== undefined
+                            ? pnl >= 0
+                              ? isExtremeDay
+                                ? "bg-green-300/60 dark:bg-green-800/50 border-green-500 dark:border-green-600 shadow-[0_0_10px_rgba(34,197,94,0.7)]"
+                                : "bg-green-200/60 dark:bg-green-900/40 border-green-400 dark:border-green-700"
+                              : isExtremeDay
+                              ? "bg-red-300/60 dark:bg-red-800/50 border-red-500 dark:border-red-600 shadow-[0_0_10px_rgba(239,68,68,0.7)]"
+                              : "bg-red-200/60 dark:bg-red-900/40 border-red-400 dark:border-red-700"
+                            : "hover:bg-purple-100/60 dark:hover:bg-purple-900/30 border-transparent hover:border-purple-400 dark:hover:border-purple-600"
+                        }`}
+                    >
+                      <span className="absolute top-1 right-2 text-xs font-semibold text-gray-600 dark:text-gray-300">
+                        {date.date()}
+                      </span>
+                      {pnl !== undefined && (
+                        <>
+                          {settings.showDailyPnL && (
+                            <span className={`text-sm font-semibold ${pnl >= 0 ? "text-green-700" : "text-red-700"}`}>
+                              {pnl >= 0 ? "+" : ""}${pnl.toFixed(1)}
+                            </span>
+                          )}
+                          {settings.showWinRate && (
+                            <span className="text-xs text-gray-500">{percentage}%</span>
+                          )}
+                          {settings.showTradesCount && (
+                            <span className="text-xs text-gray-400">{tradesCount} trades</span>
+                          )}
+                        </>
+                      )}
+                    </div>
+                    {pnl !== undefined && (
+                      <ReactTooltip
+                        id={tooltipId}
+                        place="top"
+                        className="z-[1000] text-xs px-2 py-1 rounded shadow-lg bg-gray-900 text-white"
+                      />
+                    )}
+                  </div>
+                );
+              })}
             </motion.div>
           </AnimatePresence>
         </div>
+
+        {/* Weekly Stats with animation */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentMonth.format("MM-YYYY") + "-weeks"}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="w-[150px] flex flex-col gap-1"
+            style={{ marginTop: `${headerHeight + 11}px` }}
+          >
+            {weeklyStats.map((week, index) => (
+              <div
+                key={`week-${index}`}
+                style={{ height: rowHeight }}
+                className="bg-white dark:bg-zinc-800 rounded-md px-3 py-2 text-sm flex flex-col items-center justify-center border border-gray-200 dark:border-zinc-700"
+              >
+                <div className="text-gray-500 dark:text-gray-400">Week {index + 1}</div>
+                <div className={`text-lg font-semibold ${week.weekPnL >= 0 ? "text-green-600" : "text-red-600"}`}>
+                  {week.weekPnL >= 0 ? "+" : ""}${week.weekPnL.toFixed(1)}
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">{week.tradingDays} days</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">{week.totalTrades} trades</div>
+              </div>
+            ))}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );
