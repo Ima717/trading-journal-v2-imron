@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { auth } from "../utils/firebase";
 import { useAuth } from "../context/AuthContext";
 
@@ -21,7 +21,7 @@ const SignUp = () => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       console.log("UserCredential:", userCredential);
       console.log("User:", userCredential.user);
-      await userCredential.user.sendEmailVerification();
+      await sendEmailVerification(userCredential.user); // ✅ FIXED
       setUser(userCredential.user);
       setMessage("Account created! Please check your email to verify your account.");
       await auth.signOut();
