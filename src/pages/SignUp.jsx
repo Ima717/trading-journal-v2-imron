@@ -17,20 +17,18 @@ const SignUp = () => {
     setError("");
     setMessage("");
     try {
-      // Create user and get userCredential
+      console.log("Attempting to create user with email:", email);
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      // Send email verification
+      console.log("UserCredential:", userCredential);
+      console.log("User:", userCredential.user);
       await userCredential.user.sendEmailVerification();
-      // Update AuthContext
       setUser(userCredential.user);
       setMessage("Account created! Please check your email to verify your account.");
-      // Sign out to enforce verification
       await auth.signOut();
       setUser(null);
-      // Optional: redirect to sign-in
-      // navigate("/signin");
     } catch (err) {
       setError(err.message);
+      console.error("Sign-up error:", err);
     }
   };
 
