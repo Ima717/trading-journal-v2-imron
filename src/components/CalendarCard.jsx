@@ -15,7 +15,6 @@ const CalendarCard = ({ trades = [] }) => {
     showTradesCount: true,
     colorIntensityMode: false,
   });
-  const [highlightedDays, setHighlightedDays] = useState([]);
 
   const headerRef = useRef(null);
   const settingsRef = useRef(null);
@@ -178,16 +177,16 @@ const CalendarCard = ({ trades = [] }) => {
     return dayjs().isSame(date, "day");
   };
 
-  const handleHighlightSimilarDays = (pnl) => {
-    const similarDays = Object.keys(tradeMap.pnl).filter((date) => {
-      const dayPnl = tradeMap.pnl[date];
-      return Math.abs(dayPnl - pnl) < 50 && dayjs(date).isSame(currentMonth, "month");
-    });
-    setHighlightedDays(similarDays);
-  };
-
   const handleCompareMonths = () => {
     console.log("Compare Months feature: To be implemented");
+  };
+
+  // Format P/L values: remove ".0" for whole numbers, show one decimal place otherwise
+  const formatPnL = (value) => {
+    if (Number.isInteger(value)) {
+      return value.toFixed(0); // No decimals for whole numbers
+    }
+    return value.toFixed(1); // One decimal place for non-whole numbers
   };
 
   return (
@@ -229,15 +228,15 @@ const CalendarCard = ({ trades = [] }) => {
                 setCurrentMonth(dayjs())
               }
               aria-label="Go to current month"
-              className="text-sm border ring-1 ring-gray-200 bg-gray-100 text-gray-600 px-2 py-1 rounded-md hover:bg-gray-200 transition-all duration-200"
+              className="text-sm border ring-2 ring-blue-500/50 bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-gray-600 px-3 py-1.5 rounded-md hover:bg-gradient-to-r hover:from-blue-500/30 hover:to-purple-500/30 hover:ring-blue-500 hover:shadow-[0_0_4px_rgba(59,130,246,0.3)] transition-all duration-200"
             >
-              Current month
+              This month
             </button>
             <button
               onClick={handleCompareMonths}
               onKeyDown={(e) => e.key === "Enter" && handleCompareMonths()}
               aria-label="Compare months"
-              className="text-sm border ring-1 ring-gray-200 bg-gray-100 text-gray-600 px-2 py-1 rounded-md hover:bg-gray-200 transition-all duration-200"
+              className="text-sm border ring-2 ring-blue-500/50 bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-gray-600 px-3 py-1.5 rounded-md hover:bg-gradient-to-r hover:from-blue-500/30 hover:to-purple-500/30 hover:ring-blue-500 hover:shadow-[0_0_4px_rgba(59,130,246,0.3)] transition-all duration-200"
             >
               Compare Months
             </button>
@@ -252,12 +251,12 @@ const CalendarCard = ({ trades = [] }) => {
                 transition={{ duration: 0.2, ease: "easeInOut" }}
                 className={`border px-3 py-1 rounded-lg shadow-sm ${
                   monthlyStats.totalPnL >= 0
-                    ? "border-[#10b981] bg-[#10b981]/10 text-[#10b981]"
-                    : "border-[#f87171] bg-[#f87171]/10 text-[#f87171]"
+                    ? "border-[#34d399] bg-[#34d399]/10 text-[#34d399]"
+                    : "border-[#f9a8a8] bg-[#f9a8a8]/10 text-[#f9a8a8]"
                 }`}
               >
                 <span className="text-lg font-semibold tracking-wide">
-                  {monthlyStats.totalPnL >= 0 ? "+" : ""}${monthlyStats.totalPnL.toFixed(0)}
+                  {monthlyStats.totalPnL >= 0 ? "+" : ""}${formatPnL(monthlyStats.totalPnL)}
                 </span>
               </motion.div>
             </AnimatePresence>
@@ -502,7 +501,7 @@ const CalendarCard = ({ trades = [] }) => {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2, ease: "easeInOut" }}
-                    className="rounded-md border ring-2 ring-gray-200 bg-[#f3f4f6] shadow-md"
+                    className="rounded-md border ring-1 ring-gray-200 bg-[#f3f4f6] shadow-md"
                   />
                 ))}
                 {days.map((date, index) => {
@@ -515,7 +514,6 @@ const CalendarCard = ({ trades = [] }) => {
                     settings.colorIntensityMode &&
                     (key === extremeDays.mostProfit || key === extremeDays.mostLoss);
                   const isTodayDate = isToday(date);
-                  const isHighlighted = highlightedDays.includes(key);
                   const isLastDayOfWeek = (index + firstDayOfWeek + 1) % 7 === 0;
 
                   return (
@@ -526,21 +524,19 @@ const CalendarCard = ({ trades = [] }) => {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.2, ease: "easeInOut" }}
-                      className={`rounded-md border ring-2 shadow-md ${
+                      className={`rounded-md border ring-1 shadow-md ${
                         isLastDayOfWeek ? "border-b-2 border-gray-300" : ""
                       } ${
                         pnl !== undefined
                           ? pnl >= 0
                             ? isExtremeDay
-                              ? "ring-[#10b981] bg-gradient-to-br from-[#10b981]/10 to-[#10b981]/5"
-                              : "ring-[#10b981] bg-gradient-to-br from-[#10b981]/10 to-[#10b981]/5"
+                              ? "ring-[#34d399] bg-gradient-to-br from-[#34d399]/20 to-[#34d399]/10"
+                              : "ring-[#34d399] bg-gradient-to-br from-[#34d399]/10 to-[#34d399]/5"
                             : isExtremeDay
-                            ? "ring-[#f87171] bg-gradient-to-br from-[#f87171]/10 to-[#f87171]/5"
-                            : "ring-[#f87171] bg-gradient-to-br from-[#f87171]/10 to-[#f87171]/5"
+                            ? "ring-[#f9a8a8] bg-gradient-to-br from-[#f9a8a8]/20 to-[#f9a8a8]/10"
+                            : "ring-[#f9a8a8] bg-gradient-to-br from-[#f9a8a8]/10 to-[#f9a8a8]/5"
                           : "ring-gray-200 bg-gray-50"
-                      } ${isTodayDate ? "outline outline-2 outline-[#10b981]/50 rounded-xl" : ""} ${
-                        isHighlighted ? "ring-2 ring-blue-500" : ""
-                      }`}
+                      } ${isTodayDate ? "outline outline-2 outline-[#34d399]/50 rounded-xl" : ""}`}
                     >
                       <div
                         data-tooltip-id={tooltipId}
@@ -549,7 +545,6 @@ const CalendarCard = ({ trades = [] }) => {
                             ? `Date: ${key}\nP&L: ${pnl < 0 ? "-" : ""}$${Math.abs(pnl).toFixed(2)}\nTrades: ${tradesCount}`
                             : null
                         }
-                        onClick={() => pnl !== undefined && handleHighlightSimilarDays(pnl)}
                         className={`relative w-full h-full flex flex-col items-center justify-center cursor-pointer transition-all duration-200 p-4 hover:scale-105 hover:shadow-[0_0_8px_rgba(59,130,246,0.3)] ${
                           pnl !== undefined
                             ? "hover:bg-gradient-to-br from-purple-100/60 to-blue-100/60 hover:ring-purple-400"
@@ -562,8 +557,8 @@ const CalendarCard = ({ trades = [] }) => {
                         {pnl !== undefined && (
                           <div className="flex flex-col items-center space-y-1">
                             {settings.showDailyPnL && (
-                              <span className={`text-lg font-sans font-bold tracking-wide ${pnl >= 0 ? "text-[#10b981]" : "text-[#f87171]"}`}>
-                                {pnl >= 0 ? "+" : ""}${pnl.toFixed(1)}
+                              <span className={`text-lg font-sans font-bold tracking-wide ${pnl >= 0 ? "text-[#34d399]" : "text-[#f9a8a8]"}`}>
+                                {pnl >= 0 ? "+" : ""}${formatPnL(pnl)}
                               </span>
                             )}
                             {settings.showWinRate && (
@@ -574,7 +569,7 @@ const CalendarCard = ({ trades = [] }) => {
                             )}
                             {/* Mini Sparkline (simulated with a gradient bar) */}
                             {tradesCount > 1 && (
-                              <div className="w-12 h-2 bg-gradient-to-r from-[#10b981] to-[#f87171] rounded-full opacity-50"></div>
+                              <div className="w-12 h-2 bg-gradient-to-r from-[#34d399] to-[#f9a8a8] rounded-full opacity-50"></div>
                             )}
                           </div>
                         )}
@@ -611,8 +606,8 @@ const CalendarCard = ({ trades = [] }) => {
                   className="bg-white rounded-md px-3 py-2 text-sm flex flex-col items-center justify-center border ring-1 ring-gray-200 shadow-md"
                 >
                   <div className="text-gray-500 font-medium tracking-wide">Week {index + 1}</div>
-                  <div className={`text-lg font-bold ${week.weekPnL >= 0 ? "text-[#10b981]" : "text-[#f87171]"} tracking-wide`}>
-                    {week.weekPnL >= 0 ? "+" : ""}${week.weekPnL.toFixed(1)}
+                  <div className={`text-lg font-bold ${week.weekPnL >= 0 ? "text-[#34d399]" : "text-[#f9a8a8]"} tracking-wide`}>
+                    {week.weekPnL >= 0 ? "+" : ""}${formatPnL(week.weekPnL)}
                   </div>
                   <div className="text-xs font-medium text-gray-500 tracking-wide">{week.tradingDays} days</div>
                   <div className="text-xs font-medium text-gray-400 tracking-wide">{week.totalTrades} trades</div>
