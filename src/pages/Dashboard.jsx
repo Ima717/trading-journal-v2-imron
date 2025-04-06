@@ -223,6 +223,7 @@ const Dashboard = () => {
                 {console.log("Filtered Trades:", filteredTrades)}
                 <RecentTradesCard trades={filteredTrades} />
               </div>
+              </div>
 
 
               {/* Charts */}
