@@ -20,6 +20,9 @@ const CalendarCard = ({ trades = [] }) => {
   const settingsRef = useRef(null);
   const settingsButtonRef = useRef(null);
 
+  // Log the trades prop to verify its contents
+  console.log("Trades prop:", trades);
+
   // Load settings from localStorage on mount
   useEffect(() => {
     const savedSettings = localStorage.getItem("calendarSettings");
@@ -32,6 +35,7 @@ const CalendarCard = ({ trades = [] }) => {
   useEffect(() => {
     localStorage.setItem("calendarSettings", JSON.stringify(settings));
     console.log("Settings Applied");
+    console.log("Color Intensity Mode:", settings.colorIntensityMode);
   }, [settings]);
 
   // Measure header height for alignment
@@ -83,6 +87,7 @@ const CalendarCard = ({ trades = [] }) => {
       map.tradesCount[date] += 1;
       map.percentage[date] = t.percentage || 0;
     });
+    console.log("tradeMap:", map);
     return map;
   }, [trades]);
 
@@ -94,6 +99,7 @@ const CalendarCard = ({ trades = [] }) => {
     Object.keys(tradeMap.pnl).forEach((date) => {
       if (dayjs(date).isSame(currentMonth, "month")) {
         const pnl = tradeMap.pnl[date];
+        console.log(`Processing date: ${date}, P&L: ${pnl}`);
         if (pnl > mostProfit.pnl) {
           mostProfit = { date, pnl };
         }
@@ -103,9 +109,7 @@ const CalendarCard = ({ trades = [] }) => {
       }
     });
 
-    // Debugging log to verify extremeDays
     console.log("extremeDays:", { mostProfit, mostLoss });
-
     return { mostProfit: mostProfit.date, mostLoss: mostLoss.date };
   }, [tradeMap, currentMonth]);
 
@@ -191,6 +195,11 @@ const CalendarCard = ({ trades = [] }) => {
     }
     return value.toFixed(1); // One decimal place for non-whole numbers
   };
+
+  // Check if there are trades for the current month
+  const hasTradesForCurrentMonth = Object.keys(tradeMap.pnl).some((date) =>
+    dayjs(date).isSame(currentMonth, "month")
+  );
 
   return (
     <div className="border-transparent bg-gradient-to-r from-blue-500/20 to-purple-500/20 p-[1px] rounded-2xl shadow-none w-full h-[850px] flex flex-col transition-none transform-none hover:scale-100 hover:shadow-none">
@@ -471,6 +480,13 @@ const CalendarCard = ({ trades = [] }) => {
         </div>
 
         <div className="flex flex-1 gap-4 items-start">
+          {/* Fallback UI Message if No Trades */}
+          {!hasTradesForCurrentMonth && settings.colorIntensityMode && (
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center text-gray-500">
+              No trades available for this month to highlight extreme days.
+            </div>
+          )}
+
           {/* Calendar Days */}
           <div className="flex-1">
             <div
@@ -519,6 +535,9 @@ const CalendarCard = ({ trades = [] }) => {
                      extremeDays.mostLoss !== null && key === extremeDays.mostLoss);
                   const isTodayDate = isToday(date);
                   const isLastDayOfWeek = (index + firstDayOfWeek + 1) % 7 === 0;
+
+                  // Log isExtremeDay for debugging
+                  console.log(`Day: ${key}, isExtremeDay: ${isExtremeDay}`);
 
                   return (
                     <motion.div
