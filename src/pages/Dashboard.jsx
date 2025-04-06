@@ -22,8 +22,8 @@ import TimelineDateRangePicker from "../components/TimelineDateRangePicker";
 import WinStatsCard from "../components/WinStatsCard";
 import ChartCard from "../components/ChartCard";
 import DrawdownCard from "../components/DrawdownCard";
-import CalendarCard from "../components/CalendarCard"; // ✅ NEW
-import RecentTradesCard from "../components/RecentTradesCard"; // ✅ NEW
+import CalendarCard from "../components/CalendarCard";
+import RecentTradesCard from "../components/RecentTradesCard";
 import ErrorBoundary from "../components/ErrorBoundary";
 
 import { getPnLOverTime, getZellaScoreOverTime } from "../utils/calculations";
@@ -39,6 +39,9 @@ const Dashboard = () => {
   const [zellaTrendData, setZellaTrendData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Check if user is signed in
+  if (!user) return <div className="text-center py-10 text-gray-500 dark:text-gray-400">Please sign in to view your dashboard.</div>;
+
   useEffect(() => {
     if (!user) return;
     setIsLoading(true);
@@ -46,6 +49,8 @@ const Dashboard = () => {
     const q = query(collection(db, "users", user.uid, "trades"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       let trades = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+      console.log("Signed in user:", user); // Verify the real user
 
       if (dateRange.start && dateRange.end) {
         const start = dayjs(dateRange.start);
@@ -215,16 +220,14 @@ const Dashboard = () => {
 
               {/* Calendar & Trade History Section */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-stretch">
-  <div className="lg:col-span-2 h-full">
-    <CalendarCard trades={filteredTrades} />
-  </div>
-
-              <div className="h-full">
-                {console.log("Filtered Trades:", filteredTrades)}
-                <RecentTradesCard trades={filteredTrades} />
+                <div className="lg:col-span-2 h-full">
+                  <CalendarCard trades={filteredTrades} />
+                </div>
+                <div className="h-full">
+                  {console.log("Filtered Trades:", filteredTrades)}
+                  <RecentTradesCard trades={filteredTrades} />
+                </div>
               </div>
-              </div>
-
 
               {/* Charts */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
