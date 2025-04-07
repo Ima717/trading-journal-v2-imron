@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../utils/firebase";
-import { collection, query, onSnapshot } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useFilters } from "../context/FilterContext";
@@ -32,35 +32,41 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { theme } = useTheme();
-  const { dateRange, filteredTrades } = useFilters();
+  const { dateRange, filteredTrades, setFilteredTrades } = useFilters(); // Assuming setFilteredTrades is available
 
   const [tagPerformanceData, setTagPerformanceData] = useState([]);
   const [pnlData, setPnlData] = useState([]);
   const [zellaTrendData, setZellaTrendData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check if user is signed in
   if (!user) return <div className="text-center py-10 text-gray-500 dark:text-gray-400">Please sign in to view your dashboard.</div>;
 
   useEffect(() => {
     if (!user) return;
     setIsLoading(true);
 
-    const q = query(collection(db, "users", user.uid, "trades"));
+    const q = query(collection(db, "users", user.uid, "trades"), orderBy("entryTime", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      let trades = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      let trades = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        date: doc.data().entryTime // Alias for backward compatibility
+      }));
 
-      console.log("Signed in user:", user); // Verify the real user
+      console.log("Signed in user:", user);
+      console.log("Fetched trades:", trades);
 
       if (dateRange.start && dateRange.end) {
         const start = dayjs(dateRange.start);
         const end = dayjs(dateRange.end);
         trades = trades.filter(
           (t) =>
-            dayjs(t.date).isAfter(start.subtract(1, "day")) &&
-            dayjs(t.date).isBefore(end.add(1, "day"))
+            dayjs(t.entryTime).isAfter(start.subtract(1, "day")) &&
+            dayjs(t.entryTime).isBefore(end.add(1, "day"))
         );
       }
+
+      setFilteredTrades(trades); // Update FilterContext (assumes this exists)
 
       const pnlSeries = getPnLOverTime(trades);
       const zellaSeries = getZellaScoreOverTime(trades);
@@ -85,10 +91,13 @@ const Dashboard = () => {
 
       setTagPerformanceData(formatted);
       setIsLoading(false);
+    }, (error) => {
+      console.error("Firestore fetch error:", error);
+      setIsLoading(false);
     });
 
     return () => unsubscribe();
-  }, [user, dateRange]);
+  }, [user, dateRange, setFilteredTrades]);
 
   const netPnL = filteredTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
   const totalTrades = filteredTrades.length;
@@ -104,10 +113,10 @@ const Dashboard = () => {
     ? (wins.reduce((s, t) => s + t.pnl, 0) / Math.abs(losses.reduce((s, t) => s + t.pnl, 0))).toFixed(2)
     : "0.00";
 
-  const tradingDays = [...new Set(filteredTrades.map((t) => t.date))];
+  const tradingDays = [...new Set(filteredTrades.map((t) => dayjs(t.entryTime).format("YYYY-MM-DD")))];
   const winningDays = tradingDays.filter((day) => {
     const dayPnL = filteredTrades
-      .filter((t) => t.date === day)
+      .filter((t) => dayjs(t.entryTime).format("YYYY-MM-DD") === day)
       .reduce((sum, t) => sum + t.pnl, 0);
     return dayPnL > 0;
   });
@@ -131,7 +140,7 @@ const Dashboard = () => {
   const cumulativePnl = [];
   let runningPnl = 0;
   filteredTrades
-    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .sort((a, b) => new Date(a.entryTime) - new Date(b.entryTime))
     .forEach((t) => {
       runningPnl += t.pnl || 0;
       cumulativePnl.push(runningPnl);
@@ -160,6 +169,15 @@ const Dashboard = () => {
             <div className="flex gap-3">
               <TimelineDateRangePicker />
               <AdvancedFilters />
+              <button
+                onClick={async () => {
+                  await signOut(auth);
+                  navigate("/signin");
+                }}
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+              >
+                Sign Out
+              </button>
             </div>
           </div>
 
@@ -224,7 +242,6 @@ const Dashboard = () => {
                   <CalendarCard trades={filteredTrades} />
                 </div>
                 <div className="h-full">
-                  {console.log("Filtered Trades:", filteredTrades)}
                   <RecentTradesCard trades={filteredTrades} />
                 </div>
               </div>
