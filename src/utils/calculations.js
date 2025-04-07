@@ -1,9 +1,12 @@
+import dayjs from "dayjs";
+
 export function getPnLOverTime(trades) {
   const map = {};
   trades.forEach((trade) => {
-    const date = trade.date || "unknown";
-    if (!map[date]) map[date] = 0;
-    map[date] += trade.pnl || 0;
+    const time = trade.entryTime || "unknown"; // Use entryTime
+    const dateKey = dayjs(time).format("YYYY-MM-DD"); // Group by day
+    if (!map[dateKey]) map[dateKey] = 0;
+    map[dateKey] += trade.pnl || 0;
   });
   return Object.entries(map).map(([date, pnl]) => ({ date, pnl }));
 }
@@ -12,9 +15,10 @@ export function getZellaScoreOverTime(trades) {
   const map = {};
 
   trades.forEach((trade) => {
-    const date = trade.date || "unknown";
-    if (!map[date]) map[date] = [];
-    map[date].push(trade);
+    const time = trade.entryTime || "unknown";
+    const dateKey = dayjs(time).format("YYYY-MM-DD"); // Group by day
+    if (!map[dateKey]) map[dateKey] = [];
+    map[dateKey].push(trade);
   });
 
   return Object.entries(map).map(([date, tradesForDate]) => {
@@ -56,7 +60,7 @@ export function getZellaScoreOverTime(trades) {
 
 export function getMaxDrawdown(trades) {
   const sorted = [...trades].sort(
-    (a, b) => new Date(a.date) - new Date(b.date)
+    (a, b) => new Date(a.entryTime) - new Date(b.entryTime) // Sort by entryTime
   );
 
   let peak = 0;
