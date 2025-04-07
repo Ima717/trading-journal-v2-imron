@@ -52,7 +52,6 @@ const Dashboard = () => {
         const amount = parseFloat(data.amount) || 0;
         const commission = parseFloat(data.commission) || 0;
         const fees = parseFloat(data.fees) || 0;
-        const pnl = data.side === "Buy" ? -amount - commission - fees : amount - commission - fees;
         return {
           id: doc.id,
           ...data,
@@ -61,17 +60,51 @@ const Dashboard = () => {
           amount,
           commission,
           fees,
-          pnl: Number.isNaN(pnl) ? 0 : pnl,
+          // P&L will be computed after pairing
         };
       });
 
       console.log("Raw trades from Firestore:", trades);
 
-      let finalTrades = trades;
+      // Pair buy/sell trades to compute P&L
+      const tradePairs = {};
+      const processedTrades = [];
+
+      trades.forEach((trade) => {
+        const key = `${trade.symbol}-${trade.quantity}`;
+        if (!tradePairs[key]) tradePairs[key] = [];
+
+        tradePairs[key].push(trade);
+
+        if (tradePairs[key].length === 2) {
+          const [buyTrade, sellTrade] = tradePairs[key].sort((a, b) =>
+            a.side === "Buy" ? -1 : 1
+          );
+          if (buyTrade && sellTrade && buyTrade.side === "Buy" && sellTrade.side === "Sell") {
+            const buyCost = buyTrade.quantity * buyTrade.price;
+            const sellRevenue = sellTrade.quantity * sellTrade.price;
+            const commission = (buyTrade.commission || 0) + (sellTrade.commission || 0);
+            const fees = (buyTrade.fees || 0) + (sellTrade.fees || 0);
+            const pnl = sellRevenue - buyCost - commission - fees;
+            processedTrades.push({ ...buyTrade, pnl });
+            processedTrades.push({ ...sellTrade, pnl });
+          }
+          delete tradePairs[key];
+        }
+      });
+
+      // Unpaired trades get pnl = 0
+      Object.values(tradePairs).flat().forEach((trade) => {
+        processedTrades.push({ ...trade, pnl: 0 });
+      });
+
+      console.log("Processed trades with P&L:", processedTrades);
+
+      let finalTrades = processedTrades;
       if (dateRange.start && dateRange.end) {
         const start = dayjs(dateRange.start);
         const end = dayjs(dateRange.end);
-        finalTrades = trades.filter((t) => {
+        finalTrades = processedTrades.filter((t) => {
           const entryTime = dayjs(t.entryTime);
           return (
             entryTime.isValid() &&
@@ -117,7 +150,7 @@ const Dashboard = () => {
     });
 
     return () => unsubscribe();
-  }, [user, dateRange, filteredTrades]); // Added filteredTrades to dependencies
+  }, [user, dateRange, filteredTrades]);
 
   const tradesToDisplay = filteredTrades.length > 0 && filteredTrades.every(t => t.pnl !== undefined) ? filteredTrades : localTrades;
 
@@ -133,7 +166,7 @@ const Dashboard = () => {
     : 0;
   const profitFactor = losses.length
     ? (wins.reduce((s, t) => s + t.pnl, 0) / Math.abs(losses.reduce((s, t) => s + t.pnl, 0))).toFixed(2)
-    : "0.00";
+    : wins.length ? "Infinity" : "0.00";
 
   const tradingDays = [...new Set(tradesToDisplay.map((t) => dayjs(t.entryTime).format("YYYY-MM-DD")))];
   const winningDays = tradingDays.filter((day) => {
