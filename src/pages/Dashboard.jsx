@@ -45,27 +45,55 @@ const Dashboard = () => {
     if (!user) return;
     setIsLoading(true);
 
-    const q = query(collection(db, "users", user.uid, "trades"), orderBy("entryTime", "desc"));
+    const q = query(collection(db, "users", user.uid, "trades"), orderBy("entryTime", "asc")); // Ascending for pairing
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      let trades = snapshot.docs.map((doc) => {
-        const data = doc.data();
-        const pnl = data.pnl !== undefined ? data.pnl : (data.side === "Buy" ? -(data.amount || 0) : (data.amount || 0)) - (data.commission || 0) - (data.fees || 0);
-        return {
-          id: doc.id,
-          ...data,
-          entryTime: data.entryTime || data.date || new Date().toISOString(),
-          date: data.entryTime || data.date,
-          pnl: Number.isNaN(pnl) ? 0 : pnl, // Fallback calculation
-        };
+      const trades = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        entryTime: doc.data().entryTime || doc.data().date || new Date().toISOString(),
+        date: doc.data().entryTime || doc.data().date,
+      }));
+
+      console.log("Raw trades from Firestore:", trades);
+
+      // Calculate P&L by pairing buy/sell trades
+      const tradePairs = {};
+      const processedTrades = [];
+
+      trades.forEach((trade) => {
+        const key = `${trade.symbol}-${trade.quantity}`;
+        if (!tradePairs[key]) tradePairs[key] = [];
+
+        tradePairs[key].push(trade);
+
+        if (tradePairs[key].length === 2) {
+          const [buyTrade, sellTrade] = tradePairs[key].sort((a, b) =>
+            a.side === "Buy" ? -1 : 1
+          ); // Assume first is buy, second is sell
+          if (buyTrade && sellTrade && buyTrade.side === "Buy" && sellTrade.side === "Sell") {
+            const buyCost = buyTrade.quantity * buyTrade.price;
+            const sellRevenue = sellTrade.quantity * sellTrade.price;
+            const pnl = sellRevenue - buyCost - (buyTrade.commission || 0) - (buyTrade.fees || 0) - (sellTrade.commission || 0) - (sellTrade.fees || 0);
+            processedTrades.push({ ...buyTrade, pnl });
+            processedTrades.push({ ...sellTrade, pnl });
+          }
+          delete tradePairs[key]; // Clear paired trades
+        }
       });
 
-      console.log("Signed in user:", user);
-      console.log("Fetched trades:", trades);
+      // Add unpaired trades with amount-based fallback
+      Object.values(tradePairs).flat().forEach((trade) => {
+        const pnl = trade.side === "Buy" ? -(trade.amount || 0) : (trade.amount || 0);
+        processedTrades.push({ ...trade, pnl: Number.isNaN(pnl) ? 0 : pnl });
+      });
 
+      console.log("Processed trades with P&L:", processedTrades);
+
+      let finalTrades = processedTrades;
       if (dateRange.start && dateRange.end) {
         const start = dayjs(dateRange.start);
         const end = dayjs(dateRange.end);
-        trades = trades.filter((t) => {
+        finalTrades = finalTrades.filter((t) => {
           const entryTime = dayjs(t.entryTime);
           return (
             entryTime.isValid() &&
@@ -75,8 +103,8 @@ const Dashboard = () => {
         });
       }
 
-      setLocalTrades(trades);
-      const displayTrades = trades;
+      setLocalTrades(finalTrades);
+      const displayTrades = finalTrades;
 
       const pnlSeries = getPnLOverTime(displayTrades);
       const zellaSeries = getZellaScoreOverTime(displayTrades);
