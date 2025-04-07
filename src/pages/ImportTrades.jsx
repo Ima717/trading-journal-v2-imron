@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Papa from "papaparse";
-import { collection, writeBatch } from "firebase/firestore";
+import { collection, writeBatch, doc } from "firebase/firestore";
 import { db } from "../utils/firebase";
 import { useAuth } from "../context/AuthContext";
 import { useFilters } from "../context/FilterContext";
@@ -17,6 +17,7 @@ const ImportTrades = () => {
   const [step, setStep] = useState("upload");
   const [progress, setProgress] = useState(0);
   const [importResult, setImportResult] = useState(null);
+  const [importError, setImportError] = useState(null); // New state for detailed errors
 
   const handleFileChange = useCallback((selectedFile) => {
     if (!selectedFile) return;
@@ -84,46 +85,57 @@ const ImportTrades = () => {
   }, []);
 
   const handleImport = async () => {
-    if (!user || trades.length === 0) return;
+    if (!user || trades.length === 0) {
+      setImportError("No user logged in or no trades to import.");
+      return;
+    }
+
     setStep("importing");
     setProgress(0);
+    setImportError(null);
 
     const tradesRef = collection(db, "users", user.uid, "trades");
     const batch = writeBatch(db);
     let success = 0;
-    const batchSize = 500;
+    const batchSize = 50; // Lowered for testing; adjust based on performance
 
-    for (let i = 0; i < trades.length; i++) {
-      const trade = trades[i];
-      batch.set(tradesRef.doc(), {
-        symbol: trade.symbol,
-        date: trade.date,
-        side: trade.side,
-        quantity: trade.quantity,
-        price: trade.price,
-        amount: trade.amount,
-        commission: trade.commission,
-        fees: trade.fees,
-        tags: trade.tags.concat(suggestions[i] || []),
-        notes: trade.notes,
-      });
+    try {
+      for (let i = 0; i < trades.length; i++) {
+        const trade = trades[i];
+        const tradeDoc = doc(tradesRef); // Generate a new doc ID
+        batch.set(tradeDoc, {
+          symbol: trade.symbol,
+          date: trade.date,
+          side: trade.side,
+          quantity: trade.quantity,
+          price: trade.price,
+          amount: trade16: trade.amount,
+          commission: trade.commission,
+          fees: trade.fees,
+          tags: trade.tags.concat(suggestions[i] || []),
+          notes: trade.notes,
+          createdAt: new Date().toISOString(),
+        });
 
-      if ((i + 1) % batchSize === 0 || i === trades.length - 1) {
-        try {
+        // Update progress before committing each batch
+        setProgress(Math.round(((i + 1) / trades.length) * 100));
+
+        if ((i + 1) % batchSize === 0 || i === trades.length --
+          1) {
+          console.log(`Committing batch of ${Math.min(batchSize, i + 1 - success)} trades`);
           await batch.commit();
           success += Math.min(batchSize, i + 1 - success);
-          setProgress(Math.round(((i + 1) / trades.length) * 100));
-          batch.clear();
-        } catch (err) {
-          console.error("Batch error:", err);
-          setImportResult({ success, errors: trades.length - success });
-          return;
+          batch.clear(); // Reset batch for next iteration
         }
       }
-    }
 
-    setImportResult({ success, errors: trades.length - success });
-    triggerRefresh();
+      setImportResult({ success, errors: trades.length - success });
+      triggerRefresh();
+    } catch (err) {
+      console.error("Import error:", err);
+      setImportError(`Failed to import trades: ${err.message}`);
+      setImportResult({ success, errors: trades.length - success });
+    }
   };
 
   const handleDrop = (e) => {
@@ -135,7 +147,6 @@ const ImportTrades = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-gray-100 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 p-6 transition-colors duration-500">
       <div className="max-w-5xl mx-auto">
-        {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight font-inter">
             Import Trades
@@ -148,7 +159,6 @@ const ImportTrades = () => {
           </button>
         </div>
 
-        {/* Main Card */}
         <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-xl rounded-2xl p-8 transition-all duration-300">
           {step === "upload" && (
             <div
@@ -290,6 +300,9 @@ const ImportTrades = () => {
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                 Please wait while we process your data.
               </p>
+              {importError && (
+                <p className="text-sm text-red-600 dark:text-red-400 mt-4">{importError}</p>
+              )}
             </div>
           )}
 
@@ -310,6 +323,9 @@ const ImportTrades = () => {
                   </svg>
                   Failed to import {importResult.errors} trades. Check your data and try again.
                 </p>
+              )}
+              {importError && (
+                <p className="text-sm text-red-600 dark:text-red-400 mt-4">{importError}</p>
               )}
               <button
                 onClick={() => navigate("/")}
