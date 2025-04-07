@@ -49,15 +49,18 @@ const Dashboard = () => {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const trades = snapshot.docs.map((doc) => {
         const data = doc.data();
-        const amount = data.amount || 0;
-        const commission = data.commission || 0;
-        const fees = data.fees || 0;
+        const amount = parseFloat(data.amount) || 0;
+        const commission = parseFloat(data.commission) || 0;
+        const fees = parseFloat(data.fees) || 0;
         const pnl = data.side === "Buy" ? -amount - commission - fees : amount - commission - fees;
         return {
           id: doc.id,
           ...data,
           entryTime: data.entryTime || data.date || new Date().toISOString(),
           date: data.entryTime || data.date,
+          amount,
+          commission,
+          fees,
           pnl: Number.isNaN(pnl) ? 0 : pnl,
         };
       });
@@ -78,10 +81,11 @@ const Dashboard = () => {
         });
       }
 
-      console.log("Filtered trades:", finalTrades);
+      console.log("Filtered trades (local):", finalTrades);
 
       setLocalTrades(finalTrades);
-      const displayTrades = finalTrades;
+      const displayTrades = filteredTrades.length > 0 && filteredTrades.every(t => t.pnl !== undefined) ? filteredTrades : finalTrades;
+      console.log("Display trades (after FilterContext):", displayTrades);
 
       const pnlSeries = getPnLOverTime(displayTrades);
       const zellaSeries = getZellaScoreOverTime(displayTrades);
@@ -113,9 +117,9 @@ const Dashboard = () => {
     });
 
     return () => unsubscribe();
-  }, [user, dateRange]);
+  }, [user, dateRange, filteredTrades]); // Added filteredTrades to dependencies
 
-  const tradesToDisplay = filteredTrades.length > 0 ? filteredTrades : localTrades;
+  const tradesToDisplay = filteredTrades.length > 0 && filteredTrades.every(t => t.pnl !== undefined) ? filteredTrades : localTrades;
 
   const netPnL = tradesToDisplay.reduce((sum, t) => sum + (t.pnl || 0), 0);
   const totalTrades = tradesToDisplay.length;
