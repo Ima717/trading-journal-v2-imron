@@ -1,4 +1,3 @@
-// /src/components/AnalyticsOverview.jsx (Updated)
 import React, { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../utils/firebase";
@@ -8,7 +7,7 @@ import { filterTradesByDate } from "../utils/filterUtils";
 
 const AnalyticsOverview = () => {
   const { user } = useAuth();
-  const { dateRange, clickedTag, resultFilter } = useFilters(); // Use clickedTag instead of selectedTag
+  const { dateRange, clickedTag, resultFilter } = useFilters();
   const [trades, setTrades] = useState([]);
 
   useEffect(() => {
@@ -16,7 +15,11 @@ const AnalyticsOverview = () => {
       if (!user) return;
       const ref = collection(db, "users", user.uid, "trades");
       const snapshot = await getDocs(ref);
-      const fetched = snapshot.docs.map((doc) => doc.data());
+      const fetched = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        const pnl = data.pnl !== undefined ? data.pnl : (data.side === "Buy" ? -(data.amount || 0) : (data.amount || 0)) - (data.commission || 0) - (data.fees || 0);
+        return { ...data, pnl: Number.isNaN(pnl) ? 0 : pnl };
+      });
       setTrades(fetched);
     };
 
@@ -39,7 +42,7 @@ const AnalyticsOverview = () => {
 
   const totalTrades = filteredTrades.length || 0;
   const winRate = totalTrades
-    ? (filteredTrades.filter((t) => t.pnl > 0).length / totalTrades) * 100 // Match QuickStats logic
+    ? (filteredTrades.filter((t) => t.pnl > 0).length / totalTrades) * 100
     : 0;
   const avgPnL = totalTrades
     ? filteredTrades.reduce((sum, t) => sum + Number(t.pnl), 0) / totalTrades
@@ -52,7 +55,7 @@ const AnalyticsOverview = () => {
   ];
 
   return (
-    <div className="bg-blue-50 shadow rounded-xl p-4 animate-fade-in"> {/* Changed bg-white to bg-blue-50 */}
+    <div className="bg-blue-50 shadow rounded-xl p-4 animate-fade-in">
       <h3 className="text-xl font-semibold mb-3">Filtered Overview</h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {summaryStats.map((stat, index) => (
