@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { signOut } from "firebase/auth";
 import { auth, db } from "../utils/firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
@@ -32,8 +31,9 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { theme } = useTheme();
-  const { dateRange, filteredTrades, setFilteredTrades } = useFilters(); // Assuming setFilteredTrades is available
+  const { dateRange, filteredTrades } = useFilters(); // Removed setFilteredTrades if not provided
 
+  const [localTrades, setLocalTrades] = useState([]); // Local state fallback
   const [tagPerformanceData, setTagPerformanceData] = useState([]);
   const [pnlData, setPnlData] = useState([]);
   const [zellaTrendData, setZellaTrendData] = useState([]);
@@ -50,7 +50,8 @@ const Dashboard = () => {
       let trades = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-        date: doc.data().entryTime // Alias for backward compatibility
+        entryTime: doc.data().entryTime || doc.data().date || new Date().toISOString(), // Fallback
+        date: doc.data().entryTime || doc.data().date // For compatibility
       }));
 
       console.log("Signed in user:", user);
@@ -59,22 +60,26 @@ const Dashboard = () => {
       if (dateRange.start && dateRange.end) {
         const start = dayjs(dateRange.start);
         const end = dayjs(dateRange.end);
-        trades = trades.filter(
-          (t) =>
-            dayjs(t.entryTime).isAfter(start.subtract(1, "day")) &&
-            dayjs(t.entryTime).isBefore(end.add(1, "day"))
-        );
+        trades = trades.filter((t) => {
+          const entryTime = dayjs(t.entryTime);
+          return (
+            entryTime.isValid() && // Ensure valid date
+            entryTime.isAfter(start.subtract(1, "day")) &&
+            entryTime.isBefore(end.add(1, "day"))
+          );
+        });
       }
 
-      setFilteredTrades(trades); // Update FilterContext (assumes this exists)
+      setLocalTrades(trades); // Use local state
+      const displayTrades = trades; // Use localTrades instead of filteredTrades if FilterContext lacks setter
 
-      const pnlSeries = getPnLOverTime(trades);
-      const zellaSeries = getZellaScoreOverTime(trades);
+      const pnlSeries = getPnLOverTime(displayTrades);
+      const zellaSeries = getZellaScoreOverTime(displayTrades);
       setPnlData(pnlSeries);
       setZellaTrendData(zellaSeries);
 
       const tagMap = {};
-      trades.forEach((trade) => {
+      displayTrades.forEach((trade) => {
         if (Array.isArray(trade.tags)) {
           trade.tags.forEach((tag) => {
             if (!tagMap[tag]) tagMap[tag] = { totalPnL: 0, count: 0 };
@@ -97,12 +102,15 @@ const Dashboard = () => {
     });
 
     return () => unsubscribe();
-  }, [user, dateRange, setFilteredTrades]);
+  }, [user, dateRange]);
 
-  const netPnL = filteredTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
-  const totalTrades = filteredTrades.length;
-  const wins = filteredTrades.filter((t) => t.pnl > 0);
-  const losses = filteredTrades.filter((t) => t.pnl < 0);
+  // Use localTrades if FilterContext doesn't manage state fully
+  const tradesToDisplay = filteredTrades.length > 0 ? filteredTrades : localTrades;
+
+  const netPnL = tradesToDisplay.reduce((sum, t) => sum + (t.pnl || 0), 0);
+  const totalTrades = tradesToDisplay.length;
+  const wins = tradesToDisplay.filter((t) => t.pnl > 0);
+  const losses = tradesToDisplay.filter((t) => t.pnl < 0);
   const winRate = totalTrades ? ((wins.length / totalTrades) * 100).toFixed(2) : "0.00";
 
   const avgWin = wins.length ? wins.reduce((s, t) => s + t.pnl, 0) / wins.length : 0;
@@ -113,9 +121,9 @@ const Dashboard = () => {
     ? (wins.reduce((s, t) => s + t.pnl, 0) / Math.abs(losses.reduce((s, t) => s + t.pnl, 0))).toFixed(2)
     : "0.00";
 
-  const tradingDays = [...new Set(filteredTrades.map((t) => dayjs(t.entryTime).format("YYYY-MM-DD")))];
+  const tradingDays = [...new Set(tradesToDisplay.map((t) => dayjs(t.entryTime).format("YYYY-MM-DD")))];
   const winningDays = tradingDays.filter((day) => {
-    const dayPnL = filteredTrades
+    const dayPnL = tradesToDisplay
       .filter((t) => dayjs(t.entryTime).format("YYYY-MM-DD") === day)
       .reduce((sum, t) => sum + t.pnl, 0);
     return dayPnL > 0;
@@ -139,7 +147,7 @@ const Dashboard = () => {
 
   const cumulativePnl = [];
   let runningPnl = 0;
-  filteredTrades
+  tradesToDisplay
     .sort((a, b) => new Date(a.entryTime) - new Date(b.entryTime))
     .forEach((t) => {
       runningPnl += t.pnl || 0;
@@ -169,15 +177,6 @@ const Dashboard = () => {
             <div className="flex gap-3">
               <TimelineDateRangePicker />
               <AdvancedFilters />
-              <button
-                onClick={async () => {
-                  await signOut(auth);
-                  navigate("/signin");
-                }}
-                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-              >
-                Sign Out
-              </button>
             </div>
           </div>
 
@@ -239,10 +238,10 @@ const Dashboard = () => {
               {/* Calendar & Trade History Section */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-stretch">
                 <div className="lg:col-span-2 h-full">
-                  <CalendarCard trades={filteredTrades} />
+                  <CalendarCard trades={tradesToDisplay} />
                 </div>
                 <div className="h-full">
-                  <RecentTradesCard trades={filteredTrades} />
+                  <RecentTradesCard trades={tradesToDisplay} />
                 </div>
               </div>
 
@@ -266,7 +265,7 @@ const Dashboard = () => {
 
               <div className="mb-6">
                 <ChartCard title="Trades Table">
-                  <TradeTabs filteredTrades={filteredTrades} />
+                  <TradeTabs filteredTrades={tradesToDisplay} />
                 </ChartCard>
               </div>
             </>
