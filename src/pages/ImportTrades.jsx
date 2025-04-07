@@ -17,7 +17,7 @@ const ImportTrades = () => {
   const [step, setStep] = useState("upload");
   const [progress, setProgress] = useState(0);
   const [importResult, setImportResult] = useState(null);
-  const [importError, setImportError] = useState(null); // New state for detailed errors
+  const [importError, setImportError] = useState(null);
 
   const handleFileChange = useCallback((selectedFile) => {
     if (!selectedFile) return;
@@ -97,7 +97,7 @@ const ImportTrades = () => {
     const tradesRef = collection(db, "users", user.uid, "trades");
     const batch = writeBatch(db);
     let success = 0;
-    const batchSize = 50; // Lowered for testing; adjust based on performance
+    const batchSize = 50; // Small for testing; increase later if needed
 
     try {
       for (let i = 0; i < trades.length; i++) {
@@ -109,7 +109,7 @@ const ImportTrades = () => {
           side: trade.side,
           quantity: trade.quantity,
           price: trade.price,
-          amount: trade16: trade.amount,
+          amount: trade.amount, // Fixed syntax error here
           commission: trade.commission,
           fees: trade.fees,
           tags: trade.tags.concat(suggestions[i] || []),
@@ -117,15 +117,14 @@ const ImportTrades = () => {
           createdAt: new Date().toISOString(),
         });
 
-        // Update progress before committing each batch
+        // Update progress before committing
         setProgress(Math.round(((i + 1) / trades.length) * 100));
 
-        if ((i + 1) % batchSize === 0 || i === trades.length --
-          1) {
+        if ((i + 1) % batchSize === 0 || i === trades.length - 1) {
           console.log(`Committing batch of ${Math.min(batchSize, i + 1 - success)} trades`);
           await batch.commit();
           success += Math.min(batchSize, i + 1 - success);
-          batch.clear(); // Reset batch for next iteration
+          batch.clear();
         }
       }
 
