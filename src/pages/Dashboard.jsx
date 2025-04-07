@@ -85,8 +85,8 @@ const Dashboard = () => {
             const commission = (buyTrade.commission || 0) + (sellTrade.commission || 0);
             const fees = (buyTrade.fees || 0) + (sellTrade.fees || 0);
             const pnl = sellRevenue - buyCost - commission - fees;
-            // Assign P&L to the sell trade (closing trade), buy trade gets 0
-            processedTrades.push({ ...buyTrade, pnl: 0 });
+            // Assign P&L to both trades in the pair
+            processedTrades.push({ ...buyTrade, pnl: Number.isNaN(pnl) ? 0 : pnl });
             processedTrades.push({ ...sellTrade, pnl: Number.isNaN(pnl) ? 0 : pnl });
           }
           delete tradePairs[key];
