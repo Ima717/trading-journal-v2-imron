@@ -95,40 +95,39 @@ const ImportTrades = () => {
     setImportError(null);
 
     const tradesRef = collection(db, "users", user.uid, "trades");
-    const batch = writeBatch(db);
     let success = 0;
     const batchSize = 50;
 
     try {
-      for (let i = 0; i < trades.length; i++) {
-        const trade = trades[i];
-        const tradeDoc = doc(tradesRef);
-        const baseAmount = trade.side === "Buy" ? -trade.amount : trade.amount; // Buy is outflow, Sell is inflow
-        const pnl = baseAmount - trade.commission - trade.fees; // Adjust for costs
-        batch.set(tradeDoc, {
-          symbol: trade.symbol,
-          date: trade.date,
-          entryTime: trade.date, // For Dashboard compatibility
-          side: trade.side,
-          quantity: trade.quantity,
-          price: trade.price,
-          amount: trade.amount,
-          pnl: Number.isNaN(pnl) ? 0 : pnl, // Fallback if calculation fails
-          commission: trade.commission,
-          fees: trade.fees,
-          tags: trade.tags.concat(suggestions[i] || []),
-          notes: trade.notes,
-          createdAt: new Date().toISOString(),
+      for (let i = 0; i < trades.length; i += batchSize) {
+        const batch = writeBatch(db); // New batch for each iteration
+        const batchTrades = trades.slice(i, i + batchSize);
+
+        batchTrades.forEach((trade, index) => {
+          const tradeDoc = doc(tradesRef);
+          const baseAmount = trade.side === "Buy" ? -trade.amount : trade.amount;
+          const pnl = baseAmount - trade.commission - trade.fees;
+          batch.set(tradeDoc, {
+            symbol: trade.symbol,
+            date: trade.date,
+            entryTime: trade.date,
+            side: trade.side,
+            quantity: trade.quantity,
+            price: trade.price,
+            amount: trade.amount,
+            pnl: Number.isNaN(pnl) ? 0 : pnl,
+            commission: trade.commission,
+            fees: trade.fees,
+            tags: trade.tags.concat(suggestions[trade.originalIndex] || []),
+            notes: trade.notes,
+            createdAt: new Date().toISOString(),
+          });
         });
 
-        setProgress(Math.round(((i + 1) / trades.length) * 100));
-
-        if ((i + 1) % batchSize === 0 || i === trades.length - 1) {
-          console.log(`Committing batch of ${Math.min(batchSize, i + 1 - success)} trades`);
-          await batch.commit();
-          success += Math.min(batchSize, i + 1 - success);
-          batch.clear();
-        }
+        console.log(`Committing batch of ${batchTrades.length} trades`);
+        await batch.commit();
+        success += batchTrades.length;
+        setProgress(Math.round((success / trades.length) * 100));
       }
 
       setImportResult({ success, errors: trades.length - success });
