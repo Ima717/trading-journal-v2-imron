@@ -95,7 +95,7 @@ const ImportTrades = () => {
     setImportError(null);
 
     const tradesRef = collection(db, "users", user.uid, "trades");
-    const batch = writeBatch(db);
+    let batch = writeBatch(db);
     let success = 0;
     const batchSize = 50; // Small for testing; increase later if needed
 
@@ -124,7 +124,7 @@ const ImportTrades = () => {
           console.log(`Committing batch of ${Math.min(batchSize, i + 1 - success)} trades`);
           await batch.commit();
           success += Math.min(batchSize, i + 1 - success);
-          batch.clear();
+          batch = writeBatch(db);
         }
       }
 
