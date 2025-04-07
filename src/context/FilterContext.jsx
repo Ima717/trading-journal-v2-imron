@@ -61,8 +61,8 @@ export const FilterProvider = ({ children }) => {
             const commission = (buyTrade.commission || 0) + (sellTrade.commission || 0);
             const fees = (buyTrade.fees || 0) + (sellTrade.fees || 0);
             const pnl = sellRevenue - buyCost - commission - fees;
-            processedTrades.push({ ...buyTrade, pnl });
-            processedTrades.push({ ...sellTrade, pnl });
+            processedTrades.push({ ...buyTrade, pnl: 0 });
+            processedTrades.push({ ...sellTrade, pnl: Number.isNaN(pnl) ? 0 : pnl });
           }
           delete tradePairs[key];
         }
