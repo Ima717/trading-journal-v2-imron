@@ -60,7 +60,6 @@ const Dashboard = () => {
           amount,
           commission,
           fees,
-          // P&L will be computed after pairing
         };
       });
 
@@ -86,8 +85,9 @@ const Dashboard = () => {
             const commission = (buyTrade.commission || 0) + (sellTrade.commission || 0);
             const fees = (buyTrade.fees || 0) + (sellTrade.fees || 0);
             const pnl = sellRevenue - buyCost - commission - fees;
-            processedTrades.push({ ...buyTrade, pnl });
-            processedTrades.push({ ...sellTrade, pnl });
+            // Assign P&L to the sell trade (closing trade), buy trade gets 0
+            processedTrades.push({ ...buyTrade, pnl: 0 });
+            processedTrades.push({ ...sellTrade, pnl: Number.isNaN(pnl) ? 0 : pnl });
           }
           delete tradePairs[key];
         }
