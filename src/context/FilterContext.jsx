@@ -24,7 +24,23 @@ export const FilterProvider = ({ children }) => {
       if (!user) return;
       const ref = collection(db, "users", user.uid, "trades");
       const snapshot = await getDocs(ref);
-      const fetched = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const fetched = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        const amount = parseFloat(data.amount) || 0;
+        const commission = parseFloat(data.commission) || 0;
+        const fees = parseFloat(data.fees) || 0;
+        const pnl = data.side === "Buy" ? -amount - commission - fees : amount - commission - fees;
+        return {
+          id: doc.id,
+          ...data,
+          entryTime: data.entryTime || data.date || new Date().toISOString(),
+          date: data.entryTime || data.date,
+          amount,
+          commission,
+          fees,
+          pnl: Number.isNaN(pnl) ? 0 : pnl,
+        };
+      });
       setTrades(fetched);
     };
 
@@ -55,7 +71,6 @@ export const FilterProvider = ({ children }) => {
       });
     }
 
-    // Apply Advanced Filters
     if (Object.keys(selectedFilters).length) {
       Object.entries(selectedFilters).forEach(([category, filters]) => {
         filters.forEach((filter) => {
@@ -93,7 +108,6 @@ export const FilterProvider = ({ children }) => {
       });
     }
 
-    // Apply Advanced Filters again if needed
     if (Object.keys(selectedFilters).length) {
       Object.entries(selectedFilters).forEach(([category, filters]) => {
         filters.forEach((filter) => {
