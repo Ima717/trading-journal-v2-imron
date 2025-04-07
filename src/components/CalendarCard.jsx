@@ -20,7 +20,6 @@ const CalendarCard = ({ trades = [] }) => {
   const settingsRef = useRef(null);
   const settingsButtonRef = useRef(null);
 
-  // Load settings from localStorage on mount
   useEffect(() => {
     const savedSettings = localStorage.getItem("calendarSettings");
     if (savedSettings) {
@@ -28,19 +27,16 @@ const CalendarCard = ({ trades = [] }) => {
     }
   }, []);
 
-  // Save settings to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem("calendarSettings", JSON.stringify(settings));
   }, [settings]);
 
-  // Measure header height for alignment
   useEffect(() => {
     if (headerRef.current) {
       setHeaderHeight(headerRef.current.offsetHeight);
     }
   }, []);
 
-  // Auto-close settings on outside click, but ignore clicks on the settings button
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -68,7 +64,6 @@ const CalendarCard = ({ trades = [] }) => {
   const totalWeeks = Math.ceil((firstDayOfWeek + daysInMonth) / 7);
   const rowHeight = 700 / totalWeeks;
 
-  // Define tradeMap first
   const tradeMap = useMemo(() => {
     const map = { pnl: {}, tradesCount: {}, percentage: {} };
     trades.forEach((t) => {
@@ -85,7 +80,6 @@ const CalendarCard = ({ trades = [] }) => {
     return map;
   }, [trades]);
 
-  // Define extremeDays after tradeMap
   const extremeDays = useMemo(() => {
     let mostProfit = { date: null, pnl: -Infinity };
     let mostLoss = { date: null, pnl: Infinity };
@@ -167,18 +161,22 @@ const CalendarCard = ({ trades = [] }) => {
     return dayjs().isSame(date, "day");
   };
 
-  // Format P/L values: remove ".0" for whole numbers, show one decimal place otherwise
+  // Enhanced P&L formatting: shorten values >= 1000 to "k" format
   const formatPnL = (value) => {
-    if (Number.isInteger(value)) {
-      return value.toFixed(0); // No decimals for whole numbers
+    const absValue = Math.abs(value);
+    if (absValue >= 1000) {
+      const kValue = (absValue / 1000).toFixed(1);
+      return `${value >= 0 ? "+" : "-"}$${kValue.endsWith(".0") ? kValue.slice(0, -2) : kValue}k`;
     }
-    return value.toFixed(1); // One decimal place for non-whole numbers
+    if (Number.isInteger(absValue)) {
+      return `${value >= 0 ? "+" : "-"}$${absValue.toFixed(0)}`;
+    }
+    return `${value >= 0 ? "+" : "-"}$${absValue.toFixed(1)}`;
   };
 
   return (
     <div className="bg-white dark:bg-zinc-800 rounded-2xl">
       <div className="bg-white dark:bg-zinc-800 rounded-2xl p-5">
-        {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <button onClick={handlePrevMonth} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
@@ -218,7 +216,7 @@ const CalendarCard = ({ trades = [] }) => {
                 }`}
               >
                 <span className="text-lg font-semibold tracking-wide">
-                  {monthlyStats.totalPnL >= 0 ? "+" : ""}${formatPnL(monthlyStats.totalPnL)}
+                  {formatPnL(monthlyStats.totalPnL)}
                 </span>
               </motion.div>
             </AnimatePresence>
@@ -234,7 +232,6 @@ const CalendarCard = ({ trades = [] }) => {
               <Settings size={18} className="text-gray-600 dark:text-gray-300 tracking-wide" />
             </button>
 
-            {/* Enhanced Settings Dropdown */}
             <AnimatePresence>
               {settingsOpen && (
                 <motion.div
@@ -395,7 +392,6 @@ const CalendarCard = ({ trades = [] }) => {
         </div>
 
         <div className="flex flex-1 gap-4 items-start">
-          {/* Calendar Days */}
           <div className="flex-1">
             <div
               ref={headerRef}
@@ -437,7 +433,7 @@ const CalendarCard = ({ trades = [] }) => {
                     settings.colorIntensityMode &&
                     (key === extremeDays.mostProfit || key === extremeDays.mostLoss);
                   const isTodayDate = isToday(date);
-                  const isWeekend = date.day() === 0 || date.day() === 6; // 0 = Sunday, 6 = Saturday
+                  const isWeekend = date.day() === 0 || date.day() === 6;
 
                   return (
                     <div
@@ -464,7 +460,7 @@ const CalendarCard = ({ trades = [] }) => {
                             ? `${key}: ${pnl < 0 ? "-" : ""}$${Math.abs(pnl).toFixed(2)} | Trades: ${tradesCount}`
                             : null
                         }
-                        className={`relative w-full h-full flex flex-col items-center justify-center cursor-pointer transition-all duration-200 p-2 hover:bg-purple-100/60 dark:hover:bg-purple-900/30 hover:border-purple-400 dark:hover:border-purple-600
+                        className={`relative w-full h-full flex flex-col items-center justify-center cursor-pointer transition-all duration-200 p-1 hover:bg-purple-100/60 dark:hover:bg-purple-900/30 hover:border-purple-400 dark:hover:border-purple-600
                           ${
                             pnl !== undefined
                               ? pnl >= 0
@@ -477,14 +473,14 @@ const CalendarCard = ({ trades = [] }) => {
                               : ""
                           }`}
                       >
-                        <span className="absolute top-1 right-2 text-base font-semibold text-gray-600 dark:text-gray-300 tracking-wide">
+                        <span className="absolute top-0.5 right-1 text-sm font-semibold text-gray-600 dark:text-gray-300 tracking-wide">
                           {date.date()}
                         </span>
                         {pnl !== undefined && (
-                          <>
+                          <div className="flex flex-col items-center justify-center text-center space-y-0.5 overflow-hidden">
                             {settings.showDailyPnL && (
-                              <span className={`text-lg font-sans font-bold tracking-wide ${pnl >= 0 ? "text-green-700" : "text-red-700"}`}>
-                                {pnl >= 0 ? "+" : ""}${formatPnL(pnl)}
+                              <span className={`text-sm font-sans font-bold tracking-wide ${pnl >= 0 ? "text-green-700" : "text-red-700"} whitespace-nowrap`}>
+                                {formatPnL(pnl)}
                               </span>
                             )}
                             {settings.showWinRate && (
@@ -493,7 +489,7 @@ const CalendarCard = ({ trades = [] }) => {
                             {settings.showTradesCount && (
                               <span className="text-xs font-medium text-gray-400 tracking-wide">{tradesCount} trades</span>
                             )}
-                          </>
+                          </div>
                         )}
                       </div>
                       {pnl !== undefined && (
@@ -510,7 +506,6 @@ const CalendarCard = ({ trades = [] }) => {
             </AnimatePresence>
           </div>
 
-          {/* Weekly Stats with animation */}
           <AnimatePresence mode="wait">
             <motion.div
               key={currentMonth.format("MM-YYYY") + "-weeks"}
@@ -529,7 +524,7 @@ const CalendarCard = ({ trades = [] }) => {
                 >
                   <div className="text-gray-500 dark:text-gray-400 tracking-wide">Week {index + 1}</div>
                   <div className={`text-lg font-semibold ${week.weekPnL >= 0 ? "text-green-600" : "text-red-600"} tracking-wide`}>
-                    {week.weekPnL >= 0 ? "+" : ""}${formatPnL(week.weekPnL)}
+                    {formatPnL(week.weekPnL)}
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400 tracking-wide">{week.tradingDays} days</div>
                   <div className="text-xs text-gray-500 dark:text-gray-400 tracking-wide">{week.totalTrades} trades</div>
