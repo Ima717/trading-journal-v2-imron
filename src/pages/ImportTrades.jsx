@@ -88,48 +88,74 @@ const ImportTrades = () => {
     setImportError(null);
 
     const tradesRef = collection(db, "users", user.uid, "trades");
-    const batch = writeBatch(db);
+    let batch = writeBatch(db);
     let success = 0;
     const batchSize = 50;
 
-    try {
-      for (let i = 0; i < trades.length; i++) {
-        const trade = trades[i];
-        const tradeDoc = doc(tradesRef);
-        batch.set(tradeDoc, {
-          symbol: trade.symbol,
-          date: trade.date,
-          entryTime: trade.date,
-          side: trade.side,
-          quantity: trade.quantity,
-          price: trade.price,
-          amount: trade.amount,
-          commission: trade.commission,
-          fees: trade.fees,
-          tags: trade.tags.concat(suggestions[i] || []),
-          notes: trade.notes,
-          createdAt: new Date().toISOString(),
-        });
+    // Step 1: Organize trades by symbol and sort by date
+    const sortedTrades = [...trades].sort((a, b) => new Date(a.date) - new Date(b.date));
+    const symbolQueues = {}; // Holds unmatched Buy trades
 
-        if ((i + 1) % batchSize === 0 || i === trades.length - 1) {
-          console.log(`Committing batch of ${Math.min(batchSize, i + 1 - success)} trades`);
-          await batch.commit();
-          success += Math.min(batchSize, i + 1 - success);
-          setProgress(Math.round(((i + 1) / trades.length) * 100));
-          if (i + 1 < trades.length) {
-            for (const key in batch) delete batch[key];
-            Object.setPrototypeOf(batch, writeBatch(db).__proto__);
+    for (let i = 0; i < sortedTrades.length; i++) {
+      const trade = sortedTrades[i];
+      const { symbol, side, quantity, price, commission, fees } = trade;
+
+      if (!symbolQueues[symbol]) symbolQueues[symbol] = [];
+
+      let pnl = 0;
+
+      if (side === "Buy") {
+        // Store Buy trades in queue for later matching
+        symbolQueues[symbol].push({
+          ...trade,
+          remainingQty: quantity,
+          costPerShare: price,
+          totalCost: quantity * price,
+        });
+      } else if (side === "Sell") {
+        let remainingToSell = quantity;
+        let realizedPnL = 0;
+
+        while (remainingToSell > 0 && symbolQueues[symbol].length > 0) {
+          const buy = symbolQueues[symbol][0];
+          const matchQty = Math.min(remainingToSell, buy.remainingQty);
+
+          const buyCost = matchQty * buy.costPerShare;
+          const sellRevenue = matchQty * price;
+          const matchPnL = sellRevenue - buyCost;
+
+          realizedPnL += matchPnL;
+
+          buy.remainingQty -= matchQty;
+          remainingToSell -= matchQty;
+
+          if (buy.remainingQty <= 0) {
+            symbolQueues[symbol].shift(); // fully matched
           }
         }
+
+        pnl = Number.isNaN(realizedPnL) ? 0 : realizedPnL - commission - fees;
       }
 
-      setImportResult({ success, errors: trades.length - success });
-      triggerRefresh();
-    } catch (err) {
-      console.error("Import error:", err);
-      setImportError(`Failed to import trades: ${err.message}`);
-      setImportResult({ success, errors: trades.length - success });
+      // Add trade with calculated P&L
+      const tradeDoc = doc(tradesRef);
+      batch.set(tradeDoc, {
+        ...trade,
+        pnl,
+        entryTime: trade.date,
+        createdAt: new Date().toISOString(),
+      });
+
+      if ((i + 1) % batchSize === 0 || i === sortedTrades.length - 1) {
+        await batch.commit();
+        success += Math.min(batchSize, i + 1 - success);
+        batch = writeBatch(db); // reset for next chunk
+        setProgress(Math.round(((i + 1) / trades.length) * 100));
+      }
     }
+
+    setImportResult({ success, errors: trades.length - success });
+    triggerRefresh();
   };
 
   const handleDrop = (e) => {
@@ -158,7 +184,7 @@ const ImportTrades = () => {
             <div
               onDrop={handleDrop}
               onDragOver={handleDragOver}
-              className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-10 text-center transition-all duration-300 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-inner"
+              className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-10 text-center transition-all duration-300 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/50"
             >
               <input
                 type="file"
