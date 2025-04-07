@@ -27,33 +27,26 @@ const ImportTrades = () => {
     Papa.parse(selectedFile, {
       complete: ({ data }) => {
         const parsedTrades = data
-          .filter((row) => Object.keys(row).length > 1)
+          .filter((row) => Object.keys(row).length > 1 && row.Status === "Filled")
           .map((row, index) => {
-            const symbol = row.Symbol || row.Ticker || row.Stock || "N/A";
-            const date =
-              row.Date ||
-              row["Trade Date"] ||
-              row["Open Date"] ||
-              new Date().toISOString().split("T")[0];
-            const time = row.Time || "00:00:00";
+            const symbol = row.Symbol || "N/A";
             const side = row.Side || "Unknown";
-            const quantity = parseInt(row.Quantity, 10) || 0;
+            const quantity = parseFloat(row.Filled) || 0;
             const price = parseFloat(row.Price) || 0;
-            const amount = parseFloat(row.Amount) || 0;
-            const commission = parseFloat(row.Commission) || 0;
-            const fees = parseFloat(row.Fees) || 0;
-            const tags = row.Tags ? row.Tags.split(",").map((t) => t.trim()) : [];
-            const notes = row.Notes || row.Comments || "";
+            const date = row["Filled Time"] || new Date().toISOString();
+            const amount = side === "Buy" ? -quantity * price : quantity * price; // Cash flow
+            const tags = []; // No tags in Webull CSV
+            const notes = ""; // No notes in Webull CSV
 
             return {
               symbol,
-              date: `${date} ${time}`,
+              date,
               side,
               quantity,
               price,
               amount,
-              commission,
-              fees,
+              commission: 0, // Assume 0 unless provided
+              fees: 0, // Assume 0 unless provided
               tags,
               notes,
               originalIndex: index,
@@ -95,39 +88,39 @@ const ImportTrades = () => {
     setImportError(null);
 
     const tradesRef = collection(db, "users", user.uid, "trades");
+    const batch = writeBatch(db);
     let success = 0;
     const batchSize = 50;
 
     try {
-      for (let i = 0; i < trades.length; i += batchSize) {
-        const batch = writeBatch(db); // New batch for each iteration
-        const batchTrades = trades.slice(i, i + batchSize);
-
-        batchTrades.forEach((trade, index) => {
-          const tradeDoc = doc(tradesRef);
-          const baseAmount = trade.side === "Buy" ? -trade.amount : trade.amount;
-          const pnl = baseAmount - trade.commission - trade.fees;
-          batch.set(tradeDoc, {
-            symbol: trade.symbol,
-            date: trade.date,
-            entryTime: trade.date,
-            side: trade.side,
-            quantity: trade.quantity,
-            price: trade.price,
-            amount: trade.amount,
-            pnl: Number.isNaN(pnl) ? 0 : pnl,
-            commission: trade.commission,
-            fees: trade.fees,
-            tags: trade.tags.concat(suggestions[trade.originalIndex] || []),
-            notes: trade.notes,
-            createdAt: new Date().toISOString(),
-          });
+      for (let i = 0; i < trades.length; i++) {
+        const trade = trades[i];
+        const tradeDoc = doc(tradesRef);
+        batch.set(tradeDoc, {
+          symbol: trade.symbol,
+          date: trade.date,
+          entryTime: trade.date,
+          side: trade.side,
+          quantity: trade.quantity,
+          price: trade.price,
+          amount: trade.amount,
+          commission: trade.commission,
+          fees: trade.fees,
+          tags: trade.tags.concat(suggestions[i] || []),
+          notes: trade.notes,
+          createdAt: new Date().toISOString(),
         });
 
-        console.log(`Committing batch of ${batchTrades.length} trades`);
-        await batch.commit();
-        success += batchTrades.length;
-        setProgress(Math.round((success / trades.length) * 100));
+        if ((i + 1) % batchSize === 0 || i === trades.length - 1) {
+          console.log(`Committing batch of ${Math.min(batchSize, i + 1 - success)} trades`);
+          await batch.commit();
+          success += Math.min(batchSize, i + 1 - success);
+          setProgress(Math.round(((i + 1) / trades.length) * 100));
+          if (i + 1 < trades.length) {
+            for (const key in batch) delete batch[key];
+            Object.setPrototypeOf(batch, writeBatch(db).__proto__);
+          }
+        }
       }
 
       setImportResult({ success, errors: trades.length - success });
