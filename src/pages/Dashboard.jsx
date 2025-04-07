@@ -31,9 +31,9 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { theme } = useTheme();
-  const { dateRange, filteredTrades } = useFilters(); // Removed setFilteredTrades if not provided
+  const { dateRange, filteredTrades } = useFilters();
 
-  const [localTrades, setLocalTrades] = useState([]); // Local state fallback
+  const [localTrades, setLocalTrades] = useState([]);
   const [tagPerformanceData, setTagPerformanceData] = useState([]);
   const [pnlData, setPnlData] = useState([]);
   const [zellaTrendData, setZellaTrendData] = useState([]);
@@ -47,12 +47,17 @@ const Dashboard = () => {
 
     const q = query(collection(db, "users", user.uid, "trades"), orderBy("entryTime", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      let trades = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        entryTime: doc.data().entryTime || doc.data().date || new Date().toISOString(), // Fallback
-        date: doc.data().entryTime || doc.data().date // For compatibility
-      }));
+      let trades = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        const pnl = data.pnl !== undefined ? data.pnl : (data.side === "Buy" ? -(data.amount || 0) : (data.amount || 0)) - (data.commission || 0) - (data.fees || 0);
+        return {
+          id: doc.id,
+          ...data,
+          entryTime: data.entryTime || data.date || new Date().toISOString(),
+          date: data.entryTime || data.date,
+          pnl: Number.isNaN(pnl) ? 0 : pnl, // Fallback calculation
+        };
+      });
 
       console.log("Signed in user:", user);
       console.log("Fetched trades:", trades);
@@ -63,15 +68,15 @@ const Dashboard = () => {
         trades = trades.filter((t) => {
           const entryTime = dayjs(t.entryTime);
           return (
-            entryTime.isValid() && // Ensure valid date
+            entryTime.isValid() &&
             entryTime.isAfter(start.subtract(1, "day")) &&
             entryTime.isBefore(end.add(1, "day"))
           );
         });
       }
 
-      setLocalTrades(trades); // Use local state
-      const displayTrades = trades; // Use localTrades instead of filteredTrades if FilterContext lacks setter
+      setLocalTrades(trades);
+      const displayTrades = trades;
 
       const pnlSeries = getPnLOverTime(displayTrades);
       const zellaSeries = getZellaScoreOverTime(displayTrades);
@@ -104,7 +109,6 @@ const Dashboard = () => {
     return () => unsubscribe();
   }, [user, dateRange]);
 
-  // Use localTrades if FilterContext doesn't manage state fully
   const tradesToDisplay = filteredTrades.length > 0 ? filteredTrades : localTrades;
 
   const netPnL = tradesToDisplay.reduce((sum, t) => sum + (t.pnl || 0), 0);
@@ -169,7 +173,6 @@ const Dashboard = () => {
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-100 dark:bg-zinc-900 font-inter">
         <div className="max-w-screen-xl mx-auto px-4 py-6 w-full">
-          {/* Header */}
           <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center mb-3">
             <h1 className="text-2xl font-bold text-zinc-800 dark:text-white mb-2 sm:mb-0">
               Welcome to IMAI Dashboard
@@ -186,7 +189,6 @@ const Dashboard = () => {
             </div>
           ) : (
             <>
-              {/* Stat Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                 <StatCard
                   title="Net P&L"
@@ -210,7 +212,6 @@ const Dashboard = () => {
                 <WinStatsCard />
               </div>
 
-              {/* Animated Widgets */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-stretch">
                 <motion.div whileHover={{ y: -4, scale: 1.015 }} transition={{ type: "spring", stiffness: 260, damping: 20 }} className="h-full">
                   <ChartCard title="Zella Score">
@@ -235,7 +236,6 @@ const Dashboard = () => {
                 </motion.div>
               </div>
 
-              {/* Calendar & Trade History Section */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-stretch">
                 <div className="lg:col-span-2 h-full">
                   <CalendarCard trades={tradesToDisplay} />
@@ -245,7 +245,6 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              {/* Charts */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 <ChartCard title="Symbol Distribution">
                   <ChartSymbolDistribution />
