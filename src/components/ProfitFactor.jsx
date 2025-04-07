@@ -9,7 +9,11 @@ const ProfitFactor = () => {
   const grossLoss = Math.abs(
     filteredTrades.filter((t) => t.pnl < 0).reduce((sum, t) => sum + t.pnl, 0)
   );
-  const profitFactor = grossLoss !== 0 ? (grossProfit / grossLoss).toFixed(2) : 0;
+  const profitFactor = grossLoss !== 0
+    ? (grossProfit / grossLoss).toFixed(2)
+    : grossProfit > 0
+    ? "Infinity"
+    : "0.00";
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm w-full flex flex-col justify-center items-center">
