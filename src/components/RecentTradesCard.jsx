@@ -4,7 +4,7 @@ import { Clock } from "lucide-react";
 import dayjs from "dayjs";
 
 const RecentTradesCard = ({ trades = [] }) => {
-  const [visibleTrades, setVisibleTrades] = useState(15);
+  const [visibleTrades, setVisibleTrades] = useState(25); // Increased to show more trades initially
   const sortedTrades = [...trades].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   const handleShowMore = () => {
@@ -21,8 +21,9 @@ const RecentTradesCard = ({ trades = [] }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="w-full bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200/60 p-5 h-full flex flex-col"
+      className="w-full bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200/60 p-5 flex flex-col h-full"
     >
+      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-gray-800 dark:text-white tracking-wide">
           Recent Trades
@@ -39,7 +40,7 @@ const RecentTradesCard = ({ trades = [] }) => {
 
       {/* Trade List with Fixed Height and Scroll */}
       <div
-        className="overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-zinc-600 scrollbar-track-transparent"
+        className="flex-1 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-zinc-600 scrollbar-track-transparent"
         style={{ maxHeight: "300px" }} // Fixed height for the trade list
       >
         {sortedTrades.length === 0 ? (
