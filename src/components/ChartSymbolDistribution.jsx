@@ -8,6 +8,10 @@ const ChartSymbolDistribution = () => {
   const chartInstanceRef = useRef(null);
   const { filteredTrades } = useFilters();
 
+  const tradeCounts = {};
+  let topSymbol = "N/A";
+  let topCount = 0;
+
   useEffect(() => {
     if (!filteredTrades || filteredTrades.length === 0) return;
 
@@ -19,10 +23,17 @@ const ChartSymbolDistribution = () => {
       return match ? match[1] : symbol;
     };
 
-    const tradeCounts = {};
     filteredTrades.forEach((trade) => {
       const baseSymbol = getBaseSymbol(trade.symbol || "Unknown");
       tradeCounts[baseSymbol] = (tradeCounts[baseSymbol] || 0) + 1;
+    });
+
+    // Find top traded symbol
+    Object.entries(tradeCounts).forEach(([symbol, count]) => {
+      if (count > topCount) {
+        topSymbol = symbol;
+        topCount = count;
+      }
     });
 
     const labels = Object.keys(tradeCounts);
@@ -104,6 +115,8 @@ const ChartSymbolDistribution = () => {
     return () => chartInstanceRef.current?.destroy();
   }, [filteredTrades]);
 
+  const totalTrades = filteredTrades?.length || 0;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -111,8 +124,22 @@ const ChartSymbolDistribution = () => {
       transition={{ duration: 0.5, ease: "easeOut" }}
       className="h-[400px] w-full relative"
     >
-      {filteredTrades?.length > 0 ? (
-        <canvas ref={chartRef} className="drop-shadow-md" />
+      {filteredTrades && filteredTrades.length > 0 ? (
+        <>
+          <canvas ref={chartRef} className="drop-shadow-md" />
+          <div className="mt-4 flex justify-center gap-4 text-sm font-medium text-gray-600 dark:text-gray-300">
+            <div className="flex items-center gap-1">
+              <span className="text-gray-400">Total Trades:</span>
+              <span className="text-blue-500 dark:text-blue-400 font-semibold">{totalTrades}</span>
+            </div>
+            <div className="w-[1px] bg-gray-300 dark:bg-gray-700 h-4 self-center" />
+            <div className="flex items-center gap-1">
+              <span className="text-gray-400">Top Symbol:</span>
+              <span className="text-blue-500 dark:text-blue-400 font-semibold">{topSymbol}</span>
+              <span className="text-gray-400">({topCount} trades)</span>
+            </div>
+          </div>
+        </>
       ) : (
         <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400 text-sm font-medium">
           No trades available to display.
