@@ -3,6 +3,12 @@ import { motion } from "framer-motion";
 import { Clock } from "lucide-react";
 import dayjs from "dayjs";
 
+// Extract base symbol from option-like strings
+const extractBaseSymbol = (symbol) => {
+  const match = symbol?.match(/^([A-Z]+)/);
+  return match ? match[1] : symbol;
+};
+
 const RecentTradesCard = ({ trades = [] }) => {
   const [visibleTrades, setVisibleTrades] = useState(17);
   const sortedTrades = [...trades].sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -34,7 +40,7 @@ const RecentTradesCard = ({ trades = [] }) => {
       {/* Column Headers */}
       <div className="flex justify-between items-center p-3 bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-gray-300 font-semibold rounded-t-lg mb-2">
         <span className="w-1/3 text-left">Date</span>
-        <span className="w-1/3 text-left">Symbol</span>
+        <span className="w-1/3 text-center">Symbol</span>
         <span className="w-1/3 text-right">Net P/L</span>
       </div>
 
@@ -56,12 +62,12 @@ const RecentTradesCard = ({ trades = [] }) => {
               <span className="text-sm text-gray-600 dark:text-gray-300 w-1/3">
                 {dayjs(trade.date).format("DD/MM/YYYY")}
               </span>
-              <div className="flex flex-col items-start w-1/3">
+              <div className="flex flex-col items-center justify-center w-1/3 text-center">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                  {trade.symbol || "—"}
+                  {extractBaseSymbol(trade.symbol) || "—"}
                 </span>
                 {trade.optionType && (
-                  <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     {trade.optionType === "call" ? "Call" : "Put"}
                   </span>
                 )}
