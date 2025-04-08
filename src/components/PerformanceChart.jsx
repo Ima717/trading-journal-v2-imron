@@ -103,9 +103,6 @@ const PerformanceChart = ({ data }) => {
 
   return (
     <div className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-sm">
-      <h3 className="text-sm text-gray-600 dark:text-gray-300 mb-3 font-semibold">
-        📈 P&L Over Time
-      </h3>
       <div className="h-[400px]">
         <canvas ref={chartRef} />
       </div>
