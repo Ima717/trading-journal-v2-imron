@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Chart from "chart.js/auto";
 import { useFilters } from "../context/FilterContext";
 import { motion } from "framer-motion";
@@ -8,41 +8,37 @@ const ChartSymbolDistribution = () => {
   const chartInstanceRef = useRef(null);
   const { filteredTrades } = useFilters();
 
-  const { totalTrades, tradeCounts, topSymbol, topCount } = useMemo(() => {
-    const tradeCounts = {};
-    let topSymbol = "N/A";
-    let topCount = 0;
-
-    const getBaseSymbol = (symbol) => {
-      const match = symbol.match(/^([A-Z]+)([0-9]{6}[CP][0-9]+)$/);
-      return match ? match[1] : symbol;
-    };
-
-    filteredTrades?.forEach((trade) => {
-      const baseSymbol = getBaseSymbol(trade.symbol || "Unknown");
-      tradeCounts[baseSymbol] = (tradeCounts[baseSymbol] || 0) + 1;
-    });
-
-    Object.entries(tradeCounts).forEach(([symbol, count]) => {
-      if (count > topCount) {
-        topSymbol = symbol;
-        topCount = count;
-      }
-    });
-
-    return {
-      totalTrades: filteredTrades?.length || 0,
-      tradeCounts,
-      topSymbol,
-      topCount,
-    };
-  }, [filteredTrades]);
+  const [totalTrades, setTotalTrades] = useState(0);
+  const [topSymbol, setTopSymbol] = useState("N/A");
+  const [topCount, setTopCount] = useState(0);
 
   useEffect(() => {
     if (!filteredTrades || filteredTrades.length === 0) return;
 
     const ctx = chartRef.current.getContext("2d");
     if (chartInstanceRef.current) chartInstanceRef.current.destroy();
+
+    const getBaseSymbol = (symbol) => {
+      const match = symbol.match(/^([A-Z]+)([0-9]{6}[CP][0-9]+)$/);
+      return match ? match[1] : symbol;
+    };
+
+    const tradeCounts = {};
+    filteredTrades.forEach((trade) => {
+      const baseSymbol = getBaseSymbol(trade.symbol || "Unknown");
+      tradeCounts[baseSymbol] = (tradeCounts[baseSymbol] || 0) + 1;
+    });
+
+    // Update summary state
+    const entries = Object.entries(tradeCounts);
+    const [top, count] = entries.reduce(
+      (acc, [symbol, cnt]) => (cnt > acc[1] ? [symbol, cnt] : acc),
+      ["N/A", 0]
+    );
+
+    setTopSymbol(top);
+    setTopCount(count);
+    setTotalTrades(filteredTrades.length);
 
     const labels = Object.keys(tradeCounts);
     const data = Object.values(tradeCounts);
@@ -119,7 +115,7 @@ const ChartSymbolDistribution = () => {
     });
 
     return () => chartInstanceRef.current?.destroy();
-  }, [filteredTrades, tradeCounts]);
+  }, [filteredTrades]);
 
   return (
     <motion.div
