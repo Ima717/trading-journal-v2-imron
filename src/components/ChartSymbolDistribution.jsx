@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
 import Chart from "chart.js/auto";
 import { useFilters } from "../context/FilterContext";
 import { motion } from "framer-motion";
@@ -8,33 +8,41 @@ const ChartSymbolDistribution = () => {
   const chartInstanceRef = useRef(null);
   const { filteredTrades } = useFilters();
 
-  const tradeCounts = {};
-  let topSymbol = "N/A";
-  let topCount = 0;
-
-  useEffect(() => {
-    if (!filteredTrades || filteredTrades.length === 0) return;
-
-    const ctx = chartRef.current.getContext("2d");
-    if (chartInstanceRef.current) chartInstanceRef.current.destroy();
+  const { totalTrades, tradeCounts, topSymbol, topCount } = useMemo(() => {
+    const tradeCounts = {};
+    let topSymbol = "N/A";
+    let topCount = 0;
 
     const getBaseSymbol = (symbol) => {
       const match = symbol.match(/^([A-Z]+)([0-9]{6}[CP][0-9]+)$/);
       return match ? match[1] : symbol;
     };
 
-    filteredTrades.forEach((trade) => {
+    filteredTrades?.forEach((trade) => {
       const baseSymbol = getBaseSymbol(trade.symbol || "Unknown");
       tradeCounts[baseSymbol] = (tradeCounts[baseSymbol] || 0) + 1;
     });
 
-    // Find top traded symbol
     Object.entries(tradeCounts).forEach(([symbol, count]) => {
       if (count > topCount) {
         topSymbol = symbol;
         topCount = count;
       }
     });
+
+    return {
+      totalTrades: filteredTrades?.length || 0,
+      tradeCounts,
+      topSymbol,
+      topCount,
+    };
+  }, [filteredTrades]);
+
+  useEffect(() => {
+    if (!filteredTrades || filteredTrades.length === 0) return;
+
+    const ctx = chartRef.current.getContext("2d");
+    if (chartInstanceRef.current) chartInstanceRef.current.destroy();
 
     const labels = Object.keys(tradeCounts);
     const data = Object.values(tradeCounts);
@@ -91,9 +99,7 @@ const ChartSymbolDistribution = () => {
               font: { size: 12, family: "Inter" },
               padding: 6,
             },
-            grid: {
-              display: false,
-            },
+            grid: { display: false },
           },
           y: {
             beginAtZero: true,
@@ -113,9 +119,7 @@ const ChartSymbolDistribution = () => {
     });
 
     return () => chartInstanceRef.current?.destroy();
-  }, [filteredTrades]);
-
-  const totalTrades = filteredTrades?.length || 0;
+  }, [filteredTrades, tradeCounts]);
 
   return (
     <motion.div
