@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import Chart from "chart.js/auto";
 import { useFilters } from "../context/FilterContext";
+import { motion } from "framer-motion";
 
 const ChartSymbolDistribution = () => {
   const chartRef = useRef(null);
@@ -17,9 +18,8 @@ const ChartSymbolDistribution = () => {
 
     // Function to extract base symbol from option symbols
     const getBaseSymbol = (symbol) => {
-      // Match option symbols like TSLA250328C800, AAPL250321P145
       const match = symbol.match(/^([A-Z]+)([0-9]{6}[CP][0-9]+)$/);
-      return match ? match[1] : symbol; // Return base symbol (e.g., TSLA) or original symbol if not an option
+      return match ? match[1] : symbol;
     };
 
     // Group trades by base symbol
@@ -32,15 +32,18 @@ const ChartSymbolDistribution = () => {
     const labels = Object.keys(tradeCounts);
     const data = Object.values(tradeCounts);
 
-    // Generate colors for each bar
-    const backgroundColors = labels.map((_, index) => {
-      const hue = (index * 137.5) % 360; // Golden angle approximation for distinct colors
-      return `hsla(${hue}, 70%, 60%, 0.6)`;
-    });
-    const borderColors = labels.map((_, index) => {
-      const hue = (index * 137.5) % 360;
-      return `hsla(${hue}, 70%, 60%, 1)`;
-    });
+    // Premium color scheme (gradient from blue to teal)
+    const backgroundColors = labels.map(() =>
+      ctx.createLinearGradient(0, 0, 0, 400)
+        .addColorStop(0, "rgba(59, 130, 246, 0.8)")
+        .addColorStop(1, "rgba(34, 211, 238, 0.6)")
+    );
+    const borderColors = labels.map(() => "rgba(59, 130, 246, 1)");
+    const hoverBackgroundColors = labels.map(() =>
+      ctx.createLinearGradient(0, 0, 0, 400)
+        .addColorStop(0, "rgba(59, 130, 246, 1)")
+        .addColorStop(1, "rgba(34, 211, 238, 0.9)")
+    );
 
     chartInstanceRef.current = new Chart(ctx, {
       type: "bar",
@@ -53,7 +56,10 @@ const ChartSymbolDistribution = () => {
             backgroundColor: backgroundColors,
             borderColor: borderColors,
             borderWidth: 1,
-            barThickness: 30,
+            borderRadius: 8, // Rounded corners for bars
+            barThickness: 24, // Slimmer bars for a modern look
+            hoverBackgroundColor: hoverBackgroundColors,
+            hoverBorderColor: "rgba(59, 130, 246, 1)",
           },
         ],
       },
@@ -63,13 +69,18 @@ const ChartSymbolDistribution = () => {
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: "rgba(0, 0, 0, 0.8)",
-            titleFont: { size: 14, weight: "bold" },
-            bodyFont: { size: 12 },
-            padding: 10,
-            cornerRadius: 4,
+            backgroundColor: "rgba(17, 24, 39, 0.95)", // Dark background with slight transparency
+            titleFont: { size: 14, weight: "bold", family: "'Inter', sans-serif" },
+            bodyFont: { size: 12, family: "'Inter', sans-serif" },
+            padding: 12,
+            cornerRadius: 8,
+            boxPadding: 4,
+            caretSize: 6,
+            borderColor: "rgba(59, 130, 246, 0.3)",
+            borderWidth: 1,
             callbacks: {
               label: (ctx) => `${ctx.raw} trades`,
+              title: (tooltipItems) => `Symbol: ${tooltipItems[0].label}`,
             },
           },
         },
@@ -78,16 +89,21 @@ const ChartSymbolDistribution = () => {
             title: {
               display: true,
               text: "Symbol",
-              color: "#6b7280",
-              font: { size: 14, weight: "bold" },
+              color: "#9ca3af", // Gray-400
+              font: { size: 14, weight: "600", family: "'Inter', sans-serif" },
               padding: { top: 10 },
             },
             ticks: {
-              color: "#6b7280",
-              font: { size: 12 },
+              color: "#9ca3af",
+              font: { size: 12, family: "'Inter', sans-serif" },
+              maxRotation: 45,
+              minRotation: 45,
             },
             grid: {
               display: false,
+            },
+            border: {
+              color: "rgba(0, 0, 0, 0.05)",
             },
           },
           y: {
@@ -95,24 +111,39 @@ const ChartSymbolDistribution = () => {
             title: {
               display: true,
               text: "Trade Count",
-              color: "#6b7280",
-              font: { size: 14, weight: "bold" },
+              color: "#9ca3af",
+              font: { size: 14, weight: "600", family: "'Inter', sans-serif" },
               padding: { bottom: 10 },
             },
             ticks: {
-              color: "#6b7280",
-              font: { size: 12 },
+              color: "#9ca3af",
+              font: { size: 12, family: "'Inter', sans-serif" },
               stepSize: 1,
+              padding: 8,
             },
             grid: {
               color: "rgba(0, 0, 0, 0.05)",
               drawBorder: false,
+              drawTicks: false,
+            },
+            border: {
+              color: "rgba(0, 0, 0, 0.05)",
             },
           },
         },
         animation: {
-          duration: 1000,
+          duration: 1200,
           easing: "easeOutQuart",
+          onComplete: () => {
+            // Add subtle glow effect on complete
+            chartInstanceRef.current.data.datasets[0].backgroundColor = backgroundColors;
+            chartInstanceRef.current.update();
+          },
+        },
+        hover: {
+          mode: "nearest",
+          intersect: true,
+          animationDuration: 200,
         },
       },
     });
@@ -125,15 +156,20 @@ const ChartSymbolDistribution = () => {
   }, [filteredTrades]);
 
   return (
-    <div className="h-[400px]">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="h-[400px] relative"
+    >
       {filteredTrades && filteredTrades.length > 0 ? (
-        <canvas ref={chartRef} />
+        <canvas ref={chartRef} className="drop-shadow-sm" />
       ) : (
-        <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400 text-sm">
+        <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400 text-sm font-medium">
           No trades available to display.
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 
