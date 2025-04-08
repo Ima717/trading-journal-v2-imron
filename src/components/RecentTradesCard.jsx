@@ -21,8 +21,9 @@ const RecentTradesCard = ({ trades = [] }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="w-full bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200/60 p-5 h-full flex flex-col"
+      className="w-full h-[860px] bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200/60 p-5 flex flex-col"
     >
+      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-gray-800 dark:text-white tracking-wide">
           Recent Trades
@@ -37,7 +38,7 @@ const RecentTradesCard = ({ trades = [] }) => {
         <span className="w-1/3 text-right">Net P/L</span>
       </div>
 
-      {/* Trade List */}
+      {/* Trade List (Scrollable) */}
       <div className="flex-1 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-zinc-600 scrollbar-track-transparent">
         {sortedTrades.length === 0 ? (
           <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
