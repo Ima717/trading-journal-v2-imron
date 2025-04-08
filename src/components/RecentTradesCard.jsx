@@ -37,8 +37,11 @@ const RecentTradesCard = ({ trades = [] }) => {
         <span className="w-1/3 text-right">Net P/L</span>
       </div>
 
-      {/* Trade List */}
-      <div className="flex-1 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-zinc-600 scrollbar-track-transparent">
+      {/* Trade List with Fixed Height and Scroll */}
+      <div
+        className="overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-zinc-600 scrollbar-track-transparent"
+        style={{ maxHeight: "300px" }} // Fixed height for the trade list
+      >
         {sortedTrades.length === 0 ? (
           <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
             No trades found.
@@ -82,7 +85,7 @@ const RecentTradesCard = ({ trades = [] }) => {
         <div className="mt-4 text-center">
           <button
             onClick={handleShowMore}
-            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors focus:outline-none"
           >
             Show more trades
           </button>
