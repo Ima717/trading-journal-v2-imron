@@ -52,6 +52,7 @@ const Dashboard = () => {
         const amount = parseFloat(data.amount) || 0;
         const commission = parseFloat(data.commission) || 0;
         const fees = parseFloat(data.fees) || 0;
+        const pnl = parseFloat(data.pnl) || 0; // Use stored P&L
         return {
           id: doc.id,
           ...data,
@@ -60,51 +61,18 @@ const Dashboard = () => {
           amount,
           commission,
           fees,
+          pnl,
         };
       });
 
       console.log("Raw trades from Firestore:", trades);
 
-      // Pair buy/sell trades to compute P&L
-      const tradePairs = {};
-      const processedTrades = [];
-
-      trades.forEach((trade) => {
-        const key = `${trade.symbol}-${trade.quantity}`;
-        if (!tradePairs[key]) tradePairs[key] = [];
-
-        tradePairs[key].push(trade);
-
-        if (tradePairs[key].length === 2) {
-          const [buyTrade, sellTrade] = tradePairs[key].sort((a, b) =>
-            a.side === "Buy" ? -1 : 1
-          );
-          if (buyTrade && sellTrade && buyTrade.side === "Buy" && sellTrade.side === "Sell") {
-            const buyCost = buyTrade.quantity * buyTrade.price;
-            const sellRevenue = sellTrade.quantity * sellTrade.price;
-            const commission = (buyTrade.commission || 0) + (sellTrade.commission || 0);
-            const fees = (buyTrade.fees || 0) + (sellTrade.fees || 0);
-            const pnl = sellRevenue - buyCost - commission - fees;
-            // Assign P&L to both trades in the pair
-            processedTrades.push({ ...buyTrade, pnl: Number.isNaN(pnl) ? 0 : pnl });
-            processedTrades.push({ ...sellTrade, pnl: Number.isNaN(pnl) ? 0 : pnl });
-          }
-          delete tradePairs[key];
-        }
-      });
-
-      // Unpaired trades get pnl = 0
-      Object.values(tradePairs).flat().forEach((trade) => {
-        processedTrades.push({ ...trade, pnl: 0 });
-      });
-
-      console.log("Processed trades with P&L:", processedTrades);
-
-      let finalTrades = processedTrades;
+      // Use stored P&L instead of recalculating
+      let finalTrades = trades;
       if (dateRange.start && dateRange.end) {
         const start = dayjs(dateRange.start);
         const end = dayjs(dateRange.end);
-        finalTrades = processedTrades.filter((t) => {
+        finalTrades = trades.filter((t) => {
           const entryTime = dayjs(t.entryTime);
           return (
             entryTime.isValid() &&
