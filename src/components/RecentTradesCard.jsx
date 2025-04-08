@@ -22,7 +22,7 @@ const RecentTradesCard = ({ trades = [] }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
       className="w-full bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200/60 p-5 flex flex-col"
-      style={{ maxHeight: "860px" }} // Match the height of CalendarCard (adjustable)
+      style={{ maxHeight: "870px" }} // Match the height of CalendarCard (adjustable)
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
