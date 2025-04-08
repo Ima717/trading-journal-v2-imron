@@ -32,18 +32,10 @@ const ChartSymbolDistribution = () => {
     const labels = Object.keys(tradeCounts);
     const data = Object.values(tradeCounts);
 
-    // Premium color scheme (gradient from blue to teal)
-    const backgroundColors = labels.map(() =>
-      ctx.createLinearGradient(0, 0, 0, 400)
-        .addColorStop(0, "rgba(59, 130, 246, 0.8)")
-        .addColorStop(1, "rgba(34, 211, 238, 0.6)")
-    );
+    // Define colors (fallback if gradient fails)
+    const backgroundColors = labels.map(() => "rgba(59, 130, 246, 0.8)");
     const borderColors = labels.map(() => "rgba(59, 130, 246, 1)");
-    const hoverBackgroundColors = labels.map(() =>
-      ctx.createLinearGradient(0, 0, 0, 400)
-        .addColorStop(0, "rgba(59, 130, 246, 1)")
-        .addColorStop(1, "rgba(34, 211, 238, 0.9)")
-    );
+    const hoverBackgroundColors = labels.map(() => "rgba(59, 130, 246, 1)");
 
     chartInstanceRef.current = new Chart(ctx, {
       type: "bar",
@@ -53,12 +45,26 @@ const ChartSymbolDistribution = () => {
           {
             label: "Total Trades per Symbol",
             data,
-            backgroundColor: backgroundColors,
+            backgroundColor: (context) => {
+              const chart = context.chart;
+              const { ctx: chartCtx } = chart;
+              const gradient = chartCtx.createLinearGradient(0, 0, 0, 400);
+              gradient.addColorStop(0, "rgba(59, 130, 246, 0.8)");
+              gradient.addColorStop(1, "rgba(34, 211, 238, 0.6)");
+              return gradient;
+            },
             borderColor: borderColors,
             borderWidth: 1,
-            borderRadius: 8, // Rounded corners for bars
-            barThickness: 24, // Slimmer bars for a modern look
-            hoverBackgroundColor: hoverBackgroundColors,
+            borderRadius: 8,
+            barThickness: 24,
+            hoverBackgroundColor: (context) => {
+              const chart = context.chart;
+              const { ctx: chartCtx } = chart;
+              const gradient = chartCtx.createLinearGradient(0, 0, 0, 400);
+              gradient.addColorStop(0, "rgba(59, 130, 246, 1)");
+              gradient.addColorStop(1, "rgba(34, 211, 238, 0.9)");
+              return gradient;
+            },
             hoverBorderColor: "rgba(59, 130, 246, 1)",
           },
         ],
@@ -69,7 +75,7 @@ const ChartSymbolDistribution = () => {
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: "rgba(17, 24, 39, 0.95)", // Dark background with slight transparency
+            backgroundColor: "rgba(17, 24, 39, 0.95)",
             titleFont: { size: 14, weight: "bold", family: "'Inter', sans-serif" },
             bodyFont: { size: 12, family: "'Inter', sans-serif" },
             padding: 12,
@@ -89,7 +95,7 @@ const ChartSymbolDistribution = () => {
             title: {
               display: true,
               text: "Symbol",
-              color: "#9ca3af", // Gray-400
+              color: "#9ca3af",
               font: { size: 14, weight: "600", family: "'Inter', sans-serif" },
               padding: { top: 10 },
             },
@@ -134,11 +140,6 @@ const ChartSymbolDistribution = () => {
         animation: {
           duration: 1200,
           easing: "easeOutQuart",
-          onComplete: () => {
-            // Add subtle glow effect on complete
-            chartInstanceRef.current.data.datasets[0].backgroundColor = backgroundColors;
-            chartInstanceRef.current.update();
-          },
         },
         hover: {
           mode: "nearest",
