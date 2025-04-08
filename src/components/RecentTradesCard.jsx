@@ -21,7 +21,8 @@ const RecentTradesCard = ({ trades = [] }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="w-full bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200/60 p-5 flex flex-col h-full"
+      className="w-full bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200/60 p-5 flex flex-col"
+      style={{ maxHeight: "400px" }} // Fixed max height for the entire card
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
@@ -38,8 +39,8 @@ const RecentTradesCard = ({ trades = [] }) => {
         <span className="w-1/3 text-right">Net P/L</span>
       </div>
 
-      {/* Trade List with Dynamic Height and Scroll */}
-      <div className="flex-1 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-zinc-600 scrollbar-track-transparent min-h-[200px]">
+      {/* Trade List with Scrolling */}
+      <div className="flex-1 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-zinc-600 scrollbar-track-transparent">
         {sortedTrades.length === 0 ? (
           <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
             No trades found.
