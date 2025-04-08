@@ -8,11 +8,11 @@ import { useFilters } from "../context/FilterContext";
 
 // Futures lookup table (expanded for robustness)
 const FUTURES_SPECS = {
-  "/ES": { contractSize: 50, tickValue: 0.25 }, // E-mini S&P 500
-  "/CL": { contractSize: 1000, tickValue: 0.01 }, // Crude Oil
-  "/GC": { contractSize: 100, tickValue: 0.10 }, // Gold
-  "/NQ": { contractSize: 20, tickValue: 0.25 }, // Nasdaq 100
-  "/YM": { contractSize: 5, tickValue: 1.00 }, // Dow Jones
+  "/ES": { contractSize: 50, tickValue: 0.25 },
+  "/CL": { contractSize: 1000, tickValue: 0.01 },
+  "/GC": { contractSize: 100, tickValue: 0.10 },
+  "/NQ": { contractSize: 20, tickValue: 0.25 },
+  "/YM": { contractSize: 5, tickValue: 1.00 },
 };
 
 const ImportTrades = () => {
@@ -27,14 +27,12 @@ const ImportTrades = () => {
   const [importResult, setImportResult] = useState(null);
   const [importError, setImportError] = useState(null);
 
-  // Detect instrument type from symbol
   const detectInstrumentType = (symbol) => {
     if (symbol.startsWith("/")) return "futures";
     if (/^[A-Z]+[0-9]{6}[CP][0-9]+$/.test(symbol)) return "option";
     return "stock";
   };
 
-  // Parse option details from symbol
   const parseOptionDetails = (symbol) => {
     const match = symbol.match(/([A-Z]+)([0-9]{6})([CP])([0-9]+)/);
     if (!match) return { baseSymbol: symbol, expiration: null, strike: null };
@@ -43,7 +41,6 @@ const ImportTrades = () => {
     return { baseSymbol, expiration, strike: parseFloat(strike) };
   };
 
-  // Parse CSV and prepare trades
   const handleFileChange = useCallback((selectedFile) => {
     if (!selectedFile) return;
     setFile(selectedFile);
@@ -53,16 +50,16 @@ const ImportTrades = () => {
 
     Papa.parse(selectedFile, {
       complete: ({ data }) => {
-        console.log("Raw CSV rows:", data.length); // Debug raw input
-        const uniqueTrades = new Map(); // Use Map to ensure uniqueness
+        console.log("Raw CSV rows:", data.length, data);
+        const uniqueTrades = new Map();
         const validationErrors = [];
 
         data
-          .filter((row) => row.Symbol && (row.Side || row.Action)) // Basic validation
+          .filter((row) => row.Symbol && (row.Side || row.Action))
           .forEach((row, index) => {
             const symbol = row.Symbol || row.Ticker || "N/A";
             const side = (row.Side || row.Action || "Unknown").toLowerCase();
-            if (side !== "buy" && side !== "sell") return; // Skip invalid sides
+            if (side !== "buy" && side !== "sell") return;
             const quantity = parseFloat(row.Filled || row.Quantity) || 0;
             const price = parseFloat(row.Price) || 0;
             const date = row["Filled Time"] || row.Date || row["Trade Date"] || new Date().toISOString();
@@ -71,8 +68,8 @@ const ImportTrades = () => {
 
             const uniqueKey = `${symbol}-${side}-${date}`;
             if (uniqueTrades.has(uniqueKey)) {
-              console.log(`Duplicate found: ${uniqueKey}`); // Debug duplicates
-              return; // Skip duplicates
+              console.log(`Duplicate found: ${uniqueKey}`);
+              return;
             }
 
             const instrumentType = detectInstrumentType(symbol);
@@ -124,7 +121,7 @@ const ImportTrades = () => {
           });
 
         const parsedTrades = Array.from(uniqueTrades.values());
-        console.log("Parsed trades:", parsedTrades.length, parsedTrades); // Debug parsed output
+        console.log("Parsed trades:", parsedTrades.length, parsedTrades);
         setErrors(validationErrors);
         setTrades(parsedTrades);
       },
@@ -134,7 +131,6 @@ const ImportTrades = () => {
     });
   }, []);
 
-  // Import trades to Firestore with total P&L on Sell
   const handleImport = async () => {
     if (!user || trades.length === 0) {
       setImportError("No user logged in or no trades to import.");
@@ -149,9 +145,10 @@ const ImportTrades = () => {
     let batch = writeBatch(db);
     let success = 0;
     const batchSize = 50;
+    const writtenDocs = new Set(); // Track written document IDs to prevent duplicates
 
     const sortedTrades = [...trades].sort((a, b) => new Date(a.date) - new Date(b.date));
-    console.log("Total trades to import:", sortedTrades.length); // Debug import count
+    console.log("Total trades to import:", sortedTrades.length);
     const tradeQueues = {};
 
     for (let i = 0; i < sortedTrades.length; i++) {
@@ -167,7 +164,7 @@ const ImportTrades = () => {
 
       if (side === "buy") {
         tradeQueues[matchKey].push({ ...trade, remainingQty: quantity });
-        pnl = 0; // Buy gets 0 P&L until sold
+        pnl = 0;
       } else if (side === "sell") {
         let remainingToSell = quantity;
         let realizedPnL = 0;
@@ -182,41 +179,50 @@ const ImportTrades = () => {
             realizedPnL += (matchQty * price - matchQty * buy.price) * trade.multiplier;
           }
 
-          const totalCosts = commission + fees; // Total costs for the pair
-          const sellPnL = realizedPnL - totalCosts; // Full P&L on Sell
+          const totalCosts = commission + fees;
+          const sellPnL = realizedPnL - totalCosts;
 
           buy.remainingQty -= matchQty;
           remainingToSell -= matchQty;
 
           if (buy.remainingQty <= 0) {
             const buyDoc = doc(tradesRef);
-            batch.set(buyDoc, {
-              ...buy,
-              pnl: 0, // Buy keeps 0 P&L
-              entryTime: buy.date,
-              createdAt: new Date().toISOString(),
-            });
+            if (!writtenDocs.has(buyDoc.id)) {
+              batch.set(buyDoc, {
+                ...buy,
+                pnl: 0,
+                entryTime: buy.date,
+                createdAt: new Date().toISOString(),
+              });
+              writtenDocs.add(buyDoc.id);
+              success++;
+            }
             tradeQueues[matchKey].shift();
-            success++;
           } else {
             tradeQueues[matchKey][0] = { ...buy };
           }
 
-          pnl = sellPnL; // Assign full P&L to Sell
+          pnl = sellPnL;
         }
       }
 
       const tradeDoc = doc(tradesRef);
-      console.log("Trade saved:", tradeDoc.id, { symbol, side, pnl }); // Debug each save
-      batch.set(tradeDoc, {
-        ...trade,
-        side: side.toLowerCase(),
-        pnl,
-        entryTime: trade.date,
-        createdAt: new Date().toISOString(),
-      });
+      if (!writtenDocs.has(tradeDoc.id)) {
+        console.log("Trade saved:", tradeDoc.id, { symbol, side, pnl });
+        batch.set(tradeDoc, {
+          ...trade,
+          side: side.toLowerCase(),
+          pnl,
+          entryTime: trade.date,
+          createdAt: new Date().toISOString(),
+        });
+        writtenDocs.add(tradeDoc.id);
+      } else {
+        console.log("Skipped duplicate write:", tradeDoc.id, { symbol, side });
+      }
 
       if ((i + 1) % batchSize === 0 || i === sortedTrades.length - 1) {
+        console.log("Committing batch, success:", success);
         await batch.commit();
         success += Math.min(batchSize, i + 1 - success);
         batch = writeBatch(db);
