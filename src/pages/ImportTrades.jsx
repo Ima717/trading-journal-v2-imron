@@ -101,8 +101,12 @@ const ImportTrades = () => {
               tags: [],
               notes: description,
               originalIndex: index,
+              uniqueKey: `${symbol}-${side}-${date}`, // Unique identifier to prevent duplicates
             };
-          });
+          })
+          .filter((trade, index, self) => // Remove duplicates based on uniqueKey
+            index === self.findIndex((t) => t.uniqueKey === trade.uniqueKey)
+          );
 
         const validationErrors = [];
         parsedTrades.forEach((trade) => {
@@ -167,14 +171,15 @@ const ImportTrades = () => {
           const buy = tradeQueues[matchKey][0];
           const matchQty = Math.min(remainingToSell, buy.remainingQty);
 
-          if (trade.instrumentType === "futures") {
-            const priceDiff = price - buy.price;
-            realizedPnL += priceDiff * matchQty * trade.contractSize * trade.tickValue;
+          if (instrumentType === "futures") {
+            realizedPnL += (price - buy.price) * matchQty * trade.contractSize * trade.tickValue;
           } else {
-            const buyCost = matchQty * buy.price * trade.multiplier;
-            const sellRevenue = matchQty * price * trade.multiplier;
-            realizedPnL += sellRevenue - buyCost;
+            realizedPnL += (matchQty * price - matchQty * buy.price) * trade.multiplier;
           }
+
+          const totalCosts = commission + fees;
+          const buyPnL = (realizedPnL / 2) - (totalCosts / 2);
+          const sellPnL = (realizedPnL / 2) - (totalCosts / 2);
 
           buy.remainingQty -= matchQty;
           remainingToSell -= matchQty;
@@ -183,7 +188,7 @@ const ImportTrades = () => {
             const buyDoc = doc(tradesRef);
             batch.set(buyDoc, {
               ...buy,
-              pnl: realizedPnL - (commission + fees) / 2, // Split costs
+              pnl: buyPnL,
               entryTime: buy.date,
               createdAt: new Date().toISOString(),
             });
@@ -192,15 +197,15 @@ const ImportTrades = () => {
           } else {
             tradeQueues[matchKey][0] = { ...buy };
           }
-        }
 
-        pnl = realizedPnL - (commission + fees) / 2;
+          pnl = sellPnL; // Assign half to Sell
+        }
       }
 
       const tradeDoc = doc(tradesRef);
       batch.set(tradeDoc, {
         ...trade,
-        pnl,
+        pnl: trade.side === "Buy" ? 0 : pnl, // Only Sell gets P&L unless matched
         entryTime: trade.date,
         createdAt: new Date().toISOString(),
       });
