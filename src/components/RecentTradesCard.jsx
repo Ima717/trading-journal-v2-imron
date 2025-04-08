@@ -21,7 +21,7 @@ const RecentTradesCard = ({ trades = [] }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="w-full h-[860px] bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200/60 p-5 flex flex-col"
+      className="w-full h-[850px] bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200/60 p-5 flex flex-col"
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
