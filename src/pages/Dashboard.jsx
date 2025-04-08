@@ -257,6 +257,7 @@ const Dashboard = () => {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <ChartCard title="Symbol Distribution">
                   <ChartSymbolDistribution />
                 </ChartCard>
                 <ChartCard title="PnL by Symbol">
