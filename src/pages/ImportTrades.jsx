@@ -38,7 +38,7 @@ const ImportTrades = () => {
   const parseOptionDetails = (symbol) => {
     const match = symbol.match(/([A-Z]+)([0-9]{6})([CP])([0-9]+)/);
     if (!match) return { baseSymbol: symbol, expiration: null, strike: null };
-    const [, baseSymbol, date, optionType, strike] = match;
+    const [, baseSymbol, date, , strike] = match;
     const expiration = `20${date.slice(0, 2)}-${date.slice(2, 4)}-${date.slice(4, 6)}`;
     return { baseSymbol, expiration, strike: parseFloat(strike) };
   };
@@ -53,6 +53,7 @@ const ImportTrades = () => {
 
     Papa.parse(selectedFile, {
       complete: ({ data }) => {
+        console.log("Raw CSV rows:", data.length); // Debug raw input
         const uniqueTrades = new Map(); // Use Map to ensure uniqueness
         const validationErrors = [];
 
@@ -69,7 +70,10 @@ const ImportTrades = () => {
             const fees = parseFloat(row.Fees) || 0;
 
             const uniqueKey = `${symbol}-${side}-${date}`;
-            if (uniqueTrades.has(uniqueKey)) return; // Skip duplicates
+            if (uniqueTrades.has(uniqueKey)) {
+              console.log(`Duplicate found: ${uniqueKey}`); // Debug duplicates
+              return; // Skip duplicates
+            }
 
             const instrumentType = detectInstrumentType(symbol);
             let multiplier = 1;
@@ -120,6 +124,7 @@ const ImportTrades = () => {
           });
 
         const parsedTrades = Array.from(uniqueTrades.values());
+        console.log("Parsed trades:", parsedTrades.length, parsedTrades); // Debug parsed output
         setErrors(validationErrors);
         setTrades(parsedTrades);
       },
@@ -129,7 +134,7 @@ const ImportTrades = () => {
     });
   }, []);
 
-  // Import trades to Firestore with correct P&L
+  // Import trades to Firestore with total P&L on Sell
   const handleImport = async () => {
     if (!user || trades.length === 0) {
       setImportError("No user logged in or no trades to import.");
@@ -146,6 +151,7 @@ const ImportTrades = () => {
     const batchSize = 50;
 
     const sortedTrades = [...trades].sort((a, b) => new Date(a.date) - new Date(b.date));
+    console.log("Total trades to import:", sortedTrades.length); // Debug import count
     const tradeQueues = {};
 
     for (let i = 0; i < sortedTrades.length; i++) {
@@ -161,7 +167,7 @@ const ImportTrades = () => {
 
       if (side === "buy") {
         tradeQueues[matchKey].push({ ...trade, remainingQty: quantity });
-        pnl = 0; // Unmatched Buy gets 0 P&L
+        pnl = 0; // Buy gets 0 P&L until sold
       } else if (side === "sell") {
         let remainingToSell = quantity;
         let realizedPnL = 0;
@@ -176,9 +182,8 @@ const ImportTrades = () => {
             realizedPnL += (matchQty * price - matchQty * buy.price) * trade.multiplier;
           }
 
-          const totalCosts = commission + fees;
-          const buyPnL = (realizedPnL / 2) - (totalCosts / 2);
-          const sellPnL = (realizedPnL / 2) - (totalCosts / 2);
+          const totalCosts = commission + fees; // Total costs for the pair
+          const sellPnL = realizedPnL - totalCosts; // Full P&L on Sell
 
           buy.remainingQty -= matchQty;
           remainingToSell -= matchQty;
@@ -187,7 +192,7 @@ const ImportTrades = () => {
             const buyDoc = doc(tradesRef);
             batch.set(buyDoc, {
               ...buy,
-              pnl: buyPnL,
+              pnl: 0, // Buy keeps 0 P&L
               entryTime: buy.date,
               createdAt: new Date().toISOString(),
             });
@@ -197,11 +202,12 @@ const ImportTrades = () => {
             tradeQueues[matchKey][0] = { ...buy };
           }
 
-          pnl = sellPnL;
+          pnl = sellPnL; // Assign full P&L to Sell
         }
       }
 
       const tradeDoc = doc(tradesRef);
+      console.log("Trade saved:", tradeDoc.id, { symbol, side, pnl }); // Debug each save
       batch.set(tradeDoc, {
         ...trade,
         side: side.toLowerCase(),
