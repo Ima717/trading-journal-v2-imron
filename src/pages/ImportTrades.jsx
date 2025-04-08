@@ -130,14 +130,26 @@ const ImportTrades = () => {
           remainingToSell -= matchQty;
 
           if (buy.remainingQty <= 0) {
+            // Update the buy trade with the P&L
+            const buyDoc = doc(tradesRef);
+            batch.set(buyDoc, {
+              ...buy,
+              pnl: Number.isNaN(realizedPnL) ? 0 : realizedPnL - commission - fees,
+              entryTime: buy.date,
+              createdAt: new Date().toISOString(),
+            });
             symbolQueues[symbol].shift(); // fully matched
+            success++;
+          } else {
+            // Update the remaining buy trade
+            symbolQueues[symbol][0] = { ...buy, remainingQty: buy.remainingQty };
           }
         }
 
         pnl = Number.isNaN(realizedPnL) ? 0 : realizedPnL - commission - fees;
       }
 
-      // Add trade with calculated P&L
+      // Add the current trade (Buy or Sell) with the calculated P&L
       const tradeDoc = doc(tradesRef);
       batch.set(tradeDoc, {
         ...trade,
