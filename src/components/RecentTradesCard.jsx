@@ -4,11 +4,11 @@ import { Clock } from "lucide-react";
 import dayjs from "dayjs";
 
 const RecentTradesCard = ({ trades = [] }) => {
-  const [visibleTrades, setVisibleTrades] = useState(15);
+  const [visibleTrades, setVisibleTrades] = useState(17);
   const sortedTrades = [...trades].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   const handleShowMore = () => {
-    setVisibleTrades((prev) => prev + (17);
+    setVisibleTrades((prev) => prev + 15);
   };
 
   const rowVariants = {
