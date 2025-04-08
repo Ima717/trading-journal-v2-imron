@@ -8,7 +8,7 @@ const RecentTradesCard = ({ trades = [] }) => {
   const sortedTrades = [...trades].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   const handleShowMore = () => {
-    setVisibleTrades((prev) => prev + 15);
+    setVisibleTrades((prev) => prev + 16);
   };
 
   const rowVariants = {
