@@ -12,17 +12,13 @@ const ChartSymbolDistribution = () => {
     if (!filteredTrades || filteredTrades.length === 0) return;
 
     const ctx = chartRef.current.getContext("2d");
-    if (chartInstanceRef.current) {
-      chartInstanceRef.current.destroy();
-    }
+    if (chartInstanceRef.current) chartInstanceRef.current.destroy();
 
-    // Function to extract base symbol from option symbols
     const getBaseSymbol = (symbol) => {
       const match = symbol.match(/^([A-Z]+)([0-9]{6}[CP][0-9]+)$/);
       return match ? match[1] : symbol;
     };
 
-    // Group trades by base symbol
     const tradeCounts = {};
     filteredTrades.forEach((trade) => {
       const baseSymbol = getBaseSymbol(trade.symbol || "Unknown");
@@ -32,139 +28,91 @@ const ChartSymbolDistribution = () => {
     const labels = Object.keys(tradeCounts);
     const data = Object.values(tradeCounts);
 
-    // Define colors (fallback if gradient fails)
-    const backgroundColors = labels.map(() => "rgba(59, 130, 246, 0.8)");
-    const borderColors = labels.map(() => "rgba(59, 130, 246, 1)");
-    const hoverBackgroundColors = labels.map(() => "rgba(59, 130, 246, 1)");
-
     chartInstanceRef.current = new Chart(ctx, {
       type: "bar",
       data: {
         labels,
         datasets: [
           {
-            label: "Total Trades per Symbol",
+            label: "Total Trades",
             data,
-            backgroundColor: (context) => {
-              const chart = context.chart;
-              const { ctx: chartCtx } = chart;
-              const gradient = chartCtx.createLinearGradient(0, 0, 0, 400);
-              gradient.addColorStop(0, "rgba(59, 130, 246, 0.8)");
-              gradient.addColorStop(1, "rgba(34, 211, 238, 0.6)");
+            backgroundColor: (ctx) => {
+              const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, 400);
+              gradient.addColorStop(0, "#3b82f6");
+              gradient.addColorStop(1, "#22d3ee");
               return gradient;
             },
-            borderColor: borderColors,
-            borderWidth: 1,
-            borderRadius: 8,
-            barThickness: 24,
-            hoverBackgroundColor: (context) => {
-              const chart = context.chart;
-              const { ctx: chartCtx } = chart;
-              const gradient = chartCtx.createLinearGradient(0, 0, 0, 400);
-              gradient.addColorStop(0, "rgba(59, 130, 246, 1)");
-              gradient.addColorStop(1, "rgba(34, 211, 238, 0.9)");
-              return gradient;
-            },
-            hoverBorderColor: "rgba(59, 130, 246, 1)",
+            borderRadius: 12,
+            barThickness: 26,
+            borderSkipped: false,
+            hoverBackgroundColor: "#2563eb",
           },
         ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: {
+          duration: 1000,
+          easing: "easeOutCubic",
+        },
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: "rgba(17, 24, 39, 0.95)",
-            titleFont: { size: 14, weight: "bold", family: "'Inter', sans-serif" },
-            bodyFont: { size: 12, family: "'Inter', sans-serif" },
-            padding: 12,
+            backgroundColor: "#1f2937",
             cornerRadius: 8,
-            boxPadding: 4,
-            caretSize: 6,
-            borderColor: "rgba(59, 130, 246, 0.3)",
+            titleColor: "#fff",
+            bodyColor: "#d1d5db",
+            borderColor: "#3b82f6",
             borderWidth: 1,
+            titleFont: { size: 13, weight: "600", family: "Inter" },
+            bodyFont: { size: 12, family: "Inter" },
             callbacks: {
               label: (ctx) => `${ctx.raw} trades`,
-              title: (tooltipItems) => `Symbol: ${tooltipItems[0].label}`,
+              title: (items) => `Symbol: ${items[0].label}`,
             },
           },
         },
         scales: {
           x: {
-            title: {
-              display: true,
-              text: "Symbol",
-              color: "#9ca3af",
-              font: { size: 14, weight: "600", family: "'Inter', sans-serif" },
-              padding: { top: 10 },
-            },
             ticks: {
               color: "#9ca3af",
-              font: { size: 12, family: "'Inter', sans-serif" },
-              maxRotation: 45,
-              minRotation: 45,
+              font: { size: 12, family: "Inter" },
+              padding: 6,
             },
             grid: {
               display: false,
             },
-            border: {
-              color: "rgba(0, 0, 0, 0.05)",
-            },
           },
           y: {
             beginAtZero: true,
-            title: {
-              display: true,
-              text: "Trade Count",
-              color: "#9ca3af",
-              font: { size: 14, weight: "600", family: "'Inter', sans-serif" },
-              padding: { bottom: 10 },
-            },
             ticks: {
               color: "#9ca3af",
-              font: { size: 12, family: "'Inter', sans-serif" },
               stepSize: 1,
-              padding: 8,
+              font: { size: 12, family: "Inter" },
             },
             grid: {
-              color: "rgba(0, 0, 0, 0.05)",
-              drawBorder: false,
+              color: "rgba(255,255,255,0.04)",
               drawTicks: false,
-            },
-            border: {
-              color: "rgba(0, 0, 0, 0.05)",
+              borderDash: [3, 3],
             },
           },
-        },
-        animation: {
-          duration: 1200,
-          easing: "easeOutQuart",
-        },
-        hover: {
-          mode: "nearest",
-          intersect: true,
-          animationDuration: 200,
         },
       },
     });
 
-    return () => {
-      if (chartInstanceRef.current) {
-        chartInstanceRef.current.destroy();
-      }
-    };
+    return () => chartInstanceRef.current?.destroy();
   }, [filteredTrades]);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className="h-[400px] relative"
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="h-[400px] w-full relative"
     >
-      {filteredTrades && filteredTrades.length > 0 ? (
-        <canvas ref={chartRef} className="drop-shadow-sm" />
+      {filteredTrades?.length > 0 ? (
+        <canvas ref={chartRef} className="drop-shadow-md" />
       ) : (
         <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400 text-sm font-medium">
           No trades available to display.
