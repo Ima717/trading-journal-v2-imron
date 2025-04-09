@@ -33,7 +33,6 @@ const ChartPnLBySymbol = () => {
       (symbol) => symbolMap[symbol].totalPnL / symbolMap[symbol].count
     );
 
-    // Identify top gainer and loser
     let gainer = { symbol: "N/A", pnl: -Infinity, count: 0 };
     let loser = { symbol: "N/A", pnl: Infinity, count: 0 };
 
@@ -50,9 +49,7 @@ const ChartPnLBySymbol = () => {
     setTopGainer(gainer);
     setTopLoser(loser);
 
-    if (chartInstanceRef.current) {
-      chartInstanceRef.current.destroy();
-    }
+    if (chartInstanceRef.current) chartInstanceRef.current.destroy();
 
     const ctx = chartRef.current.getContext("2d");
     chartInstanceRef.current = new Chart(ctx, {
@@ -102,11 +99,11 @@ const ChartPnLBySymbol = () => {
           },
           y: {
             beginAtZero: true,
+            title: { display: false },
             ticks: {
               color: "#6b7280",
               font: { size: 12, family: "Inter" },
             },
-            title: { display: false },
             grid: {
               color: "rgba(0,0,0,0.06)",
               drawTicks: false,
@@ -119,37 +116,39 @@ const ChartPnLBySymbol = () => {
   }, [filteredTrades]);
 
   return (
-    <div className="flex flex-col md:flex-row w-full gap-6 bg-white dark:bg-zinc-900 rounded-lg p-6">
-      {/* Chart */}
-      <div className="w-full md:w-[72%] h-[400px] flex items-center">
-        <canvas ref={chartRef} className="w-full h-full" />
-      </div>
-
-      {/* Stats */}
-      <div className="w-full md:w-[28%] flex flex-col justify-center gap-6 text-sm pr-2 md:pr-6">
-        <div className="border-l-4 pl-4 border-green-500">
-          <div className="text-xs uppercase text-green-600 dark:text-green-400 mb-1 tracking-wide">
-            Top Gainer
-          </div>
-          <div className="text-xl font-bold text-green-600 dark:text-green-400 font-mono">
-            {topGainer.symbol}
-          </div>
-          <div className="text-gray-600 dark:text-gray-400 text-xs">
-            +${topGainer.pnl.toFixed(2)} avg P&L{" "}
-            <span className="whitespace-nowrap">({topGainer.count} trades)</span>
-          </div>
+    <div className="w-full bg-white dark:bg-zinc-900 rounded-lg p-6">
+      <div className="flex flex-col md:flex-row gap-6">
+        {/* Chart Full Width */}
+        <div className="w-full md:w-[74%] min-h-[400px] flex items-center justify-center py-4 px-2">
+          <canvas ref={chartRef} className="w-full h-full" />
         </div>
 
-        <div className="border-l-4 pl-4 border-red-500">
-          <div className="text-xs uppercase text-red-600 dark:text-red-400 mb-1 tracking-wide">
-            Top Loser
+        {/* Gainer/Loser Block */}
+        <div className="w-full md:w-[26%] flex flex-col justify-center gap-6 text-sm pr-2 md:pr-6">
+          <div className="border-l-4 pl-4 border-green-500">
+            <div className="text-xs uppercase text-green-600 dark:text-green-400 mb-1 tracking-wide">
+              Top Gainer
+            </div>
+            <div className="text-xl font-bold text-green-600 dark:text-green-400 font-mono">
+              {topGainer.symbol}
+            </div>
+            <div className="text-gray-600 dark:text-gray-400 text-xs">
+              +${topGainer.pnl.toFixed(2)} avg P&L{" "}
+              <span className="whitespace-nowrap">({topGainer.count} trades)</span>
+            </div>
           </div>
-          <div className="text-xl font-bold text-red-600 dark:text-red-400 font-mono">
-            {topLoser.symbol}
-          </div>
-          <div className="text-gray-600 dark:text-gray-400 text-xs">
-            -${Math.abs(topLoser.pnl).toFixed(2)} avg P&L{" "}
-            <span className="whitespace-nowrap">({topLoser.count} trades)</span>
+
+          <div className="border-l-4 pl-4 border-red-500">
+            <div className="text-xs uppercase text-red-600 dark:text-red-400 mb-1 tracking-wide">
+              Top Loser
+            </div>
+            <div className="text-xl font-bold text-red-600 dark:text-red-400 font-mono">
+              {topLoser.symbol}
+            </div>
+            <div className="text-gray-600 dark:text-gray-400 text-xs">
+              -${Math.abs(topLoser.pnl).toFixed(2)} avg P&L{" "}
+              <span className="whitespace-nowrap">({topLoser.count} trades)</span>
+            </div>
           </div>
         </div>
       </div>
