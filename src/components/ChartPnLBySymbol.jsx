@@ -107,7 +107,7 @@ const ChartPnLBySymbol = () => {
               color: "#6b7280",
               font: { size: 12, family: "Inter" },
             },
-            title: { display: false }, // ❌ remove y-axis title
+            title: { display: false }, // Axis title removed
             grid: {
               color: "rgba(0,0,0,0.06)",
               drawTicks: false,
@@ -136,7 +136,8 @@ const ChartPnLBySymbol = () => {
             {topGainer.symbol}
           </div>
           <div className="text-gray-600 dark:text-gray-400 text-xs">
-            +${topGainer.pnl.toFixed(2)} avg P&L ({topGainer.count} trades)
+            +${topGainer.pnl.toFixed(2)} avg P&L{" "}
+            <span className="whitespace-nowrap">({topGainer.count} trades)</span>
           </div>
         </div>
 
@@ -148,7 +149,8 @@ const ChartPnLBySymbol = () => {
             {topLoser.symbol}
           </div>
           <div className="text-gray-600 dark:text-gray-400 text-xs">
-            -${Math.abs(topLoser.pnl).toFixed(2)} avg P&L ({topLoser.count} trades)
+            -${Math.abs(topLoser.pnl).toFixed(2)} avg P&L{" "}
+            <span className="whitespace-nowrap">({topLoser.count} trades)</span>
           </div>
         </div>
       </div>
