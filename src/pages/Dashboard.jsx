@@ -51,7 +51,7 @@ const Dashboard = () => {
         const amount = parseFloat(data.amount) || 0;
         const commission = parseFloat(data.commission) || 0;
         const fees = parseFloat(data.fees) || 0;
-        const pnl = parseFloat(data.pnl) || 0;
+        const pnl = parseFloat(data.pnl) || 0; // Use stored P&L
         return {
           id: doc.id,
           ...data,
@@ -64,21 +64,34 @@ const Dashboard = () => {
         };
       });
 
+      console.log("Raw trades from Firestore:", trades);
+
+      // Use stored P&L instead of recalculating
       let finalTrades = trades;
       if (dateRange.start && dateRange.end) {
         const start = dayjs(dateRange.start);
         const end = dayjs(dateRange.end);
         finalTrades = trades.filter((t) => {
           const entryTime = dayjs(t.entryTime);
-          return entryTime.isValid() && entryTime.isAfter(start.subtract(1, "day")) && entryTime.isBefore(end.add(1, "day"));
+          return (
+            entryTime.isValid() &&
+            entryTime.isAfter(start.subtract(1, "day")) &&
+            entryTime.isBefore(end.add(1, "day"))
+          );
         });
       }
 
+      console.log("Filtered trades (local):", finalTrades);
+
       setLocalTrades(finalTrades);
       const displayTrades = filteredTrades.length > 0 && filteredTrades.every(t => t.pnl !== undefined) ? filteredTrades : finalTrades;
+      console.log("Display trades (after FilterContext):", displayTrades);
 
-      setPnlData(getPnLOverTime(displayTrades));
-      setZellaTrendData(getZellaScoreOverTime(displayTrades));
+      const pnlSeries = getPnLOverTime(displayTrades);
+      const zellaSeries = getZellaScoreOverTime(displayTrades);
+      console.log("P&L Series for Equity Curve:", pnlSeries);
+      setPnlData(pnlSeries);
+      setZellaTrendData(zellaSeries);
 
       const tagMap = {};
       displayTrades.forEach((trade) => {
@@ -108,21 +121,40 @@ const Dashboard = () => {
 
   const tradesToDisplay = filteredTrades.length > 0 && filteredTrades.every(t => t.pnl !== undefined) ? filteredTrades : localTrades;
 
-  const netPnL = tradesToDisplay.reduce((sum, t) => sum + (t.pnl || 0), 0);
+  // Core Metrics
   const totalTrades = tradesToDisplay.length;
   const wins = tradesToDisplay.filter((t) => t.pnl > 0);
   const losses = tradesToDisplay.filter((t) => t.pnl < 0);
-  const winRate = totalTrades ? ((wins.length / totalTrades) * 100).toFixed(2) : "0.00";
 
-  const avgWin = wins.length ? wins.reduce((s, t) => s + t.pnl, 0) / wins.length : 0;
-  const avgLoss = losses.length ? Math.abs(losses.reduce((s, t) => s + t.pnl, 0) / losses.length) : 0;
-  const avgWinLossTrade = avgLoss === 0 ? "Infinity" : (avgWin / avgLoss).toFixed(2);
+  // Trade Win %
+  const tradeWinPercent = totalTrades ? ((wins.length / totalTrades) * 100).toFixed(2) : "0.00";
 
-  const profitFactor = losses.length
-    ? (wins.reduce((s, t) => s + t.pnl, 0) / Math.abs(losses.reduce((s, t) => s + t.pnl, 0))).toFixed(2)
-    : wins.length ? "Infinity" : "0.00";
+  // Profit Factor
+  const grossProfit = wins.reduce((sum, t) => sum + t.pnl, 0);
+  const grossLoss = Math.abs(losses.reduce((sum, t) => sum + t.pnl, 0));
+  const profitFactor = totalTrades
+    ? grossLoss > 0
+      ? (grossProfit / grossLoss).toFixed(2)
+      : grossProfit > 0
+      ? "Infinity"
+      : "0.00"
+    : "0.00";
 
-  const tradingDays = [...new Set(tradesToDisplay.map((t) => dayjs(t.entryTime).format("YYYY-MM-DD")))];
+  // Avg Win/Loss Trade
+  const avgWin = wins.length ? grossProfit / wins.length : 0;
+  const avgLoss = losses.length ? grossLoss / losses.length : 0;
+  const avgWinLossTrade = wins.length && losses.length
+    ? (avgWin / avgLoss).toFixed(2)
+    : wins.length
+    ? "Infinity"
+    : losses.length
+    ? "0.00"
+    : "N/A";
+
+  // Day Win %
+  const tradingDays = [...new Set(tradesToDisplay.map((t) =>
+    dayjs(t.entryTime).isValid() ? dayjs(t.entryTime).format("YYYY-MM-DD") : null
+  ).filter(day => day !== null))];
   const winningDays = tradingDays.filter((day) => {
     const dayPnL = tradesToDisplay
       .filter((t) => dayjs(t.entryTime).format("YYYY-MM-DD") === day)
@@ -133,6 +165,8 @@ const Dashboard = () => {
     ? ((winningDays.length / tradingDays.length) * 100).toFixed(2)
     : "0.00";
 
+  // Other Calculations
+  const netPnL = tradesToDisplay.reduce((sum, t) => sum + (t.pnl || 0), 0);
   const cumulativePnl = [];
   let runningPnl = 0;
   tradesToDisplay
@@ -148,7 +182,7 @@ const Dashboard = () => {
   const recoveryFactor = peak !== 0 ? Math.abs(peak / trough) : 0;
 
   const getWinRateBackground = () => {
-    const winRateValue = parseFloat(winRate);
+    const winRateValue = parseFloat(tradeWinPercent);
     if (winRateValue > 60) return "bg-gradient-to-r from-green-400 to-green-500 text-white";
     if (winRateValue >= 40) return "bg-gradient-to-r from-yellow-400 to-yellow-500 text-white";
     return "bg-gradient-to-r from-red-400 to-red-500 text-white";
@@ -184,7 +218,7 @@ const Dashboard = () => {
                 />
                 <StatCard
                   title="Trade Win %"
-                  value={`${winRate}%`}
+                  value={`${tradeWinPercent}%`}
                   customBg={getWinRateBackground()}
                   tooltip="Winning trades vs total trades."
                 />
