@@ -92,8 +92,9 @@ const ChartPnLBySymbol = () => {
             ticks: {
               color: "#6b7280",
               font: { size: 12, family: "Inter" },
-              maxRotation: 45,
-              minRotation: 45,
+              maxRotation: 0,
+              minRotation: 0,
+              align: "center",
             },
             grid: { display: false },
           },
@@ -119,7 +120,7 @@ const ChartPnLBySymbol = () => {
     <div className="w-full bg-white dark:bg-zinc-900 rounded-lg p-6">
       <div className="flex flex-col md:flex-row gap-6">
         {/* Chart Full Width */}
-        <div className="w-full md:w-[74%] min-h-[400px] flex items-center justify-center py-4 px-2">
+        <div className="w-full md:w-[74%] min-h-[400px] flex items-center justify-center pt-6 pb-8 px-2">
           <canvas ref={chartRef} className="w-full h-full" />
         </div>
 
