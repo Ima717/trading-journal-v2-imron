@@ -36,23 +36,23 @@ const ChartZellaScore = ({ data }) => {
           const { ctx, chartArea } = chart;
           if (!chartArea) return null;
           const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-          gradient.addColorStop(0, "rgba(139, 92, 246, 0.15)");
-          gradient.addColorStop(1, "rgba(139, 92, 246, 0.5)");
+          gradient.addColorStop(0, "rgba(139, 92, 246, 0.1)");
+          gradient.addColorStop(1, "rgba(139, 92, 246, 0.4)");
           return gradient;
         },
-        borderColor: "transparent",
-        borderWidth: 0,
-        pointBackgroundColor: "rgba(139, 92, 246, 0.7)",
+        borderColor: "transparent", // Remove the solid border
+        borderWidth: 0, // No border to match the gradient fill style
+        pointBackgroundColor: "rgba(139, 92, 246, 1)",
         pointBorderColor: "#fff",
         pointHoverBackgroundColor: "#fff",
         pointHoverBorderColor: "rgba(139, 92, 246, 1)",
-        pointRadius: 3,
-        pointHoverRadius: 4,
+        pointRadius: 4,
+        pointHoverRadius: 6,
       },
     ],
   };
 
-  // Radar chart options with enhanced styling
+  // Radar chart options with gradient grid and precise styling
   const radarOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -68,25 +68,25 @@ const ChartZellaScore = ({ data }) => {
         ticks: { display: false },
         grid: {
           color: (context) => {
+            // Create a gradient effect for the grid lines
             const value = context.tick.value;
             const max = 100;
-            const opacity = 0.3 + (value / max) * 0.5;
-            return `rgba(180, 180, 180, ${opacity})`;
+            const opacity = 0.1 + (value / max) * 0.2; // Gradient from 0.1 to 0.3 opacity
+            return `rgba(229, 231, 235, ${opacity})`;
           },
-          lineWidth: 2,
+          lineWidth: 1,
         },
         angleLines: {
-          color: "rgba(180, 180, 180, 0.6)",
-          lineWidth: 2,
+          color: "rgba(229, 231, 235, 0.2)",
         },
         pointLabels: {
           color: "#6b7280",
           font: {
             size: 12,
             family: "'Inter', sans-serif",
-            weight: "600",
+            weight: "500",
           },
-          padding: 25,
+          padding: 10,
         },
       },
     },
@@ -105,7 +105,7 @@ const ChartZellaScore = ({ data }) => {
     },
     elements: {
       line: {
-        tension: 0,
+        tension: 0.4,
       },
     },
   };
@@ -133,15 +133,6 @@ const ChartZellaScore = ({ data }) => {
     },
   };
 
-  const labelVariants = {
-    hidden: { opacity: 0, y: 5 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: "easeOut", delay: 0.2 },
-    },
-  };
-
   return (
     <motion.div
       variants={containerVariants}
@@ -149,20 +140,19 @@ const ChartZellaScore = ({ data }) => {
       animate="visible"
       className="flex flex-col items-center w-[300px] bg-white dark:bg-zinc-800 rounded-xl shadow-lg"
     >
-      {/* Radar Chart - No wrapper, dimensions set directly */}
-      <Radar data={radarData} options={radarOptions} height={240} width={300} />
+      {/* Radar Chart */}
+      <div className="w-[300px] h-[240px] flex items-center justify-center">
+        <Radar data={radarData} options={radarOptions} />
+      </div>
 
       {/* Score Line */}
       <motion.div
         variants={childVariants}
         className="w-full flex flex-col items-center px-4 pb-4"
       >
-        <motion.span
-          variants={labelVariants}
-          className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 uppercase"
-        >
+        <span className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 uppercase">
           Your Zella Score
-        </motion.span>
+        </span>
 
         <div className="relative w-[220px] h-2 bg-gray-200 dark:bg-zinc-700 rounded-full overflow-hidden mb-1">
           <div
@@ -184,21 +174,20 @@ const ChartZellaScore = ({ data }) => {
         </div>
 
         {/* Score markers */}
-        <motion.div
-          variants={labelVariants}
-          className="relative w-[220px] flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-2"
-        >
+        <div className="relative w-[220px] flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-2">
           <span>0</span>
           <span>20</span>
           <span>40</span>
           <span>60</span>
           <span>80</span>
           <span>100</span>
-        </motion.div>
+        </div>
 
         <motion.div
-          variants={childVariants}
           className="text-2xl font-bold text-zinc-900 dark:text-white"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
         >
           {normalizedScore.toFixed(1)}
         </motion.div>
