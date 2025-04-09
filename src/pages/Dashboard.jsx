@@ -143,7 +143,7 @@ const Dashboard = () => {
     return dayPnL > 0;
   });
   const dayWinPercent = tradingDays.length
-    ? ((winningDays.length / tradingDays.length) * 100).toFixed(2)
+    ? ((winningDays.length / tradingDays W-full.length) * 100).toFixed(2)
     : "0.00";
 
   const cumulativePnl = [];
