@@ -51,7 +51,7 @@ const Dashboard = () => {
         const amount = parseFloat(data.amount) || 0;
         const commission = parseFloat(data.commission) || 0;
         const fees = parseFloat(data.fees) || 0;
-        const pnl = parseFloat(data.pnl) || 0; // Use stored P&L
+        const pnl = parseFloat(data.pnl) || 0;
         return {
           id: doc.id,
           ...data,
@@ -64,34 +64,21 @@ const Dashboard = () => {
         };
       });
 
-      console.log("Raw trades from Firestore:", trades);
-
-      // Use stored P&L instead of recalculating
       let finalTrades = trades;
       if (dateRange.start && dateRange.end) {
         const start = dayjs(dateRange.start);
         const end = dayjs(dateRange.end);
         finalTrades = trades.filter((t) => {
           const entryTime = dayjs(t.entryTime);
-          return (
-            entryTime.isValid() &&
-            entryTime.isAfter(start.subtract(1, "day")) &&
-            entryTime.isBefore(end.add(1, "day"))
-          );
+          return entryTime.isValid() && entryTime.isAfter(start.subtract(1, "day")) && entryTime.isBefore(end.add(1, "day"));
         });
       }
 
-      console.log("Filtered trades (local):", finalTrades);
-
       setLocalTrades(finalTrades);
       const displayTrades = filteredTrades.length > 0 && filteredTrades.every(t => t.pnl !== undefined) ? filteredTrades : finalTrades;
-      console.log("Display trades (after FilterContext):", displayTrades);
 
-      const pnlSeries = getPnLOverTime(displayTrades);
-      const zellaSeries = getZellaScoreOverTime(displayTrades);
-      console.log("P&L Series for Equity Curve:", pnlSeries);
-      setPnlData(pnlSeries);
-      setZellaTrendData(zellaSeries);
+      setPnlData(getPnLOverTime(displayTrades));
+      setZellaTrendData(getZellaScoreOverTime(displayTrades));
 
       const tagMap = {};
       displayTrades.forEach((trade) => {
@@ -128,9 +115,9 @@ const Dashboard = () => {
   const winRate = totalTrades ? ((wins.length / totalTrades) * 100).toFixed(2) : "0.00";
 
   const avgWin = wins.length ? wins.reduce((s, t) => s + t.pnl, 0) / wins.length : 0;
-  const avgLoss = losses.length
-    ? Math.abs(losses.reduce((s, t) => s + t.pnl, 0) / losses.length)
-    : 0;
+  const avgLoss = losses.length ? Math.abs(losses.reduce((s, t) => s + t.pnl, 0) / losses.length) : 0;
+  const avgWinLossTrade = avgLoss === 0 ? "Infinity" : (avgWin / avgLoss).toFixed(2);
+
   const profitFactor = losses.length
     ? (wins.reduce((s, t) => s + t.pnl, 0) / Math.abs(losses.reduce((s, t) => s + t.pnl, 0))).toFixed(2)
     : wins.length ? "Infinity" : "0.00";
@@ -139,11 +126,11 @@ const Dashboard = () => {
   const winningDays = tradingDays.filter((day) => {
     const dayPnL = tradesToDisplay
       .filter((t) => dayjs(t.entryTime).format("YYYY-MM-DD") === day)
-      .reduce((sum, t) => sum + t.pnl, 0);
+      .reduce((sum, t) => sum + (t.pnl || 0), 0);
     return dayPnL > 0;
   });
   const dayWinPercent = tradingDays.length
-    ? ((winningDays.length / tradingDays W-full.length) * 100).toFixed(2)
+    ? ((winningDays.length / tradingDays.length) * 100).toFixed(2)
     : "0.00";
 
   const cumulativePnl = [];
@@ -161,8 +148,9 @@ const Dashboard = () => {
   const recoveryFactor = peak !== 0 ? Math.abs(peak / trough) : 0;
 
   const getWinRateBackground = () => {
-    if (winRate > 60) return "bg-gradient-to-r from-green-400 to-green-500 text-white";
-    if (winRate >= 40) return "bg-gradient-to-r from-yellow-400 to-yellow-500 text-white";
+    const winRateValue = parseFloat(winRate);
+    if (winRateValue > 60) return "bg-gradient-to-r from-green-400 to-green-500 text-white";
+    if (winRateValue >= 40) return "bg-gradient-to-r from-yellow-400 to-yellow-500 text-white";
     return "bg-gradient-to-r from-red-400 to-red-500 text-white";
   };
 
@@ -189,18 +177,32 @@ const Dashboard = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                 <StatCard
                   title="Net P&L"
-                  value={$${netPnL.toFixed(2)}}
+                  value={`$${netPnL.toFixed(2)}`}
                   color={netPnL >= 0 ? "text-green-600" : "text-red-500"}
                   badge={totalTrades}
                   tooltip="Total net profit/loss across all trades."
                 />
                 <StatCard
                   title="Trade Win %"
-                  value={${winRate}%}
+                  value={`${winRate}%`}
                   customBg={getWinRateBackground()}
                   tooltip="Winning trades vs total trades."
                 />
-                <StatCard title="Profit Factor" value={profitFactor} tooltip="Gross profit / gross loss." />
+                <StatCard
+                  title="Profit Factor"
+                  value={profitFactor}
+                  tooltip="Gross profit / gross loss."
+                />
+                <StatCard
+                  title="Avg Win/Loss Trade"
+                  value={avgWinLossTrade}
+                  tooltip="Average win amount / average loss amount."
+                />
+                <StatCard
+                  title="Day Win %"
+                  value={`${dayWinPercent}%`}
+                  tooltip="Percentage of days with positive net P&L."
+                />
               </div>
 
               <div className="mb-6">
