@@ -129,7 +129,6 @@ const ChartZellaScore = ({ data }) => {
       {/* Title with info icon */}
       <div className="flex items-center mb-2 px-1">
         <div className="ml-1 w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center">
-          <span className="text-gray-400 text-xs font-light">i</span>
         </div>
       </div>
       
