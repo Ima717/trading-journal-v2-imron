@@ -11,7 +11,7 @@ const ChartPnLBySymbol = () => {
     if (!filteredTrades || filteredTrades.length === 0) return;
 
     const getBaseSymbol = (symbol) => {
-      const match = symbol.match(/^([A-Z]+)([0-9]{6}[CP][0-9]+)$/);
+      const match = symbol?.match(/^([A-Z]+)/);
       return match ? match[1] : symbol;
     };
 
@@ -109,11 +109,16 @@ const ChartPnLBySymbol = () => {
   }, [filteredTrades]);
 
   return (
-    <div className="w-full bg-white dark:bg-zinc-900 rounded-xl p-6 shadow-sm">
-      <div className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-4">
-        PnL by Symbol
+    <div className="w-full h-[360px] bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200/60 p-5">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-semibold text-gray-800 dark:text-white tracking-wide">
+          PnL by Symbol
+        </h3>
       </div>
-      <div className="min-h-[360px]">
+
+      {/* Chart */}
+      <div className="h-full">
         <canvas ref={chartRef} className="w-full h-full" />
       </div>
     </div>
