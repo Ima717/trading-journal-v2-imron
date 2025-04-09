@@ -103,16 +103,11 @@ const ChartPnLBySymbol = () => {
           },
           y: {
             beginAtZero: true,
-            title: {
-              display: true,
-              text: "Avg P&L ($)",
-              color: "#6b7280",
-              font: { weight: "bold", family: "Inter" },
-            },
             ticks: {
               color: "#6b7280",
               font: { size: 12, family: "Inter" },
             },
+            title: { display: false }, // ❌ remove y-axis title
             grid: {
               color: "rgba(0,0,0,0.06)",
               drawTicks: false,
@@ -127,8 +122,8 @@ const ChartPnLBySymbol = () => {
   return (
     <div className="flex flex-col md:flex-row w-full gap-6 bg-white dark:bg-zinc-900 rounded-lg p-6">
       {/* Chart */}
-      <div className="w-full md:w-2/3 h-[400px]">
-        <canvas ref={chartRef} />
+      <div className="w-full md:w-2/3 h-[400px] flex items-center">
+        <canvas ref={chartRef} className="w-full h-full" />
       </div>
 
       {/* Top Gainer / Loser Panel */}
