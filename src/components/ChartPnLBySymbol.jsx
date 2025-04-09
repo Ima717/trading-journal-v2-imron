@@ -50,7 +50,6 @@ const ChartPnLBySymbol = () => {
     setTopGainer(gainer);
     setTopLoser(loser);
 
-    // Destroy old chart instance
     if (chartInstanceRef.current) {
       chartInstanceRef.current.destroy();
     }
@@ -107,7 +106,7 @@ const ChartPnLBySymbol = () => {
               color: "#6b7280",
               font: { size: 12, family: "Inter" },
             },
-            title: { display: false }, // Axis title removed
+            title: { display: false },
             grid: {
               color: "rgba(0,0,0,0.06)",
               drawTicks: false,
@@ -122,12 +121,12 @@ const ChartPnLBySymbol = () => {
   return (
     <div className="flex flex-col md:flex-row w-full gap-6 bg-white dark:bg-zinc-900 rounded-lg p-6">
       {/* Chart */}
-      <div className="w-full md:w-2/3 h-[400px] flex items-center">
+      <div className="w-full md:w-[72%] h-[400px] flex items-center">
         <canvas ref={chartRef} className="w-full h-full" />
       </div>
 
-      {/* Top Gainer / Loser Panel */}
-      <div className="w-full md:w-1/3 flex flex-col justify-center gap-6 text-sm">
+      {/* Stats */}
+      <div className="w-full md:w-[28%] flex flex-col justify-center gap-6 text-sm pr-2 md:pr-6">
         <div className="border-l-4 pl-4 border-green-500">
           <div className="text-xs uppercase text-green-600 dark:text-green-400 mb-1 tracking-wide">
             Top Gainer
