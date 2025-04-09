@@ -200,9 +200,7 @@ const Dashboard = () => {
                   customBg={getWinRateBackground()}
                   tooltip="Winning trades vs total trades."
                 />
-                <StatCard title="Profit Factor" value={profitFactor} tooltip="Gross profit / gross loss.">
-                  {donut}
-                </StatCard>
+                <StatCard title="Profit Factor" value={profitFactor} tooltip="Gross profit / gross loss." />
               </div>
 
               <div className="mb-6">
