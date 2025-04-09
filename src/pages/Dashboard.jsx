@@ -6,7 +6,6 @@ import { useAuth } from "../context/AuthContext";
 import { useFilters } from "../context/FilterContext";
 import { useTheme } from "../context/ThemeContext";
 import dayjs from "dayjs";
-import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import { motion } from "framer-motion";
 
 import TradeTabs from "../components/TradeTabs";
