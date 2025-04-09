@@ -109,12 +109,6 @@ const ChartPnLBySymbol = () => {
 
   return (
     <div className="w-full h-[360px] bg-white dark:bg-zinc-800 rounded-xl shadow-sm p-5">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-gray-800 dark:text-white tracking-wide">
-          PnL by Symbol
-        </h3>
-      </div>
 
       {/* Chart Canvas */}
       <div className="h-full">
