@@ -227,20 +227,10 @@ const Dashboard = () => {
                   value={profitFactor}
                   tooltip="Gross profit / gross loss."
                 />
-                <StatCard
-                  title="Avg Win/Loss Trade"
-                  value={avgWinLossTrade}
-                  tooltip="Average win amount / average loss amount."
-                />
-                <StatCard
-                  title="Day Win %"
-                  value={`${dayWinPercent}%`}
-                  tooltip="Percentage of days with positive net P&L."
-                />
               </div>
 
               <div className="mb-6">
-                <WinStatsCard />
+                <WinStatsCard dayWinPercent={dayWinPercent} avgWinLossTrade={avgWinLossTrade} />
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-stretch">
