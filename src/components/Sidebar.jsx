@@ -38,24 +38,20 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
     collapsed: { width: 60 },
   };
 
-  // Nav item animation variants (only for initial load)
+  // Text animation variants for collapse/expand
+  const textVariants = {
+    visible: { opacity: 1, width: "auto", transition: { duration: 0.25, ease: "easeOut" } },
+    hidden: { opacity: 0, width: 0, transition: { duration: 0.25, ease: "easeIn" } },
+  };
+
+  // Initial load animation for nav items
   const itemVariants = {
     hidden: { opacity: 0, x: -50 },
     visible: (i) => ({
       opacity: 1,
       x: 0,
-      transition: {
-        delay: i * 0.1,
-        duration: 0.4,
-        ease: [0.4, 0, 0.2, 1],
-      },
+      transition: { delay: i * 0.1, duration: 0.4, ease: [0.4, 0, 0.2, 1] },
     }),
-  };
-
-  // Text animation variants for collapse/expand
-  const textVariants = {
-    visible: { opacity: 1, width: "auto", transition: { duration: 0.2, ease: "easeOut" } },
-    hidden: { opacity: 0, width: 0, transition: { duration: 0.2, ease: "easeIn" } },
   };
 
   const handleLogout = async () => {
@@ -66,7 +62,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
   return (
     <motion.div
       variants={sidebarVariants}
-      initial="expanded" // Start expanded to avoid initial collapse jump
+      initial="expanded"
       animate={collapsed ? "collapsed" : "expanded"}
       transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
       className="h-screen bg-gradient-to-b from-[#1A1F36] to-[#2A3147] text-gray-200 fixed z-20 shadow-xl flex flex-col overflow-hidden"
@@ -122,16 +118,16 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
               variants={itemVariants}
               initial="hidden"
               animate="visible"
-              layout // Ensures smooth repositioning during collapse
-              className="relative group"
+              className="relative group flex items-center"
+              layout // Smooth layout transitions
             >
               <Link
                 to={item.path}
-                className={`flex items-center gap-3 text-sm px-3 py-2.5 rounded-lg transition-all duration-200 ${
+                className={`flex items-center gap-3 text-sm w-full px-3 py-2.5 rounded-lg transition-all duration-200 ${
                   location.pathname === item.path
                     ? "bg-indigo-900/80 text-indigo-200 shadow-inner"
                     : "hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200"
-                }`}
+                } ${collapsed ? "justify-center" : ""}`}
               >
                 <motion.div
                   whileHover={{ scale: 1.15, rotate: 5 }}
@@ -147,14 +143,14 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
                       initial="hidden"
                       animate="visible"
                       exit="hidden"
-                      className="overflow-hidden whitespace-nowrap"
+                      className="overflow-hidden whitespace-nowrap flex-1"
                     >
                       {item.name}
                     </motion.span>
                   )}
                 </AnimatePresence>
                 {!collapsed && item.badge && (
-                  <span className="ml-auto text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
+                  <span className="text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
                     {item.badge}
                   </span>
                 )}
@@ -184,7 +180,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
         >
           <Link
             to="/import"
-            className="flex items-center gap-3 text-sm px-3 py-2.5 rounded-lg hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200 transition-all duration-200"
+            className={`flex items-center gap-3 text-sm px-3 py-2.5 rounded-lg hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200 transition-all duration-200 ${collapsed ? "justify-center" : ""}`}
           >
             <motion.div whileHover={{ scale: 1.15 }} transition={{ duration: 0.2 }}>
               <Upload size={20} />
@@ -193,7 +189,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
           </Link>
           <button
             onClick={toggleTheme}
-            className="flex items-center gap-3 text-sm px-3 py-2.5 rounded-lg hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200 w-full text-left transition-all duration-200"
+            className={`flex items-center gap-3 text-sm px-3 py-2.5 rounded-lg hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200 w-full text-left transition-all duration-200 ${collapsed ? "justify-center" : ""}`}
           >
             <motion.div whileHover={{ scale: 1.15 }} transition={{ duration: 0.2 }}>
               {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
@@ -202,7 +198,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
           </button>
           <Link
             to="/settings"
-            className="flex items-center gap-3 text-sm px-3 py-2.5 rounded-lg hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200 transition-all duration-200"
+            className={`flex items-center gap-3 text-sm px-3 py-2.5 rounded-lg hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200 transition-all duration-200 ${collapsed ? "justify-center" : ""}`}
           >
             <motion.div whileHover={{ scale: 1.15 }} transition={{ duration: 0.2 }}>
               <User size={20} />
@@ -211,7 +207,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
           </Link>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 text-sm px-3 py-2.5 rounded-lg hover:bg-red-800/80 text-gray-300 hover:text-white w-full text-left transition-all duration-200"
+            className={`flex items-center gap-3 text-sm px-3 py-2.5 rounded-lg hover:bg-red-800/80 text-gray-300 hover:text-white w-full text-left transition-all duration-200 ${collapsed ? "justify-center" : ""}`}
           >
             <motion.div whileHover={{ scale: 1.15 }} transition={{ duration: 0.2 }}>
               <LogOut size={20} />
