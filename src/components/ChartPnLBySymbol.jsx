@@ -56,7 +56,6 @@ const ChartPnLBySymbol = () => {
         labels,
         datasets: [
           {
-            label: "Avg P&L",
             data,
             backgroundColor: colors,
             borderRadius: 6,
