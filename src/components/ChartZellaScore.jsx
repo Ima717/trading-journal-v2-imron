@@ -36,8 +36,8 @@ const ChartZellaScore = ({ data }) => {
           const { ctx, chartArea } = chart;
           if (!chartArea) return null;
           const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-          gradient.addColorStop(0, "rgba(139, 92, 246, 0.1)");
-          gradient.addColorStop(1, "rgba(139, 92, 246, 0.4)");
+          gradient.addColorStop(0, "rgba(139, 92, 246, 0.15)");
+          gradient.addColorStop(1, "rgba(139, 92, 246, 0.5)"); // More vibrant gradient
           return gradient;
         },
         borderColor: "transparent",
@@ -52,7 +52,7 @@ const ChartZellaScore = ({ data }) => {
     ],
   };
 
-  // Radar chart options with enhanced styling and positioning
+  // Radar chart options with enhanced styling
   const radarOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -68,17 +68,16 @@ const ChartZellaScore = ({ data }) => {
         ticks: { display: false },
         grid: {
           color: (context) => {
-            // Enhanced gradient for the grid lines with more contrast
+            // Enhanced gradient with a subtle glow effect
             const value = context.tick.value;
             const max = 100;
-            const opacity = 0.3 + (value / max) * 0.4; // Gradient from 0.3 to 0.7 opacity
-            return `rgba(200, 200, 200, ${opacity})`;
+            const opacity = 0.3 + (value / max) * 0.5; // Gradient from 0.3 to 0.8 opacity
+            return `rgba(180, 180, 180, ${opacity})`; // Slightly darker gray for contrast
           },
-          lineWidth: 2, // Thicker lines for better visibility
-          // Add a subtle shadow effect to the grid lines (Chart.js doesn't support this directly, so we rely on opacity and color)
+          lineWidth: 2,
         },
         angleLines: {
-          color: "rgba(200, 200, 200, 0.5)", // Increased contrast
+          color: "rgba(180, 180, 180, 0.6)",
           lineWidth: 2,
         },
         pointLabels: {
@@ -86,14 +85,14 @@ const ChartZellaScore = ({ data }) => {
           font: {
             size: 12,
             family: "'Inter', sans-serif",
-            weight: "600", // Bolder for a more polished look
+            weight: "600",
           },
-          padding: 25, // Increased padding to ensure no cutoff
+          padding: 25, // Ensure no cutoff
         },
       },
     },
     layout: {
-      padding: 0, // No padding to prevent gaps
+      padding: 0,
     },
     plugins: {
       legend: { display: false },
@@ -107,7 +106,7 @@ const ChartZellaScore = ({ data }) => {
     },
     elements: {
       line: {
-        tension: 0, // Straight lines instead of curves
+        tension: 0, // Straight lines
       },
     },
   };
@@ -135,6 +134,15 @@ const ChartZellaScore = ({ data }) => {
     },
   };
 
+  const labelVariants = {
+    hidden: { opacity: 0, y: 5 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: "easeOut", delay: 0.2 },
+    },
+  };
+
   return (
     <motion.div
       variants={containerVariants}
@@ -142,17 +150,22 @@ const ChartZellaScore = ({ data }) => {
       animate="visible"
       className="flex flex-col items-center w-[300px] bg-white dark:bg-zinc-800 rounded-xl shadow-lg"
     >
-      {/* Radar Chart - No extra wrapper */}
-      <Radar data={radarData} options={radarOptions} height={240} width={300} />
+      {/* Radar Chart - Restored wrapper for proper sizing */}
+      <div className="w-[300px] h-[240px] flex items-center justify-center">
+        <Radar data={radarData} options={radarOptions} />
+      </div>
 
       {/* Score Line */}
       <motion.div
         variants={childVariants}
         className="w-full flex flex-col items-center px-4 pb-4"
       >
-        <span className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 uppercase">
+        <motion.span
+          variants={labelVariants}
+          className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 uppercase"
+        >
           Your Zella Score
-        </span>
+        </motion.span>
 
         <div className="relative w-[220px] h-2 bg-gray-200 dark:bg-zinc-700 rounded-full overflow-hidden mb-1">
           <div
@@ -174,20 +187,21 @@ const ChartZellaScore = ({ data }) => {
         </div>
 
         {/* Score markers */}
-        <div className="relative w-[220px] flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-2">
+        <motion.div
+          variants={labelVariants}
+          className="relative w-[220px] flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-2"
+        >
           <span>0</span>
           <span>20</span>
           <span>40</span>
           <span>60</span>
           <span>80</span>
           <span>100</span>
-        </div>
+        </motion.div>
 
         <motion.div
+          variants={childVariants}
           className="text-2xl font-bold text-zinc-900 dark:text-white"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
         >
           {normalizedScore.toFixed(1)}
         </motion.div>
