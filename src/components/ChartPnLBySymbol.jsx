@@ -109,7 +109,7 @@ const ChartPnLBySymbol = () => {
   }, [filteredTrades]);
 
   return (
-    <div className="w-full h-[360px] bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200/60 p-5">
+    <div className="w-full h-[360px] bg-white dark:bg-zinc-800 rounded-xl shadow-sm p-5">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-gray-800 dark:text-white tracking-wide">
@@ -117,7 +117,7 @@ const ChartPnLBySymbol = () => {
         </h3>
       </div>
 
-      {/* Chart */}
+      {/* Chart Canvas */}
       <div className="h-full">
         <canvas ref={chartRef} className="w-full h-full" />
       </div>
