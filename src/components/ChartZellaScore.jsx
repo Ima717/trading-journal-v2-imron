@@ -40,19 +40,19 @@ const ChartZellaScore = ({ data }) => {
           gradient.addColorStop(1, "rgba(139, 92, 246, 0.4)");
           return gradient;
         },
-        borderColor: "transparent", // Remove the solid border
-        borderWidth: 0, // No border to match the gradient fill style
-        pointBackgroundColor: "rgba(139, 92, 246, 1)",
+        borderColor: "transparent",
+        borderWidth: 0,
+        pointBackgroundColor: "rgba(139, 92, 246, 0.7)", // Reduced opacity for less visibility
         pointBorderColor: "#fff",
         pointHoverBackgroundColor: "#fff",
         pointHoverBorderColor: "rgba(139, 92, 246, 1)",
-        pointRadius: 4,
-        pointHoverRadius: 6,
+        pointRadius: 3, // Smaller dots
+        pointHoverRadius: 4, // Slightly larger on hover
       },
     ],
   };
 
-  // Radar chart options with gradient grid and precise styling
+  // Radar chart options with adjusted positioning and visibility
   const radarOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -68,16 +68,17 @@ const ChartZellaScore = ({ data }) => {
         ticks: { display: false },
         grid: {
           color: (context) => {
-            // Create a gradient effect for the grid lines
+            // Increase visibility with a stronger gradient
             const value = context.tick.value;
             const max = 100;
-            const opacity = 0.1 + (value / max) * 0.2; // Gradient from 0.1 to 0.3 opacity
+            const opacity = 0.2 + (value / max) * 0.3; // Gradient from 0.2 to 0.5 opacity
             return `rgba(229, 231, 235, ${opacity})`;
           },
-          lineWidth: 1,
+          lineWidth: 1.5, // Slightly thicker lines for better visibility
         },
         angleLines: {
-          color: "rgba(229, 231, 235, 0.2)",
+          color: "rgba(229, 231, 235, 0.4)", // Increased opacity for visibility
+          lineWidth: 1.5,
         },
         pointLabels: {
           color: "#6b7280",
@@ -86,7 +87,7 @@ const ChartZellaScore = ({ data }) => {
             family: "'Inter', sans-serif",
             weight: "500",
           },
-          padding: 10,
+          padding: 20, // Increased padding to prevent label cutoff
         },
       },
     },
@@ -140,7 +141,7 @@ const ChartZellaScore = ({ data }) => {
       animate="visible"
       className="flex flex-col items-center w-[300px] bg-white dark:bg-zinc-800 rounded-xl shadow-lg"
     >
-      {/* Radar Chart */}
+      {/* Radar Chart - Centered with adjusted padding */}
       <div className="w-[300px] h-[240px] flex items-center justify-center">
         <Radar data={radarData} options={radarOptions} />
       </div>
