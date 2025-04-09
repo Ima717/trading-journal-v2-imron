@@ -1,102 +1,128 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { Clock } from "lucide-react";
-import dayjs from "dayjs";
+import React, { useEffect, useRef } from "react";
+import Chart from "chart.js/auto";
+import { useFilters } from "../context/FilterContext";
 
-// Extract base symbol from option-like strings
-const extractBaseSymbol = (symbol) => {
-  const match = symbol?.match(/^([A-Z]+)/);
-  return match ? match[1] : symbol;
-};
+const ChartPnLBySymbol = () => {
+  const { filteredTrades } = useFilters();
+  const chartRef = useRef(null);
+  const chartInstanceRef = useRef(null);
 
-const RecentTradesCard = ({ trades = [] }) => {
-  const [visibleTrades, setVisibleTrades] = useState(17);
-  const sortedTrades = [...trades].sort((a, b) => new Date(b.date) - new Date(a.date));
+  useEffect(() => {
+    if (!filteredTrades || filteredTrades.length === 0) return;
 
-  const handleShowMore = () => {
-    setVisibleTrades((prev) => prev + 15);
-  };
+    const getBaseSymbol = (symbol) => {
+      const match = symbol?.match(/^([A-Z]+)/);
+      return match ? match[1] : symbol;
+    };
 
-  const rowVariants = {
-    rest: { y: 0, opacity: 1 },
-    hover: { y: -2, opacity: 0.95, transition: { duration: 0.2 } },
-  };
+    const symbolMap = {};
+    filteredTrades.forEach((trade) => {
+      const baseSymbol = getBaseSymbol(trade.symbol || "Unknown");
+      if (!symbolMap[baseSymbol]) {
+        symbolMap[baseSymbol] = { totalPnL: 0, count: 0 };
+      }
+      symbolMap[baseSymbol].totalPnL += trade.pnl || 0;
+      symbolMap[baseSymbol].count += 1;
+    });
+
+    const aggregated = Object.entries(symbolMap).map(([symbol, data]) => ({
+      symbol,
+      avgPnL: data.totalPnL / data.count,
+      count: data.count,
+    }));
+
+    const gainers = aggregated
+      .filter((s) => s.avgPnL > 0)
+      .sort((a, b) => b.avgPnL - a.avgPnL)
+      .slice(0, 3);
+
+    const losers = aggregated
+      .filter((s) => s.avgPnL < 0)
+      .sort((a, b) => a.avgPnL - b.avgPnL)
+      .slice(0, 3);
+
+    const combined = [...gainers, ...losers];
+    const labels = combined.map((s) => s.symbol);
+    const data = combined.map((s) => s.avgPnL);
+    const counts = combined.map((s) => s.count);
+    const colors = combined.map((s) => (s.avgPnL >= 0 ? "#22c55e" : "#ef4444"));
+
+    if (chartInstanceRef.current) chartInstanceRef.current.destroy();
+
+    const ctx = chartRef.current.getContext("2d");
+    chartInstanceRef.current = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "Avg P&L",
+            data,
+            backgroundColor: colors,
+            borderRadius: 6,
+            barThickness: 20,
+          },
+        ],
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "#1f2937",
+            titleColor: "#fff",
+            bodyColor: "#d1d5db",
+            padding: 12,
+            cornerRadius: 6,
+            callbacks: {
+              title: (items) => `Symbol: ${items[0].label}`,
+              label: (ctx) => {
+                const val = ctx.raw.toFixed(2);
+                const trades = counts[ctx.dataIndex];
+                return `${val >= 0 ? "+" : "-"}$${Math.abs(val)} avg P&L (${trades} trades)`;
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            grid: { drawBorder: false, color: "rgba(0,0,0,0.05)" },
+            ticks: {
+              color: "#6b7280",
+              font: { size: 12, family: "Inter" },
+              callback: (val) => `$${val}`,
+            },
+          },
+          y: {
+            grid: { display: false },
+            ticks: {
+              color: "#111827",
+              font: { size: 13, family: "Inter", weight: "bold" },
+            },
+          },
+        },
+      },
+    });
+  }, [filteredTrades]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="w-full h-[855px] bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200/60 p-5 flex flex-col"
-    >
+    <div className="w-full h-[360px] bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200/60 p-5">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-gray-800 dark:text-white tracking-wide">
-          Recent Trades
+          PnL by Symbol
         </h3>
-        <Clock size={16} className="text-gray-400" />
       </div>
 
-      {/* Column Headers */}
-      <div className="flex justify-between items-center p-3 bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-gray-300 font-semibold rounded-t-lg mb-2">
-        <span className="w-1/3 text-left">Date</span>
-        <span className="w-1/3 text-center">Symbol</span>
-        <span className="w-1/3 text-right">Net P/L</span>
+      {/* Chart */}
+      <div className="h-full">
+        <canvas ref={chartRef} className="w-full h-full" />
       </div>
-
-      {/* Trade List (Scrollable) */}
-      <div className="flex-1 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-zinc-600 scrollbar-track-transparent">
-        {sortedTrades.length === 0 ? (
-          <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-            No trades found.
-          </div>
-        ) : (
-          sortedTrades.slice(0, visibleTrades).map((trade) => (
-            <motion.div
-              key={trade.id}
-              variants={rowVariants}
-              initial="rest"
-              whileHover="hover"
-              className="flex justify-between items-center px-3 py-2 rounded-lg bg-gray-50/50 dark:bg-zinc-700/50 hover:bg-gray-100 dark:hover:bg-zinc-600 transition-colors cursor-pointer"
-            >
-              <span className="text-sm text-gray-600 dark:text-gray-300 w-1/3">
-                {dayjs(trade.date).format("DD/MM/YYYY")}
-              </span>
-              <div className="flex flex-col items-center justify-center w-1/3 text-center">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                  {extractBaseSymbol(trade.symbol) || "—"}
-                </span>
-                {trade.optionType && (
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {trade.optionType === "call" ? "Call" : "Put"}
-                  </span>
-                )}
-              </div>
-              <span
-                className={`text-sm font-semibold w-1/3 text-right ${
-                  trade.pnl >= 0 ? "text-green-600" : "text-red-500"
-                }`}
-              >
-                {trade.pnl >= 0 ? "+" : "-"}${Math.abs(trade.pnl).toFixed(2)}
-              </span>
-            </motion.div>
-          ))
-        )}
-      </div>
-
-      {/* Show More Button */}
-      {sortedTrades.length > visibleTrades && (
-        <div className="mt-4 text-center">
-          <button
-            onClick={handleShowMore}
-            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
-          >
-            Show more trades
-          </button>
-        </div>
-      )}
-    </motion.div>
+    </div>
   );
 };
 
-export default RecentTradesCard;
+export default ChartPnLBySymbol;
