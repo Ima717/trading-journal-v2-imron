@@ -108,7 +108,7 @@ const ChartPnLBySymbol = () => {
   }, [filteredTrades]);
 
   return (
-    <div className="w-full h-[360px] bg-white dark:bg-zinc-800 rounded-xl shadow-sm p-5">
+<div className="w-full h-[360px] bg-white dark:bg-zinc-800 rounded-xl p-5">
 
       {/* Chart Canvas */}
       <div className="h-full">
