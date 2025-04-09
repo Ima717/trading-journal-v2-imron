@@ -129,6 +129,11 @@ const Dashboard = () => {
   // Trade Win %
   const tradeWinPercent = totalTrades ? ((wins.length / totalTrades) * 100).toFixed(2) : "0.00";
 
+  // Debug logs for Trade Win %
+  console.log("Total Trades:", totalTrades);
+  console.log("Winning Trades:", wins.length);
+  console.log("Trade Win %:", tradeWinPercent);
+
   // Profit Factor
   const grossProfit = wins.reduce((sum, t) => sum + t.pnl, 0);
   const grossLoss = Math.abs(losses.reduce((sum, t) => sum + t.pnl, 0));
@@ -139,6 +144,11 @@ const Dashboard = () => {
       ? "Infinity"
       : "0.00"
     : "0.00";
+
+  // Debug logs for Profit Factor
+  console.log("Gross Profit:", grossProfit);
+  console.log("Gross Loss:", grossLoss);
+  console.log("Profit Factor:", profitFactor);
 
   // Avg Win/Loss Trade
   const avgWin = wins.length ? grossProfit / wins.length : 0;
