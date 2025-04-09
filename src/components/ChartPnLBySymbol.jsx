@@ -65,6 +65,8 @@ const ChartPnLBySymbol = () => {
             ),
             borderRadius: 6,
             barThickness: 18,
+            barPercentage: 0.8,
+            categoryPercentage: 0.8,
           },
         ],
       },
@@ -95,6 +97,7 @@ const ChartPnLBySymbol = () => {
               maxRotation: 0,
               minRotation: 0,
               align: "center",
+              autoSkip: false, // 🚨 force all symbols to show
             },
             grid: { display: false },
           },
@@ -119,9 +122,14 @@ const ChartPnLBySymbol = () => {
   return (
     <div className="w-full bg-white dark:bg-zinc-900 rounded-lg p-6">
       <div className="flex flex-col md:flex-row gap-6">
-        {/* Chart Full Width */}
+        {/* Chart with Horizontal Scroll */}
         <div className="w-full md:w-[74%] min-h-[400px] flex items-center justify-center pt-6 pb-8 px-2">
-          <canvas ref={chartRef} className="w-full h-full" />
+          <div className="overflow-x-auto w-full">
+            <canvas
+              ref={chartRef}
+              className="w-[1500px] h-full" // You can dynamically calculate this later
+            />
+          </div>
         </div>
 
         {/* Gainer/Loser Block */}
