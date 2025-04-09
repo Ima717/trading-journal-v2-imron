@@ -39,13 +39,17 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, x: -10 },
+    hidden: { opacity: 0, x: -50 }, // Start off-screen to the left
     visible: (i) => ({
       opacity: 1,
       x: 0,
-      transition: { delay: i * 0.05, duration: 0.3, ease: [0.25, 0.8, 0.25, 1] }, // Custom easing for smoothness
+      transition: {
+        delay: i * 0.1, // Staggered delay for each item
+        duration: 0.4,  // Slightly longer for a smooth slide
+        ease: [0.4, 0, 0.2, 1], // Smooth cubic-bezier easing
+      },
     }),
-    exit: { opacity: 0, x: -10, transition: { duration: 0.2 } },
+    exit: { opacity: 0, x: -50, transition: { duration: 0.3, ease: "easeIn" } }, // Slide back left on exit
   };
 
   const textVariants = {
@@ -63,7 +67,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
       variants={sidebarVariants}
       initial="collapsed"
       animate={collapsed ? "collapsed" : "expanded"}
-      transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }} // Smooth cubic-bezier easing
+      transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
       className="h-screen bg-gradient-to-b from-[#1A1F36] to-[#2A3147] text-gray-200 fixed z-20 shadow-xl flex flex-col overflow-hidden"
     >
       {/* Header Section */}
