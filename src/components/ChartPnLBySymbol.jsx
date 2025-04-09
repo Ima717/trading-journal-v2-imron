@@ -31,14 +31,21 @@ const ChartPnLBySymbol = () => {
       count: data.count,
     }));
 
-    // Sort by absolute avgPnL and take top 6
-    const topSymbols = aggregated
-      .sort((a, b) => Math.abs(b.avgPnL) - Math.abs(a.avgPnL))
-      .slice(0, 6);
+    const gainers = aggregated
+      .filter((s) => s.avgPnL > 0)
+      .sort((a, b) => b.avgPnL - a.avgPnL)
+      .slice(0, 3);
 
-    const labels = topSymbols.map((s) => s.symbol);
-    const data = topSymbols.map((s) => s.avgPnL);
-    const counts = topSymbols.map((s) => s.count);
+    const losers = aggregated
+      .filter((s) => s.avgPnL < 0)
+      .sort((a, b) => a.avgPnL - b.avgPnL)
+      .slice(0, 3);
+
+    const combined = [...gainers, ...losers];
+    const labels = combined.map((s) => s.symbol);
+    const data = combined.map((s) => s.avgPnL);
+    const counts = combined.map((s) => s.count);
+    const colors = combined.map((s) => (s.avgPnL >= 0 ? "#22c55e" : "#ef4444"));
 
     if (chartInstanceRef.current) chartInstanceRef.current.destroy();
 
@@ -51,9 +58,7 @@ const ChartPnLBySymbol = () => {
           {
             label: "Avg P&L",
             data,
-            backgroundColor: data.map((val) =>
-              val >= 0 ? "#22c55e" : "#ef4444"
-            ),
+            backgroundColor: colors,
             borderRadius: 6,
             barThickness: 20,
           },
@@ -106,7 +111,7 @@ const ChartPnLBySymbol = () => {
   return (
     <div className="w-full bg-white dark:bg-zinc-900 rounded-xl p-6 shadow-sm">
       <div className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-4">
-        PnL by Symbol (Top 6)
+        PnL by Symbol
       </div>
       <div className="min-h-[360px]">
         <canvas ref={chartRef} className="w-full h-full" />
