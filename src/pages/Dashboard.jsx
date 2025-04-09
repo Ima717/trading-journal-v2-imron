@@ -147,19 +147,6 @@ const Dashboard = () => {
     ? ((winningDays.length / tradingDays.length) * 100).toFixed(2)
     : "0.00";
 
-  const donut = (
-    <CircularProgressbar
-      value={wins.reduce((s, t) => s + t.pnl, 0)}
-      maxValue={wins.reduce((s, t) => s + t.pnl, 0) + Math.abs(losses.reduce((s, t) => s + t.pnl, 0))}
-      strokeWidth={10}
-      styles={buildStyles({
-        pathColor: profitFactor >= 1 ? "#10b981" : "#ef4444",
-        trailColor: "#f87171",
-        strokeLinecap: "round",
-      })}
-    />
-  );
-
   const cumulativePnl = [];
   let runningPnl = 0;
   tradesToDisplay
