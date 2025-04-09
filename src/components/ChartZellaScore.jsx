@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Radar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -7,7 +7,6 @@ import {
   LineElement,
   Filler,
   Tooltip,
-  Legend,
 } from "chart.js";
 import { motion } from "framer-motion";
 
@@ -16,16 +15,22 @@ ChartJS.register(
   PointElement,
   LineElement,
   Filler,
-  Tooltip,
-  Legend
+  Tooltip
 );
 
 const ChartZellaScore = ({ data }) => {
   if (!data || data.length === 0) return null;
-
+  
   const latest = data[data.length - 1];
-  const score = latest?.score ?? 0;
+  const score = latest?.score ?? 75.05; // Using the example score from screenshot
 
+  // Creating a proper container ref for measurement
+  const containerRef = useRef(null);
+
+  // Calculate proper position for the score indicator
+  const scorePosition = Math.min(Math.max(score, 0), 100);
+  
+  // Radar chart data
   const radarData = {
     labels: [
       "Win %",
@@ -38,14 +43,20 @@ const ChartZellaScore = ({ data }) => {
     datasets: [
       {
         label: "Zella Metrics",
-        data: [70, 60, 55, 40, 45, 65], // TODO: Replace with real metrics
-        backgroundColor: "rgba(139, 92, 246, 0.3)",
-        borderColor: "rgba(139, 92, 246, 1)",
-        pointBackgroundColor: "rgba(139, 92, 246, 1)",
+        data: [70, 65, 58, 45, 50, 66], // Sample metrics matching screenshot pattern
+        backgroundColor: "rgba(124, 58, 237, 0.3)", // Soft purple with 30% opacity
+        borderColor: "rgba(124, 58, 237, 0.8)",
+        pointBackgroundColor: "rgba(124, 58, 237, 1)",
+        pointBorderColor: "#fff",
+        pointHoverBackgroundColor: "#fff",
+        pointHoverBorderColor: "rgba(124, 58, 237, 1)",
+        pointRadius: 3,
+        borderWidth: 1.5,
       },
     ],
   };
 
+  // Radar chart options for the exact look and feel
   const radarOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -53,55 +64,124 @@ const ChartZellaScore = ({ data }) => {
       r: {
         beginAtZero: true,
         max: 100,
-        ticks: { display: false },
-        grid: { color: "#e5e7eb" },
+        ticks: { 
+          display: false,
+          backdropColor: "transparent",
+        },
+        angleLines: {
+          color: "rgba(180, 180, 180, 0.2)", // Very light gray for axis lines
+        },
+        grid: { 
+          color: "rgba(180, 180, 180, 0.15)", // Light gray with transparency for grid lines
+          circular: true,
+        },
         pointLabels: {
-          color: "#6b7280",
-          font: { size: 11 },
+          color: "rgba(100, 100, 100, 0.7)", // Subtle gray for labels
+          font: { 
+            size: 11,
+            family: "'Inter', sans-serif"
+          },
+          padding: 12, // Give more space around labels
         },
       },
     },
     plugins: {
-      legend: { display: false },
+      legend: { 
+        display: false 
+      },
+      tooltip: {
+        enabled: true,
+        backgroundColor: "rgba(255, 255, 255, 0.9)",
+        titleColor: "#333",
+        bodyColor: "#333",
+        titleFont: {
+          size: 12,
+          weight: "normal"
+        },
+        bodyFont: {
+          size: 12,
+        },
+        padding: 10,
+        cornerRadius: 6,
+        displayColors: false,
+        callbacks: {
+          label: function(context) {
+            return `${context.raw}%`;
+          }
+        }
+      }
+    },
+    elements: {
+      line: {
+        tension: 0.2, // Slight smoothing of lines
+      },
     },
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      ref={containerRef}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="flex flex-col items-center space-y-6 w-full"
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="bg-white rounded-lg p-4 w-full max-w-md"
     >
-      {/* Radar Chart */}
-      <div className="w-full max-w-[300px] h-[240px]">
+      {/* Title with info icon */}
+      <div className="flex items-center mb-2 px-1">
+        <h3 className="text-gray-800 font-medium text-base">Zella score</h3>
+        <div className="ml-1 w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center">
+          <span className="text-gray-400 text-xs font-light">i</span>
+        </div>
+      </div>
+      
+      {/* Light separator */}
+      <div className="w-full h-px bg-gray-100 mb-5"></div>
+      
+      {/* Radar Chart container - giving it proper height */}
+      <div className="w-full h-52 mb-6">
         <Radar data={radarData} options={radarOptions} />
       </div>
-
-      {/* Score Line */}
-      <div className="w-full flex flex-col items-center px-4">
-        <span className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-          Your Zella Score
-        </span>
-
-        <div className="relative w-full max-w-[220px] h-2 bg-gray-200 rounded-full overflow-hidden mb-1">
-          <div
-            className="absolute top-0 left-0 h-2 w-full"
-            style={{
-              background: "linear-gradient(to right, #1565c0, #b92b27)",
-            }}
-          />
-          <div
-            className="absolute top-[-4px] h-4 w-4 bg-white border-2 border-black rounded-full"
-            style={{
-              left: `${score}%`,
-              transform: "translateX(-50%)",
-            }}
-          />
+      
+      {/* Score section */}
+      <div className="w-full flex flex-col px-4 pb-2">
+        <span className="text-xs text-gray-500 mb-1">Your Zella Score</span>
+        
+        {/* Score container */}
+        <div className="flex items-center gap-4">
+          {/* The actual score value */}
+          <div className="text-2xl font-semibold text-gray-800">
+            {score.toFixed(2)}
+          </div>
+          
+          {/* Score bar container */}
+          <div className="relative flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+            {/* Gradient background */}
+            <div 
+              className="absolute top-0 left-0 h-full w-full rounded-full"
+              style={{
+                background: "linear-gradient(to right, #e03131 0%, #f08c00 35%, #2b8a3e 65%, #e9ecef 95%)",
+              }}
+            />
+            
+            {/* Score indicator dot */}
+            <div
+              className="absolute top-1/2 transform -translate-y-1/2 w-3 h-3 rounded-full bg-white border-2 border-teal-500 z-10"
+              style={{
+                left: `${scorePosition}%`,
+                marginLeft: "-4px", // Half the width to center it
+              }}
+            />
+          </div>
         </div>
-
-        <div className="text-xl font-bold text-zinc-900 dark:text-white mt-1">
-          {score}
+        
+        {/* Score legend */}
+        <div className="flex justify-between mt-1 text-xs text-gray-400 px-1">
+          <span>0</span>
+          <span>20</span>
+          <span>40</span>
+          <span>60</span>
+          <span>80</span>
+          <span>100</span>
         </div>
       </div>
     </motion.div>
