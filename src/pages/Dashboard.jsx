@@ -165,6 +165,12 @@ const Dashboard = () => {
     ? ((winningDays.length / tradingDays.length) * 100).toFixed(2)
     : "0.00";
 
+  // Debug logs for Day Win %
+  console.log("Trades to Display:", tradesToDisplay);
+  console.log("Trading Days:", tradingDays);
+  console.log("Winning Days:", winningDays);
+  console.log("Day Win %:", dayWinPercent);
+
   // Other Calculations
   const netPnL = tradesToDisplay.reduce((sum, t) => sum + (t.pnl || 0), 0);
   const cumulativePnl = [];
