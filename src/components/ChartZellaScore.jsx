@@ -126,12 +126,6 @@ const ChartZellaScore = ({ data }) => {
       transition={{ duration: 0.5, ease: "easeOut" }}
       className="bg-white rounded-lg p-4 w-full max-w-md"
     >
-      {/* Title with info icon */}
-      <div className="flex items-center mb-2 px-1">
-        <div className="ml-1 w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center">
-        </div>
-      </div>
-      
       {/* Light separator */}
       <div className="w-full h-px bg-gray-100 mb-5"></div>
       
