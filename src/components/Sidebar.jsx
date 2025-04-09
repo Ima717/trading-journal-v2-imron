@@ -32,29 +32,30 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
 
-  // Animation variants
+  // Sidebar animation variants
   const sidebarVariants = {
-    expanded: { width: 240, x: 0 },
-    collapsed: { width: 60, x: 0 },
+    expanded: { width: 240 },
+    collapsed: { width: 60 },
   };
 
+  // Nav item animation variants (only for initial load)
   const itemVariants = {
-    hidden: { opacity: 0, x: -50 }, // Start off-screen to the left
+    hidden: { opacity: 0, x: -50 },
     visible: (i) => ({
       opacity: 1,
       x: 0,
       transition: {
-        delay: i * 0.1, // Staggered delay for each item
-        duration: 0.4,  // Slightly longer for a smooth slide
-        ease: [0.4, 0, 0.2, 1], // Smooth cubic-bezier easing
+        delay: i * 0.1,
+        duration: 0.4,
+        ease: [0.4, 0, 0.2, 1],
       },
     }),
-    exit: { opacity: 0, x: -50, transition: { duration: 0.3, ease: "easeIn" } }, // Slide back left on exit
   };
 
+  // Text animation variants for collapse/expand
   const textVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.2, ease: "easeOut" } },
+    visible: { opacity: 1, width: "auto", transition: { duration: 0.2, ease: "easeOut" } },
+    hidden: { opacity: 0, width: 0, transition: { duration: 0.2, ease: "easeIn" } },
   };
 
   const handleLogout = async () => {
@@ -65,7 +66,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
   return (
     <motion.div
       variants={sidebarVariants}
-      initial="collapsed"
+      initial="expanded" // Start expanded to avoid initial collapse jump
       animate={collapsed ? "collapsed" : "expanded"}
       transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
       className="h-screen bg-gradient-to-b from-[#1A1F36] to-[#2A3147] text-gray-200 fixed z-20 shadow-xl flex flex-col overflow-hidden"
@@ -114,54 +115,62 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
           </motion.span>
         </Link>
         <nav className="flex flex-col gap-1.5">
-          <AnimatePresence>
-            {navItems.map((item, index) => (
-              <motion.div
-                key={item.name}
-                custom={index}
-                variants={itemVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                className="relative group"
+          {navItems.map((item, index) => (
+            <motion.div
+              key={item.name}
+              custom={index}
+              variants={itemVariants}
+              initial="hidden"
+              animate="visible"
+              layout // Ensures smooth repositioning during collapse
+              className="relative group"
+            >
+              <Link
+                to={item.path}
+                className={`flex items-center gap-3 text-sm px-3 py-2.5 rounded-lg transition-all duration-200 ${
+                  location.pathname === item.path
+                    ? "bg-indigo-900/80 text-indigo-200 shadow-inner"
+                    : "hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200"
+                }`}
               >
-                <Link
-                  to={item.path}
-                  className={`flex items-center gap-3 text-sm px-3 py-2.5 rounded-lg transition-all duration-200 ${
-                    location.pathname === item.path
-                      ? "bg-indigo-900/80 text-indigo-200 shadow-inner"
-                      : "hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200"
-                  }`}
+                <motion.div
+                  whileHover={{ scale: 1.15, rotate: 5 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="text-gray-400 group-hover:text-indigo-300 flex-shrink-0"
                 >
-                  <motion.div
-                    whileHover={{ scale: 1.15, rotate: 5 }}
-                    transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="text-gray-400 group-hover:text-indigo-300"
-                  >
-                    {item.icon}
-                  </motion.div>
+                  {item.icon}
+                </motion.div>
+                <AnimatePresence>
                   {!collapsed && (
-                    <motion.span variants={textVariants}>{item.name}</motion.span>
+                    <motion.span
+                      variants={textVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="hidden"
+                      className="overflow-hidden whitespace-nowrap"
+                    >
+                      {item.name}
+                    </motion.span>
                   )}
-                  {item.badge && !collapsed && (
-                    <span className="ml-auto text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-medium">
-                      {item.badge}
-                    </span>
-                  )}
-                </Link>
-                {collapsed && (
-                  <motion.div
-                    initial={{ opacity: 0, x: -10 }}
-                    whileHover={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="absolute left-14 top-1/2 transform -translate-y-1/2 bg-gray-800/90 text-white text-xs rounded-md py-1.5 px-3 shadow-md z-10 pointer-events-none"
-                  >
-                    {item.name}
-                  </motion.div>
+                </AnimatePresence>
+                {!collapsed && item.badge && (
+                  <span className="ml-auto text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
+                    {item.badge}
+                  </span>
                 )}
-              </motion.div>
-            ))}
-          </AnimatePresence>
+              </Link>
+              {collapsed && (
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  whileHover={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="absolute left-14 top-1/2 transform -translate-y-1/2 bg-gray-800/90 text-white text-xs rounded-md py-1.5 px-3 shadow-md z-10 pointer-events-none"
+                >
+                  {item.name}
+                </motion.div>
+              )}
+            </motion.div>
+          ))}
         </nav>
       </div>
 
