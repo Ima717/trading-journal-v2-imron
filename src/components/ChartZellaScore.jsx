@@ -37,7 +37,7 @@ const ChartZellaScore = ({ data }) => {
           if (!chartArea) return null;
           const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
           gradient.addColorStop(0, "rgba(139, 92, 246, 0.15)");
-          gradient.addColorStop(1, "rgba(139, 92, 246, 0.5)"); // More vibrant gradient
+          gradient.addColorStop(1, "rgba(139, 92, 246, 0.5)");
           return gradient;
         },
         borderColor: "transparent",
@@ -68,11 +68,10 @@ const ChartZellaScore = ({ data }) => {
         ticks: { display: false },
         grid: {
           color: (context) => {
-            // Enhanced gradient with a subtle glow effect
             const value = context.tick.value;
             const max = 100;
-            const opacity = 0.3 + (value / max) * 0.5; // Gradient from 0.3 to 0.8 opacity
-            return `rgba(180, 180, 180, ${opacity})`; // Slightly darker gray for contrast
+            const opacity = 0.3 + (value / max) * 0.5;
+            return `rgba(180, 180, 180, ${opacity})`;
           },
           lineWidth: 2,
         },
@@ -87,7 +86,7 @@ const ChartZellaScore = ({ data }) => {
             family: "'Inter', sans-serif",
             weight: "600",
           },
-          padding: 25, // Ensure no cutoff
+          padding: 25,
         },
       },
     },
@@ -106,7 +105,7 @@ const ChartZellaScore = ({ data }) => {
     },
     elements: {
       line: {
-        tension: 0, // Straight lines
+        tension: 0,
       },
     },
   };
@@ -150,10 +149,8 @@ const ChartZellaScore = ({ data }) => {
       animate="visible"
       className="flex flex-col items-center w-[300px] bg-white dark:bg-zinc-800 rounded-xl shadow-lg"
     >
-      {/* Radar Chart - Restored wrapper for proper sizing */}
-      <div className="w-[300px] h-[240px] flex items-center justify-center">
-        <Radar data={radarData} options={radarOptions} />
-      </div>
+      {/* Radar Chart - No wrapper, dimensions set directly */}
+      <Radar data={radarData} options={radarOptions} height={240} width={300} />
 
       {/* Score Line */}
       <motion.div
