@@ -38,88 +38,107 @@ const Dashboard = () => {
   const [zellaTrendData, setZellaTrendData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  if (!user) return <div className="text-center py-10 text-gray-500 dark:text-gray-400">Please sign in to view your dashboard.</div>;
+  if (!user)
+    return (
+      <div className="text-center py-10 text-gray-500 dark:text-gray-400">
+        Please sign in to view your dashboard.
+      </div>
+    );
 
   useEffect(() => {
     if (!user) return;
     setIsLoading(true);
 
-    const q = query(collection(db, "users", user.uid, "trades"), orderBy("entryTime", "asc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const trades = snapshot.docs.map((doc) => {
-        const data = doc.data();
-        const amount = parseFloat(data.amount) || 0;
-        const commission = parseFloat(data.commission) || 0;
-        const fees = parseFloat(data.fees) || 0;
-        const pnl = parseFloat(data.pnl) || 0; // Use stored P&L
-        return {
-          id: doc.id,
-          ...data,
-          entryTime: data.entryTime || data.date || new Date().toISOString(),
-          date: data.entryTime || data.date,
-          amount,
-          commission,
-          fees,
-          pnl,
-        };
-      });
-
-      console.log("Raw trades from Firestore:", trades);
-
-      // Use stored P&L instead of recalculating
-      let finalTrades = trades;
-      if (dateRange.start && dateRange.end) {
-        const start = dayjs(dateRange.start);
-        const end = dayjs(dateRange.end);
-        finalTrades = trades.filter((t) => {
-          const entryTime = dayjs(t.entryTime);
-          return (
-            entryTime.isValid() &&
-            entryTime.isAfter(start.subtract(1, "day")) &&
-            entryTime.isBefore(end.add(1, "day"))
-          );
+    const q = query(
+      collection(db, "users", user.uid, "trades"),
+      orderBy("entryTime", "asc")
+    );
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const trades = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          const amount = parseFloat(data.amount) || 0;
+          const commission = parseFloat(data.commission) || 0;
+          const fees = parseFloat(data.fees) || 0;
+          const pnl = parseFloat(data.pnl) || 0; // Use stored P&L
+          return {
+            id: doc.id,
+            ...data,
+            entryTime: data.entryTime || data.date || new Date().toISOString(),
+            date: data.entryTime || data.date,
+            amount,
+            commission,
+            fees,
+            pnl,
+          };
         });
-      }
 
-      console.log("Filtered trades (local):", finalTrades);
+        console.log("Raw trades from Firestore:", trades);
 
-      setLocalTrades(finalTrades);
-      const displayTrades = filteredTrades.length > 0 && filteredTrades.every(t => t.pnl !== undefined) ? filteredTrades : finalTrades;
-      console.log("Display trades (after FilterContext):", displayTrades);
-
-      const pnlSeries = getPnLOverTime(displayTrades);
-      const zellaSeries = getZellaScoreOverTime(displayTrades);
-      console.log("P&L Series for Equity Curve:", pnlSeries);
-      setPnlData(pnlSeries);
-      setZellaTrendData(zellaSeries);
-
-      const tagMap = {};
-      displayTrades.forEach((trade) => {
-        if (Array.isArray(trade.tags)) {
-          trade.tags.forEach((tag) => {
-            if (!tagMap[tag]) tagMap[tag] = { totalPnL: 0, count: 0 };
-            tagMap[tag].totalPnL += trade.pnl || 0;
-            tagMap[tag].count += 1;
+        // Use stored P&L instead of recalculating
+        let finalTrades = trades;
+        if (dateRange.start && dateRange.end) {
+          const start = dayjs(dateRange.start);
+          const end = dayjs(dateRange.end);
+          finalTrades = trades.filter((t) => {
+            const entryTime = dayjs(t.entryTime);
+            return (
+              entryTime.isValid() &&
+              entryTime.isAfter(start.subtract(1, "day")) &&
+              entryTime.isBefore(end.add(1, "day"))
+            );
           });
         }
-      });
 
-      const formatted = Object.entries(tagMap).map(([tag, val]) => ({
-        tag,
-        avgPnL: parseFloat((val.totalPnL / val.count).toFixed(2)),
-      }));
+        console.log("Filtered trades (local):", finalTrades);
 
-      setTagPerformanceData(formatted);
-      setIsLoading(false);
-    }, (error) => {
-      console.error("Firestore fetch error:", error);
-      setIsLoading(false);
-    });
+        setLocalTrades(finalTrades);
+        const displayTrades =
+          filteredTrades.length > 0 &&
+          filteredTrades.every((t) => t.pnl !== undefined)
+            ? filteredTrades
+            : finalTrades;
+        console.log("Display trades (after FilterContext):", displayTrades);
+
+        const pnlSeries = getPnLOverTime(displayTrades);
+        const zellaSeries = getZellaScoreOverTime(displayTrades);
+        console.log("P&L Series for Equity Curve:", pnlSeries);
+        setPnlData(pnlSeries);
+        setZellaTrendData(zellaSeries);
+
+        const tagMap = {};
+        displayTrades.forEach((trade) => {
+          if (Array.isArray(trade.tags)) {
+            trade.tags.forEach((tag) => {
+              if (!tagMap[tag]) tagMap[tag] = { totalPnL: 0, count: 0 };
+              tagMap[tag].totalPnL += trade.pnl || 0;
+              tagMap[tag].count += 1;
+            });
+          }
+        });
+
+        const formatted = Object.entries(tagMap).map(([tag, val]) => ({
+          tag,
+          avgPnL: parseFloat((val.totalPnL / val.count).toFixed(2)),
+        }));
+
+        setTagPerformanceData(formatted);
+        setIsLoading(false);
+      },
+      (error) => {
+        console.error("Firestore fetch error:", error);
+        setIsLoading(false);
+      }
+    );
 
     return () => unsubscribe();
   }, [user, dateRange, filteredTrades]);
 
-  const tradesToDisplay = filteredTrades.length > 0 && filteredTrades.every(t => t.pnl !== undefined) ? filteredTrades : localTrades;
+  const tradesToDisplay =
+    filteredTrades.length > 0 && filteredTrades.every((t) => t.pnl !== undefined)
+      ? filteredTrades
+      : localTrades;
 
   // Core Metrics
   const totalTrades = tradesToDisplay.length;
@@ -127,7 +146,9 @@ const Dashboard = () => {
   const losses = tradesToDisplay.filter((t) => t.pnl < 0);
 
   // Trade Win %
-  const tradeWinPercent = totalTrades ? ((wins.length / totalTrades) * 100).toFixed(2) : "0.00";
+  const tradeWinPercent = totalTrades
+    ? ((wins.length / totalTrades) * 100).toFixed(2)
+    : "0.00";
 
   // Debug logs for Trade Win %
   console.log("Total Trades:", totalTrades);
@@ -162,9 +183,17 @@ const Dashboard = () => {
     : "N/A";
 
   // Day Win %
-  const tradingDays = [...new Set(tradesToDisplay.map((t) =>
-    dayjs(t.entryTime).isValid() ? dayjs(t.entryTime).format("YYYY-MM-DD") : null
-  ).filter(day => day !== null))];
+  const tradingDays = [
+    ...new Set(
+      tradesToDisplay
+        .map((t) =>
+          dayjs(t.entryTime).isValid()
+            ? dayjs(t.entryTime).format("YYYY-MM-DD")
+            : null
+        )
+        .filter((day) => day !== null)
+    ),
+  ];
   const winningDays = tradingDays.filter((day) => {
     const dayPnL = tradesToDisplay
       .filter((t) => dayjs(t.entryTime).format("YYYY-MM-DD") === day)
@@ -193,8 +222,10 @@ const Dashboard = () => {
 
   const getWinRateBackground = () => {
     const winRateValue = parseFloat(tradeWinPercent);
-    if (winRateValue > 60) return "bg-gradient-to-r from-green-400 to-green-500 text-white";
-    if (winRateValue >= 40) return "bg-gradient-to-r from-yellow-400 to-yellow-500 text-white";
+    if (winRateValue > 60)
+      return "bg-gradient-to-r from-green-400 to-green-500 text-white";
+    if (winRateValue >= 40)
+      return "bg-gradient-to-r from-yellow-400 to-yellow-500 text-white";
     return "bg-gradient-to-r from-red-400 to-red-500 text-white";
   };
 
@@ -236,27 +267,43 @@ const Dashboard = () => {
                   title="Profit Factor"
                   value={profitFactor}
                   tooltip="Gross profit / gross loss."
+                  trades={tradesToDisplay} // Pass trades for donut chart
                 />
               </div>
 
               <div className="mb-6">
-                <WinStatsCard dayWinPercent={dayWinPercent} avgWinLossTrade={avgWinLossTrade} />
+                <WinStatsCard
+                  dayWinPercent={dayWinPercent}
+                  avgWinLossTrade={avgWinLossTrade}
+                />
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-stretch">
-                <motion.div whileHover={{ y: -4, scale: 1.015 }} transition={{ type: "spring", stiffness: 260, damping: 20 }} className="h-full">
+                <motion.div
+                  whileHover={{ y: -4, scale: 1.015 }}
+                  transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                  className="h-full"
+                >
                   <ChartCard title="Zella Score">
-                    <ChartZellaScore data={zellaTrendData} />
+                    <ChartZellaScore data={zellaTrendfluidData} />
                   </ChartCard>
                 </motion.div>
 
-                <motion.div whileHover={{ y: -4, scale: 1.015 }} transition={{ type: "spring", stiffness: 260, damping: 20 }} className="h-full">
+                <motion.div
+                  whileHover={{ y: -4, scale: 1.015 }}
+                  transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                  className="h-full"
+                >
                   <ChartCard title="Equity Curve">
                     <ChartEquityCurve data={pnlData} />
                   </ChartCard>
                 </motion.div>
 
-                <motion.div whileHover={{ y: -4, scale: 1.015 }} transition={{ type: "spring", stiffness: 260, damping: 20 }} className="h-full">
+                <motion.div
+                  whileHover={{ y: -4, scale: 1.015 }}
+                  transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                  className="h-full"
+                >
                   <ChartCard>
                     <DrawdownCard
                       maxDrawdown={maxDrawdown}
