@@ -41,13 +41,13 @@ const StatCard = ({
     ? Math.abs(trades.filter((t) => t.pnl < 0).reduce((sum, t) => sum + t.pnl, 0))
     : 0;
 
-  // Donut chart data with "Net P&L" colors
+  // Donut chart data
   const chartData = {
     labels: ["Total Profit", "Total Loss"],
     datasets: [
       {
         data: [totalProfit || 1, totalLoss || 1], // Fallback to avoid empty chart
-        backgroundColor: ["#16a34a", "#ef4444"], // Green (text-green-600), Red (text-red-500)
+        backgroundColor: ["#22c55e", "#ef4444"], // Green for profit, red for loss
         borderWidth: 0,
         cutout: "65%", // Donut thickness
       },
@@ -126,7 +126,7 @@ const StatCard = ({
           {displayValue}
         </motion.div>
         {title === "Profit Factor" && (
-          <div className="w-14 h-14 flex-shrink-0 mr-2"> {/* Increased size and shifted left */}
+          <div className="w-12 h-12 flex-shrink-0">
             <Doughnut data={chartData} options={chartOptions} />
           </div>
         )}
