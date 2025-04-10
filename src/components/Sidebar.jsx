@@ -113,15 +113,12 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
         <nav className="flex flex-col gap-1.5">
   {navItems.map((item, index) => (
     <motion.div
-      key={item.name}
-      custom={index}
-      variants={itemVariants}
-      initial="hidden"
-      animate="visible"
-      layout
-      transition={{ layout: { duration: 0.25 } }}
-      className="relative group"
-    >
+  key={item.name}
+  layout
+  transition={{ layout: { duration: 0.25 } }}
+  className="relative group"
+>
+
       <Link
         to={item.path}
         className={`flex items-center w-full px-3 py-2.5 rounded-lg transition-all duration-200 overflow-hidden ${
