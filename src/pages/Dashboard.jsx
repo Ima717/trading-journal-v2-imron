@@ -285,7 +285,7 @@ const Dashboard = () => {
                   className="h-full"
                 >
                   <ChartCard title="Zella Score">
-                    <ChartZellaScore data={zellaTrendfluidData} />
+                    <ChartZellaScore data={zellaTrendData} /> {/* Fixed typo */}
                   </ChartCard>
                 </motion.div>
 
