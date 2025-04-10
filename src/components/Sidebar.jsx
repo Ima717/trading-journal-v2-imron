@@ -12,12 +12,11 @@ import {
   Upload,
   Moon,
   Sun,
-  PlusCircle,
-  ChevronLeft,
 } from "lucide-react";
-import { useTheme } from "../context/ThemeContext"; // Assuming this provides { theme, toggleTheme }
+import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "../context/ThemeContext";
 import { signOut } from "firebase/auth";
-import { auth } from "../utils/firebase"; // Ensure this path is correct
+import { auth } from "../utils/firebase";
 
 const navItems = [
   { name: "Dashboard", path: "/", icon: <LayoutDashboard size={20} /> },
@@ -28,269 +27,196 @@ const navItems = [
   { name: "Progress Tracker", path: "/progress", icon: <Repeat size={20} />, badge: "BETA" },
 ];
 
-// Consistent Icon Size
-const ICON_SIZE = 18; // Use a constant for icons unless specifically needing different sizes
-
 const Sidebar = ({ collapsed, setCollapsed }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const isLightMode = theme === 'light';
+
+  // Sidebar animation variants
+  const sidebarVariants = {
+    expanded: { width: 240 },
+    collapsed: { width: 60 },
+  };
+
+  // Text animation variants for collapse/expand
+  const textVariants = {
+    visible: { opacity: 1, width: "auto", transition: { duration: 0.25, ease: "easeOut" } },
+    hidden: { opacity: 0, width: 0, transition: { duration: 0.25, ease: "easeIn" } },
+  };
+
+  // Initial load animation for nav items
+  const itemVariants = {
+    hidden: { opacity: 0, x: -50 },
+    visible: (i) => ({
+      opacity: 1,
+      x: 0,
+      transition: { delay: i * 0.1, duration: 0.4, ease: [0.4, 0, 0.2, 1] },
+    }),
+  };
 
   const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      navigate("/signin");
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
+    await signOut(auth);
+    navigate("/signin");
   };
-
-  // --- Style Definitions ---
-  // Base styles applicable to both themes
-  const baseStyles = {
-    sidebar: `fixed top-0 left-0 h-screen z-20 flex flex-col shadow-lg transition-width duration-300 ease-in-out`,
-    header: `flex items-center justify-between px-4 h-[60px] flex-shrink-0 border-b`, // Fixed height header
-    logo: `text-xl font-bold tracking-tight whitespace-nowrap transition-opacity duration-300 ease-in-out`, // Slightly longer duration
-    collapseButton: `p-1.5 rounded-full transition-all duration-300 ease-in-out focus:outline-none focus:ring-2`,
-    collapseIcon: `transition-transform duration-300 ease-in-out`,
-    // *** Key Change: navSection now handles scrolling independently ***
-    navScrollArea: `flex-1 overflow-y-auto overflow-x-hidden px-3 py-4`, // Takes remaining space, scrolls internally
-    addTradeButton: `flex items-center justify-center w-full gap-2 mb-4 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2`,
-    navGroup: `flex flex-col gap-1`, // Gap between nav items
-    navItemBase: `flex items-center w-full px-3 py-2.5 rounded-lg transition-all duration-200 ease-in-out overflow-hidden group relative`,
-    navItemIconContainer: `flex-shrink-0 w-[24px] flex items-center justify-center`, // Fixed width container for icon centering
-    navItemIcon: `transition-transform duration-200 ease-in-out group-hover:scale-110`,
-    // *** Refined Text Animation ***
-    navItemText: `whitespace-nowrap truncate transition-all duration-200 ease-in-out origin-left`, // Added truncate and origin-left
-    badge: `text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ml-auto transition-opacity duration-200 ease-in-out`,
-    tooltip: `absolute left-full top-1/2 transform -translate-y-1/2 ml-3 px-2 py-1 text-xs rounded-md shadow-lg z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-200 pointer-events-none whitespace-nowrap`, // Increased delay slightly, larger shadow
-    // *** Footer is now a distinct block, not absolutely positioned ***
-    footerSection: `px-3 py-3 mt-auto border-t flex-shrink-0`, // Reduced py slightly
-    footerGroup: `space-y-1`,
-    footerButtonBase: `flex items-center w-full gap-3 text-sm px-3 py-2 rounded-lg transition-all duration-200 ease-in-out group`, // Added group here too
-    footerButtonIconContainer: `flex-shrink-0 w-[24px] flex items-center justify-center`, // Centering for footer icons too
-    footerButtonIcon: `transition-transform duration-200 ease-in-out group-hover:scale-110`,
-  };
-
-  // Light Theme Specific Styles
-  const lightStyles = {
-    sidebar: `bg-white text-gray-700 border-r border-gray-200`,
-    header: `border-gray-200`,
-    logo: `text-blue-600`,
-    collapseButton: `text-gray-500 hover:bg-gray-100 hover:text-gray-800 focus:ring-blue-300`,
-    navScrollArea: ``, // No specific scroll area styles needed for light
-    navItemBase: `hover:bg-blue-50 hover:text-blue-600`,
-    navItemActive: `bg-blue-100 text-blue-700 font-semibold`,
-    navItemInactive: `text-gray-600`,
-    navItemIcon: `text-gray-400 group-hover:text-blue-500`,
-    navItemIconActive: `text-blue-600`,
-    badge: `bg-amber-100 text-amber-700`,
-    tooltip: `bg-gray-800 text-white`,
-    addTradeButton: `bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500`,
-    footerSection: `bg-gray-50 border-gray-200`,
-    footerButtonBase: `text-gray-600 hover:bg-gray-100 hover:text-gray-800`,
-    footerButtonLogout: `text-red-600 hover:bg-red-50 hover:text-red-700`,
-  };
-
-  // Dark Theme Specific Styles
-  const darkStyles = {
-    sidebar: `bg-gradient-to-b from-[#1A1F36] to-[#2A3147] text-gray-200`,
-    header: `border-gray-700/50`,
-    logo: `bg-gradient-to-r from-indigo-400 to-indigo-600 bg-clip-text text-transparent`,
-    collapseButton: `text-gray-400 hover:bg-gray-700/50 hover:text-indigo-300 focus:ring-indigo-500`,
-    navScrollArea: ``, // No specific scroll area styles needed for dark
-    navItemBase: `hover:bg-indigo-800/60 hover:text-indigo-200`,
-    navItemActive: `bg-indigo-900/80 text-indigo-100 shadow-inner`,
-    navItemInactive: `text-gray-300`,
-    navItemIcon: `text-gray-400 group-hover:text-indigo-300`,
-    navItemIconActive: `text-indigo-300`,
-    badge: `bg-amber-500/20 text-amber-300`,
-    tooltip: `bg-gray-900/90 text-gray-200 backdrop-blur-sm`,
-    addTradeButton: `bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white focus:ring-indigo-500`,
-    footerSection: `bg-[#1A1F36]/90 border-gray-700/50 backdrop-blur-sm`, // Added more opacity/blur
-    footerButtonBase: `text-gray-300 hover:bg-indigo-800/60 hover:text-indigo-200`,
-    footerButtonLogout: `text-red-400 hover:bg-red-800/80 hover:text-red-200`,
-  };
-
-  // Merge base styles with theme-specific styles
-  const styles = isLightMode ? { ...baseStyles, ...lightStyles } : { ...baseStyles, ...darkStyles };
 
   return (
-    // *** Main Structure: Header, Scroll Area (Flex-1), Footer ***
-    <div
-      className={`${styles.sidebar} ${collapsed ? "w-[68px]" : "w-64"}`} // Using 68px & 256px (w-64)
+    <motion.div
+      variants={sidebarVariants}
+      initial="expanded"
+      animate={collapsed ? "collapsed" : "expanded"}
+      transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+      className="h-screen bg-gradient-to-b from-[#1A1F36] to-[#2A3147] text-gray-200 fixed z-20 shadow-xl flex flex-col overflow-hidden"
     >
-      {/* --- Header --- */}
-      <div className={styles.header}>
-        <span
-          className={`${styles.logo} ${
-            collapsed ? "opacity-0 scale-0" : "opacity-100 scale-100" // Fade and scale logo
-          }`}
-           style={{ transitionDelay: collapsed ? '0ms' : '150ms' }} // Delay appearance slightly
-        >
-          IMRON TRADER
-        </span>
+      {/* Header Section */}
+      <div className="flex items-center justify-between px-4 py-5 border-b border-gray-700/50">
+        <AnimatePresence>
+          {!collapsed && (
+            <motion.span
+              variants={textVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              className="text-xl font-semibold tracking-tight bg-gradient-to-r from-indigo-400 to-indigo-600 bg-clip-text text-transparent"
+            >
+              by IMRON
+            </motion.span>
+          )}
+        </AnimatePresence>
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className={styles.collapseButton}
+          className="text-gray-400 hover:text-indigo-300 focus:outline-none transition-colors duration-200 p-1 rounded-full hover:bg-gray-700/50"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          <ChevronLeft size={ICON_SIZE} className={`${styles.collapseIcon} ${collapsed ? "rotate-180" : "rotate-0"}`} />
+          <motion.span
+            animate={{ rotate: collapsed ? 0 : 180 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+          >
+            {collapsed ? "»" : "«"}
+          </motion.span>
         </button>
       </div>
 
-      {/* --- Scrollable Navigation Area --- */}
-      <div className={styles.navScrollArea}>
-        {/* Add Trade Button */}
+      {/* Navigation Section */}
+      <div className="px-3 py-6 flex-1">
         <Link
           to="/add-trade"
-          className={`${styles.addTradeButton} ${
-            collapsed ? "px-0" : "px-3" // Adjust padding
-          }`}
-          title={collapsed ? "Add Trade" : ""}
+          className="w-full block mb-6 text-sm bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white px-3 py-2 rounded-lg text-center font-medium transition-all duration-300 shadow-md"
         >
-          <span className={styles.navItemIconContainer}> {/* Icon container */}
-             <PlusCircle size={ICON_SIZE} className="flex-shrink-0"/>
-          </span>
-          <span
-            className={`${styles.navItemText} ${
-              collapsed ? "opacity-0 max-w-0 scale-95" : "opacity-100 max-w-xs scale-100 ml-2" // Use opacity, max-width, scale
-            }`}
-             style={{ transitionDelay: collapsed ? '0ms' : '100ms' }} // Stagger appearance
+          <motion.span
+            initial={{ scale: 0.95 }}
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.2 }}
           >
-            Add Trade
-          </span>
+            ➕ {!collapsed && " Add Trade"}
+          </motion.span>
         </Link>
-
-        {/* Navigation Links */}
-        <nav className={styles.navGroup}>
-          {navItems.map((item, index) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <div key={item.name} className="relative"> {/* Tooltip wrapper */}
-                <Link
-                  to={item.path}
-                  className={`${styles.navItemBase} ${
-                     isActive ? styles.navItemActive : styles.navItemInactive
-                  } ${collapsed ? "justify-center" : ""}`} // Remove gap-3, handled by text margin
+        <nav className="flex flex-col gap-1.5">
+          {navItems.map((item, index) => (
+            <motion.div
+              key={item.name}
+              custom={index}
+              variants={itemVariants}
+              initial="hidden"
+              animate="visible"
+              className="relative group flex items-center"
+              layout // Smooth layout transitions
+            >
+              <Link
+                to={item.path}
+                className={`flex items-center gap-3 text-sm w-full px-3 py-2.5 rounded-lg transition-all duration-200 ${
+                  location.pathname === item.path
+                    ? "bg-indigo-900/80 text-indigo-200 shadow-inner"
+                    : "hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200"
+                } ${collapsed ? "justify-center" : ""}`}
+              >
+                <motion.div
+                  whileHover={{ scale: 1.15, rotate: 5 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="text-gray-400 group-hover:text-indigo-300 flex-shrink-0"
                 >
-                  {/* Icon in fixed-width container */}
-                  <span className={styles.navItemIconContainer}>
-                     <span className={`${styles.navItemIcon} ${isActive ? styles.navItemIconActive : ''}`}>
-                       {React.cloneElement(item.icon, { size: ICON_SIZE })} {/* Ensure icon size */}
-                     </span>
-                  </span>
-
-                  {/* Text Label (Animated) */}
-                  <span
-                    className={`${styles.navItemText} ${
-                      collapsed ? "opacity-0 max-w-0 scale-95" : "opacity-100 max-w-xs scale-100 ml-2" // Use opacity, max-width, scale and margin
-                    }`}
-                     style={{ transitionDelay: collapsed ? '0ms' : `${100 + index * 25}ms` }} // Stagger animation slightly
-                  >
-                    {item.name}
-                  </span>
-
-                  {/* Badge (Animated) */}
-                  {item.badge && (
-                    <span
-                      className={`${styles.badge} ${
-                        collapsed ? "opacity-0 scale-0" : "opacity-100 scale-100"
-                      }`}
-                      style={{ transitionDelay: collapsed ? '0ms' : `${150 + index * 25}ms` }} // Delay badge appearance too
+                  {item.icon}
+                </motion.div>
+                <AnimatePresence>
+                  {!collapsed && (
+                    <motion.span
+                      variants={textVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="hidden"
+                      className="overflow-hidden whitespace-nowrap flex-1"
                     >
-                      {item.badge}
-                    </span>
+                      {item.name}
+                    </motion.span>
                   )}
-                </Link>
-
-                {/* Custom Tooltip */}
-                {collapsed && (
-                  <div className={styles.tooltip}>
-                    {item.name}
-                    {item.badge && <span className="ml-1.5 text-xs opacity-70">({item.badge})</span>} {/* Optional: Add badge to tooltip */}
-                  </div>
+                </AnimatePresence>
+                {!collapsed && item.badge && (
+                  <span className="text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
+                    {item.badge}
+                  </span>
                 )}
-              </div>
-            );
-          })}
+              </Link>
+              {collapsed && (
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  whileHover={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="absolute left-14 top-1/2 transform -translate-y-1/2 bg-gray-800/90 text-white text-xs rounded-md py-1.5 px-3 shadow-md z-10 pointer-events-none"
+                >
+                  {item.name}
+                </motion.div>
+              )}
+            </motion.div>
+          ))}
         </nav>
       </div>
 
-      {/* --- Footer --- */}
-      <div className={styles.footerSection}>
-        <div className={styles.footerGroup}>
-          {/* Import Button */}
+      {/* Footer Section */}
+      <div className="absolute bottom-0 w-full px-3 py-6 border-t border-gray-700/50 bg-gradient-to-t from-[#1A1F36] to-[#2A3147]">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.4, ease: "easeOut" }}
+          className="space-y-1.5"
+        >
           <Link
             to="/import"
-            className={`${styles.footerButtonBase} ${styles.navItemInactive} ${collapsed ? "justify-center" : ""}`}
-            title={collapsed ? "Import Trades" : ""}
+            className={`flex items-center gap-3 text-sm px-3 py-2.5 rounded-lg hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200 transition-all duration-200 ${collapsed ? "justify-center" : ""}`}
           >
-            <span className={styles.footerButtonIconContainer}><Upload size={ICON_SIZE} className={styles.footerButtonIcon} /></span>
-            <span
-              className={`${styles.navItemText} ${
-                collapsed ? "opacity-0 max-w-0 scale-95" : "opacity-100 max-w-xs scale-100 ml-2"
-              }`}
-               style={{ transitionDelay: collapsed ? '0ms' : '200ms' }}
-            >
-              Import Trades
-            </span>
+            <motion.div whileHover={{ scale: 1.15 }} transition={{ duration: 0.2 }}>
+              <Upload size={20} />
+            </motion.div>
+            {!collapsed && <span>Import Trades</span>}
           </Link>
-
-          {/* Theme Toggle Button */}
           <button
             onClick={toggleTheme}
-            className={`${styles.footerButtonBase} ${styles.navItemInactive} w-full text-left ${collapsed ? "justify-center" : ""}`}
-            title={collapsed ? (isLightMode ? "Switch to Dark Mode" : "Switch to Light Mode") : ""}
+            className={`flex items-center gap-3 text-sm px-3 py-2.5 rounded-lg hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200 w-full text-left transition-all duration-200 ${collapsed ? "justify-center" : ""}`}
           >
-            <span className={styles.footerButtonIconContainer}>{isLightMode ? <Moon size={ICON_SIZE} className={styles.footerButtonIcon}/> : <Sun size={ICON_SIZE} className={styles.footerButtonIcon}/>}</span>
-            <span
-              className={`${styles.navItemText} ${
-                collapsed ? "opacity-0 max-w-0 scale-95" : "opacity-100 max-w-xs scale-100 ml-2"
-              }`}
-               style={{ transitionDelay: collapsed ? '0ms' : '225ms' }}
-            >
-              {isLightMode ? "Dark Mode" : "Light Mode"}
-            </span>
+            <motion.div whileHover={{ scale: 1.15 }} transition={{ duration: 0.2 }}>
+              {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
+            </motion.div>
+            {!collapsed && <span>{theme === "light" ? "Dark Mode" : "Light Mode"}</span>}
           </button>
-
-          {/* Profile Link */}
           <Link
             to="/settings"
-            className={`${styles.footerButtonBase} ${styles.navItemInactive} ${location.pathname === '/settings' ? styles.navItemActive : ''} ${collapsed ? "justify-center" : ""}`}
-            title={collapsed ? "Profile / Settings" : ""}
+            className={`flex items-center gap-3 text-sm px-3 py-2.5 rounded-lg hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200 transition-all duration-200 ${collapsed ? "justify-center" : ""}`}
           >
-            <span className={styles.footerButtonIconContainer}><User size={ICON_SIZE} className={styles.footerButtonIcon} /></span>
-            <span
-              className={`${styles.navItemText} ${
-                collapsed ? "opacity-0 max-w-0 scale-95" : "opacity-100 max-w-xs scale-100 ml-2"
-              }`}
-              style={{ transitionDelay: collapsed ? '0ms' : '250ms' }}
-            >
-              Profile
-            </span>
+            <motion.div whileHover={{ scale: 1.15 }} transition={{ duration: 0.2 }}>
+              <User size={20} />
+            </motion.div>
+            {!collapsed && <span>Profile</span>}
           </Link>
-
-          {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className={`${styles.footerButtonBase} ${styles.footerButtonLogout} w-full text-left ${collapsed ? "justify-center" : ""}`}
-             title={collapsed ? "Log Out" : ""}
+            className={`flex items-center gap-3 text-sm px-3 py-2.5 rounded-lg hover:bg-red-800/80 text-gray-300 hover:text-white w-full text-left transition-all duration-200 ${collapsed ? "justify-center" : ""}`}
           >
-            <span className={styles.footerButtonIconContainer}><LogOut size={ICON_SIZE} className={styles.footerButtonIcon}/></span>
-            <span
-              className={`${styles.navItemText} ${
-                collapsed ? "opacity-0 max-w-0 scale-95" : "opacity-100 max-w-xs scale-100 ml-2"
-              }`}
-               style={{ transitionDelay: collapsed ? '0ms' : '275ms' }}
-            >
-              Log Out
-            </span>
+            <motion.div whileHover={{ scale: 1.15 }} transition={{ duration: 0.2 }}>
+              <LogOut size={20} />
+            </motion.div>
+            {!collapsed && <span>Log Out</span>}
           </button>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
