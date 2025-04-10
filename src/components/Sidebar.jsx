@@ -111,63 +111,72 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
           </motion.span>
         </Link>
         <nav className="flex flex-col gap-1.5">
-          {navItems.map((item, index) => (
-            <motion.div
-              key={item.name}
-              custom={index}
-              variants={itemVariants}
-              initial="hidden"
-              animate="visible"
-              className="relative group flex items-center"
-              layout // Smooth layout transitions
+  {navItems.map((item, index) => (
+    <motion.div
+      key={item.name}
+      custom={index}
+      variants={itemVariants}
+      initial="hidden"
+      animate="visible"
+      layout
+      transition={{ layout: { duration: 0.25 } }}
+      className="relative group"
+    >
+      <Link
+        to={item.path}
+        className={`flex items-center w-full px-3 py-2.5 rounded-lg transition-all duration-200 overflow-hidden ${
+          location.pathname === item.path
+            ? "bg-indigo-900/80 text-indigo-200 shadow-inner"
+            : "hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200"
+        } ${collapsed ? "justify-center" : "gap-3"}`}
+      >
+        <motion.div
+          whileHover={{ scale: 1.1 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+          className="text-gray-400 group-hover:text-indigo-300 flex-shrink-0"
+        >
+          {item.icon}
+        </motion.div>
+
+        <AnimatePresence initial={false}>
+          {!collapsed && (
+            <motion.span
+              layout
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden whitespace-nowrap flex-1"
             >
-              <Link
-                to={item.path}
-                className={`flex items-center gap-3 text-sm w-full px-3 py-2.5 rounded-lg transition-all duration-200 ${
-                  location.pathname === item.path
-                    ? "bg-indigo-900/80 text-indigo-200 shadow-inner"
-                    : "hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200"
-                } ${collapsed ? "justify-center" : ""}`}
-              >
-                <motion.div
-                  whileHover={{ scale: 1.15, rotate: 5 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="text-gray-400 group-hover:text-indigo-300 flex-shrink-0"
-                >
-                  {item.icon}
-                </motion.div>
-                <AnimatePresence>
-                  {!collapsed && (
-                    <motion.span
-                      variants={textVariants}
-                      initial="hidden"
-                      animate="visible"
-                      exit="hidden"
-                      className="overflow-hidden whitespace-nowrap flex-1"
-                    >
-                      {item.name}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-                {!collapsed && item.badge && (
-                  <span className="text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
-                    {item.badge}
-                  </span>
-                )}
-              </Link>
-              {collapsed && (
-                <motion.div
-                  initial={{ opacity: 0, x: -10 }}
-                  whileHover={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="absolute left-14 top-1/2 transform -translate-y-1/2 bg-gray-800/90 text-white text-xs rounded-md py-1.5 px-3 shadow-md z-10 pointer-events-none"
-                >
-                  {item.name}
-                </motion.div>
-              )}
-            </motion.div>
-          ))}
-        </nav>
+              {item.name}
+            </motion.span>
+          )}
+        </AnimatePresence>
+
+        {!collapsed && item.badge && (
+          <motion.span
+            layout
+            className="text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-medium flex-shrink-0"
+          >
+            {item.badge}
+          </motion.span>
+        )}
+      </Link>
+
+      {collapsed && (
+        <motion.div
+          initial={{ opacity: 0, x: -10 }}
+          whileHover={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+          className="absolute left-14 top-1/2 transform -translate-y-1/2 bg-gray-800/90 text-white text-xs rounded-md py-1.5 px-3 shadow-md z-10 pointer-events-none"
+        >
+          {item.name}
+        </motion.div>
+      )}
+    </motion.div>
+  ))}
+</nav>
+
       </div>
 
       {/* Footer Section */}
