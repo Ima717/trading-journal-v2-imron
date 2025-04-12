@@ -68,9 +68,12 @@ const ProfitFactorCard = ({ value, trades }) => {
         {displayValue}
       </motion.div>
       {/* Absolutely position the donut chart in the middle-right */}
-      <div className="absolute right-6 top-1/2 transform -translate-y-1/2 w-16 h-16">
-        <Doughnut data={chartData} options={chartOptions} />
-      </div>
+      <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-28 h-28 pr-2 z-[100] pointer-events-auto">
+  <div className="relative w-full h-full overflow-visible">
+    <Doughnut data={chartData} options={chartOptions} />
+  </div>
+</div>
+
     </div>
   );
 };
