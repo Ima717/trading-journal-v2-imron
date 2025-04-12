@@ -67,18 +67,18 @@ const ProfitFactorCard = ({ value, trades }) => {
             tooltipEl.id = "chartjs-tooltip";
             tooltipEl.style.opacity = 0;
             tooltipEl.style.position = "absolute";
-            // Match widget styling
-            tooltipEl.style.backgroundColor = "";
-            tooltipEl.className = "bg-white dark:bg-zinc-800 rounded-xl shadow-sm px-3 py-1 text-gray-900 dark:text-gray-100 text-xs font-medium";
+            // Match widget styling with wider padding
+            tooltipEl.className = "bg-white dark:bg-zinc-800 rounded-xl shadow-sm px-4 py-2 text-gray-900 dark:text-gray-100 text-xs font-medium";
             tooltipEl.style.pointerEvents = "none";
             tooltipEl.style.zIndex = "1000";
-            tooltipEl.style.transition = "opacity 0.1s ease";
+            tooltipEl.style.transition = "opacity 0.1s ease, box-shadow 0.1s ease";
             document.body.appendChild(tooltipEl);
           }
 
           // Hide if no tooltip data (e.g., mouse leaves)
           if (tooltip.opacity === 0) {
             tooltipEl.style.opacity = 0;
+            tooltipEl.style.boxShadow = "none"; // Remove shadow when hidden
             return;
           }
 
@@ -101,6 +101,8 @@ const ProfitFactorCard = ({ value, trades }) => {
             tooltipEl.style.opacity = 1;
             tooltipEl.style.left = `${left}px`;
             tooltipEl.style.top = `${top}px`;
+            // Add subtle shadow when visible
+            tooltipEl.style.boxShadow = "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)"; // Equivalent to shadow-md
           }
         },
       },
