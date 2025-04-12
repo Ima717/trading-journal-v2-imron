@@ -11,13 +11,16 @@ import { motion } from "framer-motion";
 import TradeTabs from "../components/TradeTabs";
 import ChartTagPerformance from "../components/ChartTagPerformance";
 import ChartZellaScore from "../components/ChartZellaScore";
-import StatCard from "../components/StatCard";
+import NetPLCard from "../components/NetPLCard";
+import ProfitFactorCard from "../components/ProfitFactorCard";
+import TradeWinPercentCard from "../components/TradeWinPercentCard";
+import AvgWinLossCard from "../components/AvgWinLossCard";
+import DayWinPercentCard from "../components/DayWinPercentCard";
 import ChartEquityCurve from "../components/ChartEquityCurve";
 import ChartSymbolDistribution from "../components/ChartSymbolDistribution";
 import ChartPnLBySymbol from "../components/ChartPnLBySymbol";
 import AdvancedFilters from "../components/AdvancedFilters";
 import TimelineDateRangePicker from "../components/TimelineDateRangePicker";
-import WinStatsCard from "../components/WinStatsCard";
 import ChartCard from "../components/ChartCard";
 import DrawdownCard from "../components/DrawdownCard";
 import CalendarCard from "../components/CalendarCard";
@@ -61,7 +64,7 @@ const Dashboard = () => {
           const amount = parseFloat(data.amount) || 0;
           const commission = parseFloat(data.commission) || 0;
           const fees = parseFloat(data.fees) || 0;
-          const pnl = parseFloat(data.pnl) || 0; // Use stored P&L
+          const pnl = parseFloat(data.pnl) || 0;
           return {
             id: doc.id,
             ...data,
@@ -76,7 +79,6 @@ const Dashboard = () => {
 
         console.log("Raw trades from Firestore:", trades);
 
-        // Use stored P&L instead of recalculating
         let finalTrades = trades;
         if (dateRange.start && dateRange.end) {
           const start = dayjs(dateRange.start);
@@ -150,11 +152,6 @@ const Dashboard = () => {
     ? ((wins.length / totalTrades) * 100).toFixed(2)
     : "0.00";
 
-  // Debug logs for Trade Win %
-  console.log("Total Trades:", totalTrades);
-  console.log("Winning Trades:", wins.length);
-  console.log("Trade Win %:", tradeWinPercent);
-
   // Profit Factor
   const grossProfit = wins.reduce((sum, t) => sum + t.pnl, 0);
   const grossLoss = Math.abs(losses.reduce((sum, t) => sum + t.pnl, 0));
@@ -165,11 +162,6 @@ const Dashboard = () => {
       ? "Infinity"
       : "0.00"
     : "0.00";
-
-  // Debug logs for Profit Factor
-  console.log("Gross Profit:", grossProfit);
-  console.log("Gross Loss:", grossLoss);
-  console.log("Profit Factor:", profitFactor);
 
   // Avg Win/Loss Trade
   const avgWin = wins.length ? grossProfit / wins.length : 0;
@@ -249,33 +241,22 @@ const Dashboard = () => {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-                <StatCard
-                  title="Net P&L"
-                  value={`$${netPnL.toFixed(2)}`}
-                  color={netPnL >= 0 ? "text-green-600" : "text-red-500"}
+              <div className="flex flex-wrap gap-6 mb-6">
+                <NetPLCard
+                  value={netPnL}
                   badge={totalTrades}
-                  tooltip="Total net profit/loss across all trades."
+                  trades={tradesToDisplay}
                 />
-                <StatCard
-                  title="Trade Win %"
-                  value={`${tradeWinPercent}%`}
+                <TradeWinPercentCard
+                  value={tradeWinPercent}
                   customBg={getWinRateBackground()}
-                  tooltip="Winning trades vs total trades."
                 />
-                <StatCard
-                  title="Profit Factor"
+                <ProfitFactorCard
                   value={profitFactor}
-                  tooltip="Gross profit / gross loss."
-                  trades={tradesToDisplay} // Pass trades for donut chart
+                  trades={tradesToDisplay}
                 />
-              </div>
-
-              <div className="mb-6">
-                <WinStatsCard
-                  dayWinPercent={dayWinPercent}
-                  avgWinLossTrade={avgWinLossTrade}
-                />
+                <AvgWinLossCard value={avgWinLossTrade} />
+                <DayWinPercentCard value={dayWinPercent} />
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-stretch">
@@ -285,7 +266,7 @@ const Dashboard = () => {
                   className="h-full"
                 >
                   <ChartCard title="Zella Score">
-                    <ChartZellaScore data={zellaTrendData} /> {/* Fixed typo */}
+                    <ChartZellaScore data={zellaTrendData} />
                   </ChartCard>
                 </motion.div>
 
