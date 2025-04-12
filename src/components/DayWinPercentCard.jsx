@@ -11,7 +11,7 @@ const DayWinPercentCard = ({ value }) => {
   }, [value]);
 
   return (
-    <div className="p-6 rounded-xl shadow-sm bg-white dark:bg-zinc-800 min-w-[250px] max-w-[400px] h-24 flex flex-col justify-between hover:shadow-md hover:scale-[1.02] transition-all duration-200">
+    <div className="p-6 rounded-xl shadow-sm bg-white dark:bg-zinc-800 min-w-[250px] flex-1 h-24 flex flex-col justify-between hover:shadow-md hover:scale-[1.02] transition-all duration-200">
       <div className="flex justify-between items-center mb-1">
         <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400 font-medium">
           Day Win %
