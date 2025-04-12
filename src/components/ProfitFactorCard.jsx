@@ -21,6 +21,16 @@ const ProfitFactorCard = ({ value, trades }) => {
     return () => clearTimeout(timeout);
   }, [value]);
 
+  // Cleanup tooltip on component unmount
+  useEffect(() => {
+    return () => {
+      const tooltipEl = document.getElementById("chartjs-tooltip");
+      if (tooltipEl) {
+        tooltipEl.remove();
+      }
+    };
+  }, []);
+
   const totalProfit = trades
     ? trades.filter((t) => t.pnl > 0).reduce((sum, t) => sum + t.pnl, 0)
     : 0;
@@ -57,10 +67,9 @@ const ProfitFactorCard = ({ value, trades }) => {
             tooltipEl.id = "chartjs-tooltip";
             tooltipEl.style.opacity = 0;
             tooltipEl.style.position = "absolute";
-            tooltipEl.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
-            tooltipEl.style.color = "white";
-            tooltipEl.style.padding = "5px 10px";
-            tooltipEl.style.borderRadius = "3px";
+            // Match widget styling
+            tooltipEl.style.backgroundColor = "";
+            tooltipEl.className = "bg-white dark:bg-zinc-800 rounded-xl shadow-sm px-3 py-1 text-gray-900 dark:text-gray-100 text-xs font-medium";
             tooltipEl.style.pointerEvents = "none";
             tooltipEl.style.zIndex = "1000";
             tooltipEl.style.transition = "opacity 0.1s ease";
@@ -86,8 +95,8 @@ const ProfitFactorCard = ({ value, trades }) => {
             const tooltipHeight = tooltipEl.offsetHeight;
 
             // Center horizontally and vertically within the widget container
-            const left = rect.left + (rect.width - tooltipWidth) / 2;
-            const top = rect.top + (rect.height - tooltipHeight) / 2;
+            const left = Math.max(0, Math.min(rect.left + (rect.width - tooltipWidth) / 2, window.innerWidth - tooltipWidth));
+            const top = Math.max(0, Math.min(rect.top + (rect.height - tooltipHeight) / 2, window.innerHeight - tooltipHeight));
 
             tooltipEl.style.opacity = 1;
             tooltipEl.style.left = `${left}px`;
