@@ -236,7 +236,7 @@ const Dashboard = () => {
           ) : (
             <>
               {/* First Row: 3 Widgets */}
-              <div className="flex flex-wrap gap-6 mb-6">
+              <div className="flex flex-wrap gap-6 mb-6 w-full justify-between">
                 <NetPLCard
                   value={netPnL}
                   badge={totalTrades}
@@ -253,7 +253,7 @@ const Dashboard = () => {
               </div>
 
               {/* Second Row: 2 Widgets */}
-              <div className="flex flex-wrap gap-6 mb-6">
+              <div className="flex flex-wrap gap-6 mb-6 w-full justify-between">
                 <AvgWinLossCard value={avgWinLossTrade} />
                 <DayWinPercentCard value={dayWinPercent} />
               </div>
