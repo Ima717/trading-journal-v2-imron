@@ -33,7 +33,7 @@ const ProfitFactorCard = ({ value, trades }) => {
         data: [totalProfit || 1, totalLoss || 1],
         backgroundColor: ["#16a34a", "#ef4444"],
         borderWidth: 0,
-        cutout: "50%",
+        cutout: "70%",
       },
     ],
   };
