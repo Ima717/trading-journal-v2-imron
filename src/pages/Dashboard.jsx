@@ -253,10 +253,10 @@ const Dashboard = () => {
               </div>
 
               {/* Second Row: 2 Widgets */}
-              <div className="flex flex-wrap gap-6 mb-6 w-full justify-between">
-                <AvgWinLossCard value={avgWinLossTrade} />
-                <DayWinPercentCard value={dayWinPercent} />
-              </div>
+             <div className="flex flex-wrap gap-6 mb-6 w-full justify-between">
+              <AvgWinLossCard value={avgWinLossTrade} />
+              <DayWinPercentCard value={dayWinPercent} trades={tradesToDisplay} />
+            </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-stretch">
                 <motion.div
