@@ -49,7 +49,7 @@ const StatCard = ({
         data: [totalProfit || 1, totalLoss || 1], // Fallback to avoid empty chart
         backgroundColor: ["#16a34a", "#ef4444"], // Green (text-green-600), Red (text-red-500)
         borderWidth: 0,
-        cutout: "50%", // Reduced from 65% for thicker lines
+        cutout: "20%", // Reduced from 65% for thicker lines
       },
     ],
   };
