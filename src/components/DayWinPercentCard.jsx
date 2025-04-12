@@ -57,7 +57,7 @@ const DayWinPercentCard = ({ value, trades }) => {
         ],
         backgroundColor: ["#16a34a", "#3b82f6", "#ef4444"], // Green, Blue, Red
         borderWidth: 0,
-        cutout: "70%", // Slightly smaller inner radius for a thicker gauge
+        cutout: "75%", // Slightly smaller inner radius for a thicker gauge
       },
     ],
   };
