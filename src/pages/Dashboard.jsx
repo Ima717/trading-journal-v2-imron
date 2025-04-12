@@ -77,8 +77,6 @@ const Dashboard = () => {
           };
         });
 
-        console.log("Raw trades from Firestore:", trades);
-
         let finalTrades = trades;
         if (dateRange.start && dateRange.end) {
           const start = dayjs(dateRange.start);
@@ -93,19 +91,15 @@ const Dashboard = () => {
           });
         }
 
-        console.log("Filtered trades (local):", finalTrades);
-
         setLocalTrades(finalTrades);
         const displayTrades =
           filteredTrades.length > 0 &&
           filteredTrades.every((t) => t.pnl !== undefined)
             ? filteredTrades
             : finalTrades;
-        console.log("Display trades (after FilterContext):", displayTrades);
 
         const pnlSeries = getPnLOverTime(displayTrades);
         const zellaSeries = getZellaScoreOverTime(displayTrades);
-        console.log("P&L Series for Equity Curve:", pnlSeries);
         setPnlData(pnlSeries);
         setZellaTrendData(zellaSeries);
 
@@ -241,6 +235,7 @@ const Dashboard = () => {
             </div>
           ) : (
             <>
+              {/* First Row: 3 Widgets */}
               <div className="flex flex-wrap gap-6 mb-6">
                 <NetPLCard
                   value={netPnL}
@@ -255,6 +250,10 @@ const Dashboard = () => {
                   value={profitFactor}
                   trades={tradesToDisplay}
                 />
+              </div>
+
+              {/* Second Row: 2 Widgets */}
+              <div className="flex flex-wrap gap-6 mb-6">
                 <AvgWinLossCard value={avgWinLossTrade} />
                 <DayWinPercentCard value={dayWinPercent} />
               </div>
