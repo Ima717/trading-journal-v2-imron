@@ -45,42 +45,9 @@ const ProfitFactorCard = ({ value, trades }) => {
       legend: { display: false },
       tooltip: {
         enabled: true,
-        position: "nearest", // Use 'nearest' as base, but override with custom positioner
         callbacks: {
           label: (context) =>
             `${context.label}: $${context.raw.toFixed(2)}`,
-        },
-        // Custom positioner to center the tooltip in the widget container
-        external: (context) => {
-          const { chart, tooltip } = context;
-          const tooltipEl = tooltip.getActiveElements()[0]?.element;
-
-          if (!tooltipEl) return;
-
-          const widgetContainer = chart.canvas.closest(".relative");
-          if (!widgetContainer) return;
-
-          const widgetRect = widgetContainer.getBoundingClientRect();
-          const tooltipWidth = tooltipEl.width || 120; // Estimate tooltip width
-          const tooltipHeight = tooltipEl.height || 30; // Estimate tooltip height
-
-          // Center the tooltip in the widget container
-          const left = widgetRect.left + (widgetRect.width - tooltipWidth) / 2;
-          const top = widgetRect.top + (widgetRect.height - tooltipHeight) / 2;
-
-          tooltip.setActiveElements(
-            tooltip.getActiveElements(),
-            { x: left, y: top }
-          );
-
-          const tooltipElement = tooltipEl._tooltipNode || tooltipEl;
-          if (tooltipElement) {
-            tooltipElement.style.position = "absolute";
-            tooltipElement.style.left = `${left}px`;
-            tooltipElement.style.top = `${top}px`;
-            tooltipElement.style.zIndex = "1000"; // Ensure it’s above other elements
-            tooltipElement.style.pointerEvents = "none";
-          }
         },
       },
     },
