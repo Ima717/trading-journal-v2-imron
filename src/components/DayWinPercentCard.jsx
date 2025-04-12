@@ -92,7 +92,7 @@ const DayWinPercentCard = ({ value, trades }) => {
         data: chartValues,
         backgroundColor: chartColors,
         borderWidth: 0,
-        cutout: "80%", // Thickness as specified
+        cutout: "85%", // Thickness as specified
       },
     ],
   };
@@ -176,7 +176,7 @@ const DayWinPercentCard = ({ value, trades }) => {
         </motion.div>
         <div className="flex flex-col items-center absolute right-6 top-1/2 transform -translate-y-1/2">
           {/* Semi-circular chart */}
-          <div className="w-20 h-10 mb-1">
+          <div className="w-25 h-10 mb-1">
             <Doughnut ref={chartRef} data={chartData} options={chartOptions} />
           </div>
           {/* Pill counters */}
