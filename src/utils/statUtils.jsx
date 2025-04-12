@@ -29,7 +29,7 @@ export const RenderTooltip = ({ id, content }) => (
     <Tooltip
       id={id}
       place="top"
-      className="z-[1000] max-w-[220px] whitespace-pre-line text-xs px-2 py-1 rounded shadow-lg bg-gray-800 text-white"
+      className="z-[1000] max-w-[220px] whitespace-pre-line bg-white dark:bg-zinc-800 rounded-xl shadow-sm px-4 py-2 text-gray-900 dark:text-gray-100 text-xs font-medium"
     />
   </>
 );
