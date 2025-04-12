@@ -6,7 +6,7 @@ import {
   Tooltip as ChartTooltip,
 } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
-import { valueAnimation, formatValue, RenderTooltip } from "../utils/statUtils";
+import { valueAnimation, formatValue, RenderTooltip } from "../utils/statUtils.jsx";
 
 // Register Chart.js components
 ChartJS.register(ArcElement, ChartTooltip);
