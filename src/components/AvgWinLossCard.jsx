@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { valueAnimation, formatValue, RenderTooltip } from "../utils/statUtils";
+import { valueAnimation, formatValue, RenderTooltip } from "../utils/statUtils.jsx";
 
 const AvgWinLossCard = ({ value }) => {
   const [displayValue, setDisplayValue] = useState(value);
