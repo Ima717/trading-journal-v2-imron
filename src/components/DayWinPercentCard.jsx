@@ -92,7 +92,7 @@ const DayWinPercentCard = ({ value, trades }) => {
         data: chartValues,
         backgroundColor: chartColors,
         borderWidth: 0,
-        cutout: "85%", // Thickness as specified
+        cutout: "83%", // Thickness as specified
       },
     ],
   };
