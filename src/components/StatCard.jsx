@@ -72,7 +72,7 @@ const StatCard = ({
 
   return (
     <div
-      className={`relative p-6 rounded-xl shadow-sm w-full flex flex-col justify-between hover:shadow-md hover:scale-[1.02] transition-all duration-200 group overflow-hidden ${
+      className={`relative p-6 rounded-xl shadow-sm w-full flex flex-col justify-between hover:shadow-md hover:scale-[1.02] transition-all duration-200 group overflow-visible ${
         customBg || "bg-white dark:bg-zinc-800"
       }`}
     >
