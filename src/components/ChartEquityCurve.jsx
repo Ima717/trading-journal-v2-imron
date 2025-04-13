@@ -150,8 +150,8 @@ const ChartEquityCurve = ({ data }) => {
 
   return (
     <div className="w-full h-full relative">
-      {/* Absolute positioned trend indicator at the very top right */}
-      <div className="absolute top-0 right-0 z-20">
+      {/* Trend indicator moved to the top-right corner */}
+      <div className="absolute top-4 right-4 z-20">
         <TrendIndicator />
       </div>
       
