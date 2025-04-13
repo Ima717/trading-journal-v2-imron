@@ -59,23 +59,20 @@ const ChartZellaScore = ({ data }) => {
           displayFormats: { day: "MMM d" },
         },
         grid: {
-          color: "rgba(180, 180, 180, 0.15)",
+          display: false, // Hide grid lines for cleaner look
         },
         ticks: {
-          color: "rgba(100, 100, 100, 0.7)",
-          font: { size: 11, family: "'Inter', sans-serif" },
+          display: false, // Hide x-axis ticks to save space
         },
       },
       y: {
         beginAtZero: true,
         max: 100,
         grid: {
-          color: "rgba(180, 180, 180, 0.15)",
+          display: false, // Hide grid lines
         },
         ticks: {
-          color: "rgba(100, 100, 100, 0.7)",
-          font: { size: 11, family: "'Inter', sans-serif" },
-          stepSize: 20,
+          display: false, // Hide y-axis ticks to save space
         },
       },
     },
@@ -103,14 +100,8 @@ const ChartZellaScore = ({ data }) => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="p-6 rounded-xl shadow-sm bg-white dark:bg-zinc-800 min-w-[250px] flex-1 h-24 flex flex-col justify-between"
+      className="p-6 rounded-xl shadow-sm bg-white dark:bg-zinc-800 min-w-[250px] flex-1 h-24 flex flex-col justify-between relative"
     >
-      <div className="flex justify-between items-center mb-1">
-        <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400 font-medium">
-          Zella Score
-          <RenderTooltip id="zella-score-tooltip" content="Your overall trading performance score (0-100)." />
-        </div>
-      </div>
       <div className="flex items-center justify-between">
         <motion.div
           {...valueAnimation}
@@ -118,7 +109,7 @@ const ChartZellaScore = ({ data }) => {
         >
           {score.toFixed(2)}
         </motion.div>
-        <div className="w-28 h-8">
+        <div className="absolute right-6 top-1/2 transform -translate-y-1/2 w-28 h-8">
           <Line data={chartData} options={chartOptions} />
         </div>
       </div>
