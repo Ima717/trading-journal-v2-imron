@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { auth, db } from "../utils/firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
@@ -27,7 +27,7 @@ import CalendarCard from "../components/CalendarCard";
 import RecentTradesCard from "../components/RecentTradesCard";
 import ErrorBoundary from "../components/ErrorBoundary";
 
-import { getPnLOverTime, getZellaScoreOverTime } from "../utils/calculations";
+import { getPnLOverTime, getZellaScoreOverTime, getMaxDrawdown, getRecoveryFactor } from "../utils/calculations";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -36,10 +36,8 @@ const Dashboard = () => {
   const { dateRange, filteredTrades } = useFilters();
 
   const [localTrades, setLocalTrades] = useState([]);
-  const [tagPerformanceData, setTagPerformanceData] = useState([]);
-  const [pnlData, setPnlData] = useState([]);
-  const [zellaTrendData, setZellaTrendData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   if (!user)
     return (
@@ -51,6 +49,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (!user) return;
     setIsLoading(true);
+    setError(null);
 
     const q = query(
       collection(db, "users", user.uid, "trades"),
@@ -92,54 +91,47 @@ const Dashboard = () => {
         }
 
         setLocalTrades(finalTrades);
-        const displayTrades =
-          filteredTrades.length > 0 &&
-          filteredTrades.every((t) => t.pnl !== undefined)
-            ? filteredTrades
-            : finalTrades;
-
-        const pnlSeries = getPnLOverTime(displayTrades);
-        const zellaSeries = getZellaScoreOverTime(displayTrades);
-        setPnlData(pnlSeries);
-        setZellaTrendData(zellaSeries);
-
-        const tagMap = {};
-        displayTrades.forEach((trade) => {
-          if (Array.isArray(trade.tags)) {
-            trade.tags.forEach((tag) => {
-              if (!tagMap[tag]) tagMap[tag] = { totalPnL: 0, count: 0 };
-              tagMap[tag].totalPnL += trade.pnl || 0;
-              tagMap[tag].count += 1;
-            });
-          }
-        });
-
-        const formatted = Object.entries(tagMap).map(([tag, val]) => ({
-          tag,
-          avgPnL: parseFloat((val.totalPnL / val.count).toFixed(2)),
-        }));
-
-        setTagPerformanceData(formatted);
         setIsLoading(false);
       },
       (error) => {
         console.error("Firestore fetch error:", error);
+        setError("Failed to load trades. Please try again later.");
         setIsLoading(false);
       }
     );
 
     return () => unsubscribe();
-  }, [user, dateRange, filteredTrades]);
+  }, [user, dateRange]);
 
-  const tradesToDisplay =
-    filteredTrades.length > 0 && filteredTrades.every((t) => t.pnl !== undefined)
+  const displayTrades = useMemo(() => {
+    return filteredTrades.length > 0 && filteredTrades.every((t) => t.pnl !== undefined)
       ? filteredTrades
       : localTrades;
+  }, [filteredTrades, localTrades]);
+
+  const pnlData = useMemo(() => getPnLOverTime(displayTrades), [displayTrades]);
+  const zellaTrendData = useMemo(() => getZellaScoreOverTime(displayTrades), [displayTrades]);
+  const tagPerformanceData = useMemo(() => {
+    const tagMap = {};
+    displayTrades.forEach((trade) => {
+      if (Array.isArray(trade.tags)) {
+        trade.tags.forEach((tag) => {
+          if (!tagMap[tag]) tagMap[tag] = { totalPnL: 0, count: 0 };
+          tagMap[tag].totalPnL += trade.pnl || 0;
+          tagMap[tag].count += 1;
+        });
+      }
+    });
+    return Object.entries(tagMap).map(([tag, val]) => ({
+      tag,
+      avgPnL: parseFloat((val.totalPnL / val.count).toFixed(2)),
+    }));
+  }, [displayTrades]);
 
   // Core Metrics
-  const totalTrades = tradesToDisplay.length;
-  const wins = tradesToDisplay.filter((t) => t.pnl > 0);
-  const losses = tradesToDisplay.filter((t) => t.pnl < 0);
+  const totalTrades = displayTrades.length;
+  const wins = displayTrades.filter((t) => t.pnl > 0);
+  const losses = displayTrades.filter((t) => t.pnl < 0);
 
   // Trade Win %
   const tradeWinPercent = totalTrades
@@ -171,7 +163,7 @@ const Dashboard = () => {
   // Day Win %
   const tradingDays = [
     ...new Set(
-      tradesToDisplay
+      displayTrades
         .map((t) =>
           dayjs(t.entryTime).isValid()
             ? dayjs(t.entryTime).format("YYYY-MM-DD")
@@ -181,7 +173,7 @@ const Dashboard = () => {
     ),
   ];
   const winningDays = tradingDays.filter((day) => {
-    const dayPnL = tradesToDisplay
+    const dayPnL = displayTrades
       .filter((t) => dayjs(t.entryTime).format("YYYY-MM-DD") === day)
       .reduce((sum, t) => sum + (t.pnl || 0), 0);
     return dayPnL > 0;
@@ -191,20 +183,9 @@ const Dashboard = () => {
     : "0.00";
 
   // Other Calculations
-  const netPnL = tradesToDisplay.reduce((sum, t) => sum + (t.pnl || 0), 0);
-  const cumulativePnl = [];
-  let runningPnl = 0;
-  tradesToDisplay
-    .sort((a, b) => new Date(a.entryTime) - new Date(b.entryTime))
-    .forEach((t) => {
-      runningPnl += t.pnl || 0;
-      cumulativePnl.push(runningPnl);
-    });
-
-  const peak = Math.max(...cumulativePnl, 0);
-  const trough = Math.min(...cumulativePnl, 0);
-  const maxDrawdown = trough;
-  const recoveryFactor = peak !== 0 ? Math.abs(peak / trough) : 0;
+  const netPnL = displayTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
+  const maxDrawdown = getMaxDrawdown(displayTrades);
+  const recoveryFactor = getRecoveryFactor(displayTrades);
 
   const getWinRateBackground = () => {
     const winRateValue = parseFloat(tradeWinPercent);
@@ -229,7 +210,9 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {isLoading ? (
+          {error ? (
+            <div className="text-center py-10 text-red-500 dark:text-red-400">{error}</div>
+          ) : isLoading ? (
             <div className="text-center py-10 text-gray-500 dark:text-gray-400">
               Loading dashboard...
             </div>
@@ -240,7 +223,7 @@ const Dashboard = () => {
                 <NetPLCard
                   value={netPnL}
                   badge={totalTrades}
-                  trades={tradesToDisplay}
+                  trades={displayTrades}
                 />
                 <TradeWinPercentCard
                   value={tradeWinPercent}
@@ -248,15 +231,15 @@ const Dashboard = () => {
                 />
                 <ProfitFactorCard
                   value={profitFactor}
-                  trades={tradesToDisplay}
+                  trades={displayTrades}
                 />
               </div>
 
               {/* Second Row: 2 Widgets */}
-             <div className="flex flex-wrap gap-6 mb-6 w-full justify-between">
-              <AvgWinLossCard value={avgWinLossTrade} />
-              <DayWinPercentCard value={dayWinPercent} trades={tradesToDisplay} />
-            </div>
+              <div className="flex flex-wrap gap-6 mb-6 w-full justify-between">
+                <AvgWinLossCard value={avgWinLossTrade} />
+                <DayWinPercentCard value={dayWinPercent} trades={displayTrades} />
+              </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-stretch">
                 <motion.div
@@ -296,10 +279,10 @@ const Dashboard = () => {
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-stretch">
                 <div className="lg:col-span-2 h-full">
-                  <CalendarCard trades={tradesToDisplay} />
+                  <CalendarCard trades={displayTrades} />
                 </div>
                 <div className="h-full">
-                  <RecentTradesCard trades={tradesToDisplay} />
+                  <RecentTradesCard trades={displayTrades} />
                 </div>
               </div>
 
@@ -322,7 +305,7 @@ const Dashboard = () => {
 
               <div className="mb-6">
                 <ChartCard title="Trades Table">
-                  <TradeTabs filteredTrades={tradesToDisplay} />
+                  <TradeTabs filteredTrades={displayTrades} />
                 </ChartCard>
               </div>
             </>
