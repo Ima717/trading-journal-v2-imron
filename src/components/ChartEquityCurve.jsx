@@ -158,7 +158,7 @@ const ChartEquityCurve = ({ data }) => {
       <div className="flex justify-end mb-3">
         <TrendIndicator />
       </div>
-      <div className="w-full h-40">
+      <div className="w-full flex-1">
         <Line data={chartData} options={options} />
       </div>
     </motion.div>
