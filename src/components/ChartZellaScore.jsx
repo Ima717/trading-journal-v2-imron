@@ -11,7 +11,7 @@ import {
   Filler,
 } from "chart.js";
 import "chartjs-adapter-date-fns";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { valueAnimation } from "../utils/statUtils.jsx";
 import { ChevronDown, ChevronUp, Calendar, Info } from "lucide-react";
 
@@ -212,6 +212,28 @@ const ChartZellaScore = ({ data, scoreMetadata = {} }) => {
     },
   };
 
+  // Animation variants for the breakdown section
+  const breakdownVariants = {
+    open: { 
+      opacity: 1, 
+      height: "auto",
+      marginTop: 8,
+      transition: { 
+        duration: 0.3,
+        ease: "easeOut"
+      }
+    },
+    closed: { 
+      opacity: 0, 
+      height: 0,
+      marginTop: 0,
+      transition: { 
+        duration: 0.3,
+        ease: "easeIn"
+      }
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -279,44 +301,47 @@ const ChartZellaScore = ({ data, scoreMetadata = {} }) => {
           {isBreakdownVisible ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </button>
         
-        {isBreakdownVisible && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            transition={{ duration: 0.3 }}
-            className="mt-2 text-xs grid grid-cols-2 gap-2"
-          >
-            {Object.entries(scoreMetadata).length > 0 ? (
-              <>
-                {Object.entries(scoreMetadata).map(([key, value]) => (
-                  <div key={key} className="flex justify-between">
-                    <span className="text-gray-500">{key}:</span>
-                    <span className="font-medium text-gray-700 dark:text-gray-300">{value}</span>
+        <AnimatePresence>
+          {isBreakdownVisible && (
+            <motion.div
+              initial="closed"
+              animate="open"
+              exit="closed"
+              variants={breakdownVariants}
+              className="overflow-hidden text-xs grid grid-cols-2 gap-2"
+            >
+              {Object.entries(scoreMetadata).length > 0 ? (
+                <>
+                  {Object.entries(scoreMetadata).map(([key, value]) => (
+                    <div key={key} className="flex justify-between">
+                      <span className="text-gray-500">{key}:</span>
+                      <span className="font-medium text-gray-700 dark:text-gray-300">{value}</span>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Win Rate:</span>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">68%</span>
                   </div>
-                ))}
-              </>
-            ) : (
-              <>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Win Rate:</span>
-                  <span className="font-medium text-gray-700 dark:text-gray-300">68%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Profit Factor:</span>
-                  <span className="font-medium text-gray-700 dark:text-gray-300">2.4</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Risk-Reward:</span>
-                  <span className="font-medium text-gray-700 dark:text-gray-300">1:2.5</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Max Drawdown:</span>
-                  <span className="font-medium text-gray-700 dark:text-gray-300">8.3%</span>
-                </div>
-              </>
-            )}
-          </motion.div>
-        )}
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Profit Factor:</span>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">2.4</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Risk-Reward:</span>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">1:2.5</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Max Drawdown:</span>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">8.3%</span>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.div>
   );
