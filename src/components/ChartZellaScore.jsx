@@ -140,9 +140,7 @@ const ChartZellaScore = ({ data }) => {
       </motion.div>
 
       {/* Chart at the bottom, full width and height */}
-      <div className="w-full h-[60px] mt-auto mx-0">
-        <Line data={chartData} options={chartOptions} />
-      </div>
+      <Line data={chartData} options={chartOptions} height={60} />
     </motion.div>
   );
 };
