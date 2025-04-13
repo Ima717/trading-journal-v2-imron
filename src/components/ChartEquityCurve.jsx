@@ -12,7 +12,6 @@ import {
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 import { motion } from "framer-motion";
-import { TrendingUp, TrendingDown } from "lucide-react";
 
 ChartJS.register(LineElement, PointElement, LinearScale, TimeScale, Tooltip, Legend, Filler);
 
@@ -20,18 +19,11 @@ const ChartEquityCurve = ({ data }) => {
   const sampleLabels = ["Mar 15", "Mar 19", "Mar 23", "Mar 27", "Apr 1"];
   const sampleData = [-100, 200, -400, -800, -850];
 
-  const [latestTrend, setLatestTrend] = useState("neutral");
   const [chartDataPoints, setChartDataPoints] = useState(data?.map((d) => d.pnl) || sampleData);
 
   useEffect(() => {
     const points = data?.map((d) => d.pnl) || sampleData;
     setChartDataPoints(points);
-
-    if (points.length >= 3) {
-      const lastThree = points.slice(-3);
-      const slope = (lastThree[2] - lastThree[0]) / 2; // Simple slope over last 3 points
-      setLatestTrend(slope > 0 ? "up" : slope < 0 ? "down" : "neutral");
-    }
   }, [data]);
 
   const chartData = {
@@ -124,49 +116,17 @@ const ChartEquityCurve = ({ data }) => {
     animation: { duration: 800, easing: "easeInOutQuad" },
   };
 
-  const TrendIndicator = () => (
-    <motion.div
-      initial={{ scale: 0.8, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${
-        latestTrend === "up"
-          ? "bg-green-100 text-green-700"
-          : latestTrend === "down"
-          ? "bg-red-100 text-red-700"
-          : "bg-gray-100 text-gray-700"
-      } dark:bg-opacity-50 dark:text-gray-300`}
-    >
-      {latestTrend === "up" ? (
-        <TrendingUp size={16} />
-      ) : latestTrend === "down" ? (
-        <TrendingDown size={16} />
-      ) : (
-        <span>—</span>
-      )}
-      <span>{latestTrend === "up" ? "Uptrend" : latestTrend === "down" ? "Downtrend" : "Neutral"}</span>
-    </motion.div>
-  );
-
   return (
-    <div className="w-full h-full relative">
-      {/* Trend indicator moved to the top-right corner */}
-      <div className="absolute top-4 right-4 z-20">
-        <TrendIndicator />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, ease: "easeInOut" }}
+      className="w-full h-full"
+    >
+      <div className="w-full h-full">
+        <Line data={chartData} options={options} />
       </div>
-      
-      {/* Chart container takes up the full space */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeInOut" }}
-        className="w-full h-full"
-      >
-        <div className="w-full h-full">
-          <Line data={chartData} options={options} />
-        </div>
-      </motion.div>
-    </div>
+    </motion.div>
   );
 };
 
