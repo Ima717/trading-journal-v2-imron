@@ -149,19 +149,24 @@ const ChartEquityCurve = ({ data }) => {
   );
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, ease: "easeInOut" }}
-      className="w-full h-full flex flex-col relative"
-    >
-      <div className="absolute top-0 right-0 z-10">
+    <div className="w-full h-full relative">
+      {/* Absolute positioned trend indicator at the very top right */}
+      <div className="absolute top-0 right-0 z-20">
         <TrendIndicator />
       </div>
-      <div className="w-full flex-1">
-        <Line data={chartData} options={options} />
-      </div>
-    </motion.div>
+      
+      {/* Chart container takes up the full space */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeInOut" }}
+        className="w-full h-full"
+      >
+        <div className="w-full h-full">
+          <Line data={chartData} options={options} />
+        </div>
+      </motion.div>
+    </div>
   );
 };
 
