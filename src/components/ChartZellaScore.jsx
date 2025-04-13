@@ -128,7 +128,7 @@ const ChartZellaScore = ({ data }) => {
   <div className="relative w-full h-full">
     {/* Score in top-right corner, always visible */}
     <motion.div
-  style={{ position: 'absolute', top: '6px', right: '12px' }}
+  style={{ position: 'absolute', top: '0px', right: '12px' }}
   initial={{ opacity: 0 }}
   animate={{ opacity: 1 }}
   transition={{ duration: 0.5 }}
