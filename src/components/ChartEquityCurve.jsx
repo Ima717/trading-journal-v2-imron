@@ -34,13 +34,6 @@ const ChartEquityCurve = ({ data }) => {
     }
   }, [data]);
 
-  // Determine the y-axis range based on data
-  const minValue = Math.min(...chartDataPoints);
-  const maxValue = Math.max(...chartDataPoints);
-  const padding = Math.abs(maxValue - minValue) * 0.1; // 10% padding for better visualization
-  const yMin = minValue - padding;
-  const yMax = maxValue + padding;
-
   const chartData = {
     datasets: [
       {
@@ -117,8 +110,6 @@ const ChartEquityCurve = ({ data }) => {
         },
       },
       y: {
-        min: yMin, // Start from the minimum data value
-        max: yMax, // Extend to the maximum data value
         grid: {
           color: "rgba(229, 231, 235, 0.15)",
           borderDash: [8, 8],
