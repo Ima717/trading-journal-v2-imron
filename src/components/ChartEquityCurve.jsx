@@ -153,9 +153,9 @@ const ChartEquityCurve = ({ data }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: "easeInOut" }}
-      className="w-full h-full flex flex-col"
+      className="w-full h-full flex flex-col relative"
     >
-      <div className="flex justify-end mb-3">
+      <div className="absolute top-0 right-0 z-10">
         <TrendIndicator />
       </div>
       <div className="w-full flex-1">
