@@ -19,7 +19,7 @@ ChartJS.register(LineElement, PointElement, LinearScale, TimeScale, Tooltip, Leg
 const ChartZellaScore = ({ data }) => {
   if (!data || data.length === 0) {
     return (
-      <div className="p-6 rounded-xl shadow-sm bg-white dark:bg-zinc-800 min-w-[250px] flex-1 h-24 flex flex-col justify-center items-center text-gray-500 dark:text-gray-400 text-sm">
+      <div className="rounded-xl shadow-sm bg-white dark:bg-zinc-800 min-w-[250px] flex-1 h-24 flex flex-col justify-center items-center text-gray-500 dark:text-gray-400 text-sm">
         No Zella Score data available
       </div>
     );
@@ -117,18 +117,18 @@ const ChartZellaScore = ({ data }) => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="p-6 rounded-xl shadow-sm bg-white dark:bg-zinc-800 min-w-[250px] flex-1 h-24 flex flex-col relative"
+      className="rounded-xl shadow-sm bg-white dark:bg-zinc-800 min-w-[250px] flex-1 h-24 flex flex-col relative"
     >
       {/* Score aligned with title height in top-right corner */}
       <motion.div
         {...valueAnimation}
-        className={`absolute top-0 right-6 px-3 py-1 rounded-full text-sm font-medium ${getScoreBackground()} dark:bg-opacity-50 dark:text-gray-300`}
+        className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium ${getScoreBackground()} dark:bg-opacity-50 dark:text-gray-300`}
       >
         {score.toFixed(2)}
       </motion.div>
 
-      {/* Chart at the bottom, full width */}
-      <div className="w-full h-12 mt-auto">
+      {/* Chart at the bottom, full width with minimal gaps */}
+      <div className="w-full h-12 mt-auto mx-2">
         <Line data={chartData} options={chartOptions} />
       </div>
     </motion.div>
