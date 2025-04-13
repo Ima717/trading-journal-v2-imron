@@ -128,13 +128,14 @@ const ChartZellaScore = ({ data }) => {
   <div className="relative w-full h-full">
     {/* Score in top-right corner, always visible */}
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className={`absolute top-4 right-4 px-3 py-1 rounded-full text-base font-medium ${getScoreBackground()} dark:bg-opacity-50 dark:text-gray-300 z-10`}
-    >
-      {score.toFixed(2)}
-    </motion.div>
+  style={{ position: 'absolute', top: '6px', right: '12px' }}
+  initial={{ opacity: 0 }}
+  animate={{ opacity: 1 }}
+  transition={{ duration: 0.5 }}
+  className={`px-3 py-1 rounded-full text-base font-medium ${getScoreBackground()} dark:bg-opacity-50 dark:text-gray-300 z-10`}
+>
+  {score.toFixed(2)}
+</motion.div>
 
     {/* Chart at the bottom, full width and height */}
     <Line data={chartData} options={chartOptions} height={60} />
