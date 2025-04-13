@@ -8,12 +8,13 @@ import {
   TimeScale,
   Tooltip,
   Legend,
+  Filler,
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 import { motion } from "framer-motion";
 import { valueAnimation, RenderTooltip } from "../utils/statUtils.jsx";
 
-ChartJS.register(LineElement, PointElement, LinearScale, TimeScale, Tooltip, Legend);
+ChartJS.register(LineElement, PointElement, LinearScale, TimeScale, Tooltip, Legend, Filler);
 
 const ChartZellaScore = ({ data }) => {
   if (!data || data.length === 0) {
@@ -27,6 +28,13 @@ const ChartZellaScore = ({ data }) => {
   const latest = data[data.length - 1];
   const score = latest?.score ?? 0;
 
+  // Determine background color based on score
+  const getScoreBackground = () => {
+    if (score > 60) return "bg-green-100 text-green-700";
+    if (score >= 40) return "bg-yellow-100 text-yellow-700";
+    return "bg-red-100 text-red-700";
+  };
+
   // Line chart data for Zella Score over time
   const chartData = {
     datasets: [
@@ -37,7 +45,16 @@ const ChartZellaScore = ({ data }) => {
           y: entry.score,
         })),
         borderColor: "#2dd4bf", // Teal to match dashboard palette
-        backgroundColor: "rgba(45, 212, 191, 0.2)",
+        backgroundColor: (ctx) => {
+          const chart = ctx.chart;
+          const { chartArea, ctx: canvas } = chart;
+          if (!chartArea) return "rgba(0,0,0,0)";
+
+          const gradient = canvas.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          gradient.addColorStop(0, "rgba(45, 212, 191, 0.35)");
+          gradient.addColorStop(1, "rgba(45, 212, 191, 0.05)");
+          return gradient;
+        },
         fill: true,
         tension: 0.3,
         pointRadius: 3,
@@ -100,18 +117,18 @@ const ChartZellaScore = ({ data }) => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="p-6 rounded-xl shadow-sm bg-white dark:bg-zinc-800 min-w-[250px] flex-1 h-24 flex flex-col justify-between relative"
+      className="p-6 rounded-xl shadow-sm bg-white dark:bg-zinc-800 min-w-[250px] flex-1 h-24 flex flex-col relative"
     >
-      {/* Score in top-right corner */}
+      {/* Score in top-right corner with background */}
       <motion.div
         {...valueAnimation}
-        className="absolute top-6 right-6 text-2xl font-bold text-gray-900 dark:text-white"
+        className={`absolute top-6 right-6 px-3 py-1.5 rounded-full text-sm font-medium ${getScoreBackground()} dark:bg-opacity-50 dark:text-gray-300`}
       >
         {score.toFixed(2)}
       </motion.div>
 
-      {/* Chart taking full width and available height */}
-      <div className="w-full h-12 mt-6">
+      {/* Chart at the bottom, full width */}
+      <div className="w-full h-12 mt-auto">
         <Line data={chartData} options={chartOptions} />
       </div>
     </motion.div>
