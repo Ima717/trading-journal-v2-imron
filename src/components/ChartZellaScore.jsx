@@ -137,7 +137,7 @@ const ChartZellaScore = ({ data }) => {
       </motion.div>
 
       {/* Chart at the bottom, full width with minimal gaps */}
-      <div className="w-full h-12 mt-auto mx-0">
+      <div className="w-full h-full mt-auto mx-2">
         <Line data={chartData} options={chartOptions} />
       </div>
     </motion.div>
