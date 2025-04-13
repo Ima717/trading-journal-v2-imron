@@ -122,7 +122,7 @@ const ChartZellaScore = ({ data }) => {
       {/* Score aligned with title height in top-right corner */}
       <motion.div
         {...valueAnimation}
-        className={`absolute top-1 right-1 px-2 py-0.5 rounded-full text-xs font-semibold ${getScoreBackground()} dark:bg-opacity-50 dark:text-gray-300`}
+        className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium ${getScoreBackground()} dark:bg-opacity-50 dark:text-gray-300`}
       >
         {score.toFixed(2)}
       </motion.div>
