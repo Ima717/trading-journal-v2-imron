@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -102,16 +102,17 @@ const ChartZellaScore = ({ data }) => {
       transition={{ duration: 0.5, ease: "easeOut" }}
       className="p-6 rounded-xl shadow-sm bg-white dark:bg-zinc-800 min-w-[250px] flex-1 h-24 flex flex-col justify-between relative"
     >
-      <div className="flex items-center justify-between">
-        <motion.div
-          {...valueAnimation}
-          className="text-2xl font-bold text-gray-900 dark:text-white"
-        >
-          {score.toFixed(2)}
-        </motion.div>
-        <div className="absolute right-6 top-1/2 transform -translate-y-1/2 w-28 h-8">
-          <Line data={chartData} options={chartOptions} />
-        </div>
+      {/* Score in top-right corner */}
+      <motion.div
+        {...valueAnimation}
+        className="absolute top-6 right-6 text-2xl font-bold text-gray-900 dark:text-white"
+      >
+        {score.toFixed(2)}
+      </motion.div>
+
+      {/* Chart taking full width and available height */}
+      <div className="w-full h-12 mt-6">
+        <Line data={chartData} options={chartOptions} />
       </div>
     </motion.div>
   );
