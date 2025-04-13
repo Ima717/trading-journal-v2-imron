@@ -124,22 +124,23 @@ const ChartZellaScore = ({ data }) => {
     },
   };
 
-  return (
-    <>
-      {/* Score in top-right corner, always visible */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className={`absolute top-4 right-4 px-3 py-1 rounded-full text-base font-medium ${getScoreBackground()} dark:bg-opacity-50 dark:text-gray-300 z-10`}
-      >
-        {score.toFixed(2)}
-      </motion.div>
+ return (
+  <div className="relative w-full h-full">
+    {/* Score in top-right corner, always visible */}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className={`absolute top-4 right-4 px-3 py-1 rounded-full text-base font-medium ${getScoreBackground()} dark:bg-opacity-50 dark:text-gray-300 z-10`}
+    >
+      {score.toFixed(2)}
+    </motion.div>
 
-      {/* Chart at the bottom, full width and height */}
-      <Line data={chartData} options={chartOptions} height={60} />
-    </>
-  );
+    {/* Chart at the bottom, full width and height */}
+    <Line data={chartData} options={chartOptions} height={60} />
+  </div>
+);
+
 };
 
 export default ChartZellaScore;
