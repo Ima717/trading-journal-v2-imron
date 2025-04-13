@@ -139,7 +139,6 @@ const ChartZellaScore = ({ data }) => {
         {score.toFixed(2)}
       </motion.div>
 
-      {/* Chart at the bottom, full width and height */}
       <Line data={chartData} options={chartOptions} height={60} />
     </motion.div>
   );
