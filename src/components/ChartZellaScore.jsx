@@ -57,10 +57,12 @@ const ChartZellaScore = ({ data }) => {
             return gradient;
           },
           fill: true,
-          tension: 0.3,
+          tension: 0.4, // Smoother curve
           pointRadius: 3,
-          pointHoverRadius: 5, // Slight hover effect for interactivity
+          pointHoverRadius: 6, // Larger points on hover
           pointBackgroundColor: "#2dd4bf",
+          pointBorderColor: "rgba(255, 255, 255, 0.8)",
+          pointBorderWidth: 2, // Subtle white border around points
           borderWidth: 2,
         },
       ],
@@ -73,10 +75,10 @@ const ChartZellaScore = ({ data }) => {
     maintainAspectRatio: false,
     layout: {
       padding: {
-        left: 0, // Minimize internal left padding
-        right: 0, // Minimize internal right padding
-        top: 0,
-        bottom: 0,
+        left: 8, // Small padding for visual balance
+        right: 8,
+        top: 8,
+        bottom: 8,
       },
     },
     scales: {
@@ -126,16 +128,20 @@ const ChartZellaScore = ({ data }) => {
 
   return (
     <>
-      {/* Score aligned with title height in top-right corner */}
+      {/* Score in top-right corner, slightly inset */}
       <motion.div
         {...valueAnimation}
-        className={`absolute top-0 right-0 px-3 py-1 rounded-full text-sm font-medium ${getScoreBackground()} dark:bg-opacity-50 dark:text-gray-300`}
+        className={`absolute top-2 right-2 px-3 py-1 rounded-full text-base font-medium ${getScoreBackground()} dark:bg-opacity-50 dark:text-gray-300 shadow-sm hover:scale-105 transition-transform duration-200`}
       >
         {score.toFixed(2)}
       </motion.div>
 
       {/* Chart at the bottom, full width and height */}
-      <Line data={chartData} options={chartOptions} height={60} />
+      <div className="relative w-full h-[60px] border border-gray-200 dark:border-zinc-700 rounded-md">
+        <Line data={chartData} options={chartOptions} />
+        {/* Subtle background gradient for depth */}
+        <div className="absolute inset-0 bg-gradient-to-t from-gray-50 to-transparent dark:from-zinc-800 dark:to-transparent rounded-md pointer-events-none" />
+      </div>
     </>
   );
 };
