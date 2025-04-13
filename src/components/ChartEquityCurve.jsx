@@ -34,6 +34,12 @@ const ChartEquityCurve = ({ data }) => {
     }
   }, [data]);
 
+  // Calculate min and max for y-axis to ensure chart starts from the bottom
+  const minValue = Math.min(...chartDataPoints, 0); // Include 0 to ensure visibility of positive/negative range
+  const maxValue = Math.max(...chartDataPoints, 0);
+  const yAxisMin = minValue < 0 ? minValue : 0; // Start from min if negative, otherwise 0
+  const yAxisMax = maxValue > 0 ? maxValue : 0; // End at max if positive, otherwise 0
+
   const chartData = {
     datasets: [
       {
@@ -110,6 +116,8 @@ const ChartEquityCurve = ({ data }) => {
         },
       },
       y: {
+        min: yAxisMin, // Start from the minimum value (or 0 if all positive)
+        max: yAxisMax, // End at the maximum value (or 0 if all negative)
         grid: {
           color: "rgba(229, 231, 235, 0.15)",
           borderDash: [8, 8],
