@@ -57,12 +57,10 @@ const ChartZellaScore = ({ data }) => {
             return gradient;
           },
           fill: true,
-          tension: 0.4, // Smoother curve
+          tension: 0.3,
           pointRadius: 3,
-          pointHoverRadius: 6, // Larger points on hover
+          pointHoverRadius: 5, // Slight hover effect for interactivity
           pointBackgroundColor: "#2dd4bf",
-          pointBorderColor: "rgba(255, 255, 255, 0.8)",
-          pointBorderWidth: 2, // Subtle white border around points
           borderWidth: 2,
         },
       ],
@@ -75,10 +73,10 @@ const ChartZellaScore = ({ data }) => {
     maintainAspectRatio: false,
     layout: {
       padding: {
-        left: 8, // Small padding for visual balance
-        right: 8,
-        top: 8,
-        bottom: 8,
+        left: 0, // Minimize internal left padding
+        right: 0, // Minimize internal right padding
+        top: 0,
+        bottom: 0,
       },
     },
     scales: {
@@ -128,20 +126,18 @@ const ChartZellaScore = ({ data }) => {
 
   return (
     <>
-      {/* Score in top-right corner, slightly inset */}
+      {/* Score in top-right corner, always visible */}
       <motion.div
-        {...valueAnimation}
-        className={`absolute top-2 right-2 px-3 py-1 rounded-full text-base font-medium ${getScoreBackground()} dark:bg-opacity-50 dark:text-gray-300 shadow-sm hover:scale-105 transition-transform duration-200`}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className={`absolute top-4 right-4 px-3 py-1 rounded-full text-base font-medium ${getScoreBackground()} dark:bg-opacity-50 dark:text-gray-300 z-10`}
       >
         {score.toFixed(2)}
       </motion.div>
 
       {/* Chart at the bottom, full width and height */}
-      <div className="relative w-full h-[60px] border border-gray-200 dark:border-zinc-700 rounded-md">
-        <Line data={chartData} options={chartOptions} />
-        {/* Subtle background gradient for depth */}
-        <div className="absolute inset-0 bg-gradient-to-t from-gray-50 to-transparent dark:from-zinc-800 dark:to-transparent rounded-md pointer-events-none" />
-      </div>
+      <Line data={chartData} options={chartOptions} height={60} />
     </>
   );
 };
