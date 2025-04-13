@@ -36,34 +36,37 @@ const ChartZellaScore = ({ data }) => {
   };
 
   // Memoize chart data to prevent unnecessary re-renders
-  const chartData = useMemo(() => ({
-    datasets: [
-      {
-        label: "Zella Score",
-        data: data.map((entry) => ({
-          x: new Date(entry.date),
-          y: entry.score,
-        })),
-        borderColor: "#2dd4bf", // Teal to match dashboard palette
-        backgroundColor: (ctx) => {
-          const chart = ctx.chart;
-          const { chartArea, ctx: canvas } = chart;
-          if (!chartArea) return "rgba(0,0,0,0)";
+  const chartData = useMemo(
+    () => ({
+      datasets: [
+        {
+          label: "Zella Score",
+          data: data.map((entry) => ({
+            x: new Date(entry.date),
+            y: entry.score,
+          })),
+          borderColor: "#2dd4bf", // Teal to match dashboard palette
+          backgroundColor: (ctx) => {
+            const chart = ctx.chart;
+            const { chartArea, ctx: canvas } = chart;
+            if (!chartArea) return "rgba(0,0,0,0)";
 
-          const gradient = canvas.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-          gradient.addColorStop(0, "rgba(45, 212, 191, 0.35)");
-          gradient.addColorStop(1, "rgba(45, 212, 191, 0.05)");
-          return gradient;
+            const gradient = canvas.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            gradient.addColorStop(0, "rgba(45, 212, 191, 0.35)");
+            gradient.addColorStop(1, "rgba(45, 212, 191, 0.05)");
+            return gradient;
+          },
+          fill: true,
+          tension: 0.3,
+          pointRadius: 3,
+          pointHoverRadius: 5, // Slight hover effect for interactivity
+          pointBackgroundColor: "#2dd4bf",
+          borderWidth: 2,
         },
-        fill: true,
-        tension: 0.3,
-        pointRadius: 3,
-        pointHoverRadius: 5, // Slight hover effect for interactivity
-        pointBackgroundColor: "#2dd4bf",
-        borderWidth: 2,
-      },
-    ],
-  }), [data]);
+      ],
+    }),
+    [data]
+  );
 
   const chartOptions = {
     responsive: true,
@@ -92,8 +95,8 @@ const ChartZellaScore = ({ data }) => {
         },
       },
       y: {
-        beginAtZero: true,
-        max: 100,
+        min: 0, // Start from 0
+        max: 100, // Max at 100
         grid: {
           display: false, // Hide grid lines
         },
@@ -136,8 +139,8 @@ const ChartZellaScore = ({ data }) => {
         {score.toFixed(2)}
       </motion.div>
 
-      {/* Chart at the bottom, full width with minimal gaps */}
-      <div className="w-full h-12 mt-auto mx-0">
+      {/* Chart at the bottom, full width and height */}
+      <div className="w-full h-[60px] mt-auto mx-0">
         <Line data={chartData} options={chartOptions} />
       </div>
     </motion.div>
