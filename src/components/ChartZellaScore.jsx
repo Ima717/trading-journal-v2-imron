@@ -13,7 +13,7 @@ import {
 import "chartjs-adapter-date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { valueAnimation } from "../utils/statUtils.jsx";
-import { ChevronDown, ChevronUp, Calendar, Info } from "lucide-react";
+import { ChevronDown, ChevronUp, Info } from "lucide-react";
 
 ChartJS.register(LineElement, PointElement, LinearScale, TimeScale, Tooltip, Legend, Filler);
 
@@ -241,49 +241,47 @@ const ChartZellaScore = ({ data, scoreMetadata = {} }) => {
       transition={{ duration: 0.5, ease: "easeOut" }}
       className="relative rounded-xl shadow-sm bg-white dark:bg-zinc-800 min-w-[250px] flex-1"
     >
-      <div className="flex justify-between items-center px-4 pt-4 pb-2 border-b border-gray-100 dark:border-zinc-700">
-        <div className="flex items-center">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Zella Score</h3>
-          <button 
-            className="ml-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200" 
-            title="The Zella Score measures your overall trading performance"
+      {/* Single combined header with score and period selectors */}
+      <div className="px-4 pt-4 pb-2">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Zella Score</h3>
+            <button 
+              className="ml-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200" 
+              title="The Zella Score measures your overall trading performance"
+            >
+              <Info size={14} />
+            </button>
+          </div>
+          
+          <motion.div
+            {...valueAnimation}
+            className={`px-3 py-1 rounded-full text-sm font-medium ${getScoreBackground(score)} dark:bg-opacity-50`}
           >
-            <Info size={14} />
-          </button>
+            {score.toFixed(1)}
+            <span className={`ml-1 text-xs ${getChangeIndicator()}`}>
+              {scoreDiff > 0 ? <ChevronUp size={12} /> : scoreDiff < 0 ? <ChevronDown size={12} /> : null}
+              {Math.abs(percentChange).toFixed(1)}%
+            </span>
+          </motion.div>
         </div>
         
-        <motion.div
-          {...valueAnimation}
-          className={`px-3 py-1 rounded-full text-sm font-medium ${getScoreBackground(score)} dark:bg-opacity-50`}
-        >
-          {score.toFixed(1)}
-        </motion.div>
-      </div>
-
-      {/* Score change indicator */}
-      <div className="flex items-center px-4 pt-2 text-xs">
-        <span className={`flex items-center ${getChangeIndicator()}`}>
-          {scoreDiff > 0 ? <ChevronUp size={14} /> : scoreDiff < 0 ? <ChevronDown size={14} /> : "–"}
-          {Math.abs(percentChange).toFixed(1)}%
-        </span>
-        <span className="ml-1 text-gray-500">from previous period</span>
-      </div>
-      
-      {/* Time period selector */}
-      <div className="flex space-x-1 px-4 py-2">
-        {TIME_PERIODS.map((period) => (
-          <button
-            key={period.label}
-            className={`px-2 py-1 text-xs rounded ${
-              activePeriod === period.label
-                ? "bg-teal-100 text-teal-700 dark:bg-teal-800 dark:text-teal-100"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-600"
-            }`}
-            onClick={() => setActivePeriod(period.label)}
-          >
-            {period.label}
-          </button>
-        ))}
+        {/* Time period selector */}
+        <div className="flex space-x-1 mt-3">
+          {TIME_PERIODS.map((period) => (
+            <button
+              key={period.label}
+              className={`px-2 py-1 text-xs rounded ${
+                activePeriod === period.label
+                  ? "bg-teal-100 text-teal-700 dark:bg-teal-800 dark:text-teal-100"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-600"
+              }`}
+              onClick={() => setActivePeriod(period.label)}
+            >
+              {period.label}
+            </button>
+          ))}
+        </div>
       </div>
       
       {/* Chart area */}
