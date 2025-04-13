@@ -117,7 +117,7 @@ const ChartZellaScore = ({ data }) => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="rounded-xl shadow-sm bg-white dark:bg-zinc-800 min-w-[250px] flex-1 h-24 flex flex-col relative"
+      className="rounded-xl shadow-sm bg-white dark:bg-zinc-800 min-w-[250px] flex-1 h-32 flex flex-col relative"
     >
       {/* Score aligned with title height in top-right corner */}
       <motion.div
