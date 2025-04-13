@@ -119,10 +119,10 @@ const ChartZellaScore = ({ data }) => {
       transition={{ duration: 0.5, ease: "easeOut" }}
       className="p-6 rounded-xl shadow-sm bg-white dark:bg-zinc-800 min-w-[250px] flex-1 h-24 flex flex-col relative"
     >
-      {/* Score in top-right corner with background */}
+      {/* Score in very top-right corner with background */}
       <motion.div
         {...valueAnimation}
-        className={`absolute top-6 right-6 px-3 py-1.5 rounded-full text-sm font-medium ${getScoreBackground()} dark:bg-opacity-50 dark:text-gray-300`}
+        className={`absolute top-0 right-0 px-3 py-1.5 rounded-full text-sm font-medium ${getScoreBackground()} dark:bg-opacity-50 dark:text-gray-300`}
       >
         {score.toFixed(2)}
       </motion.div>
