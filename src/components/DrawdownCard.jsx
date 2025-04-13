@@ -12,7 +12,7 @@ const DrawdownCard = ({ maxDrawdown = 0, recoveryFactor = 0 }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="w-full h-full flex flex-col justify-between py-4" // Added padding and flex justify-between
+      className="w-full h-[400px] flex flex-col justify-between py-4" // Added padding and flex justify-between
     >
       {/* Title and Max Drawdown */}
       <div className="flex justify-between items-center mb-6"> {/* Increased margin */}
