@@ -129,17 +129,21 @@ const ChartZellaScore = ({ data }) => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="relative rounded-xl shadow-sm bg-white dark:bg-zinc-800 min-w-[250px] flex-1 pt-6 pb-2 px-0"
+      className="relative rounded-xl shadow-sm bg-white dark:bg-zinc-800 min-w-[250px] flex-1"
     >
-      {/* Score aligned with title height in top-right corner */}
-      <motion.div
-        {...valueAnimation}
-        className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium ${getScoreBackground()} dark:bg-opacity-50 dark:text-gray-300`}
-      >
-        {score.toFixed(2)}
-      </motion.div>
-
-      <Line data={chartData} options={chartOptions} height={60} />
+      <div className="flex justify-between items-center px-4 pt-4 pb-2">
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Zella Score</h3>
+        <motion.div
+          {...valueAnimation}
+          className={`px-3 py-1 rounded-full text-sm font-medium ${getScoreBackground()} dark:bg-opacity-50 dark:text-gray-300`}
+        >
+          {score.toFixed(2)}
+        </motion.div>
+      </div>
+      
+      <div className="px-0 pb-2">
+        <Line data={chartData} options={chartOptions} height={60} />
+      </div>
     </motion.div>
   );
 };
