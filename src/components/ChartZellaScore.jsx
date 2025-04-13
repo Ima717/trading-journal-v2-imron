@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -35,8 +35,8 @@ const ChartZellaScore = ({ data }) => {
     return "bg-red-100 text-red-700";
   };
 
-  // Line chart data for Zella Score over time
-  const chartData = {
+  // Memoize chart data to prevent unnecessary re-renders
+  const chartData = useMemo(() => ({
     datasets: [
       {
         label: "Zella Score",
@@ -58,15 +58,24 @@ const ChartZellaScore = ({ data }) => {
         fill: true,
         tension: 0.3,
         pointRadius: 3,
+        pointHoverRadius: 5, // Slight hover effect for interactivity
         pointBackgroundColor: "#2dd4bf",
         borderWidth: 2,
       },
     ],
-  };
+  }), [data]);
 
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    layout: {
+      padding: {
+        left: 0, // Minimize internal left padding
+        right: 0, // Minimize internal right padding
+        top: 0,
+        bottom: 0,
+      },
+    },
     scales: {
       x: {
         type: "time",
@@ -117,7 +126,7 @@ const ChartZellaScore = ({ data }) => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="relative rounded-xl shadow-sm bg-white dark:bg-zinc-800 min-w-[250px] flex-1 pt-6 pb-2 px-2"
+      className="relative rounded-xl shadow-sm bg-white dark:bg-zinc-800 min-w-[250px] flex-1 pt-6 pb-2 px-0"
     >
       {/* Score aligned with title height in top-right corner */}
       <motion.div
@@ -128,7 +137,7 @@ const ChartZellaScore = ({ data }) => {
       </motion.div>
 
       {/* Chart at the bottom, full width with minimal gaps */}
-      <div className="w-full h-60 mt-auto mx-2">
+      <div className="w-full h-12 mt-auto mx-0">
         <Line data={chartData} options={chartOptions} />
       </div>
     </motion.div>
