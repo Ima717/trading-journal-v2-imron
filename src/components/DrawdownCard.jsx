@@ -25,7 +25,7 @@ const DrawdownCard = ({ maxDrawdown = 0, recoveryFactor = 0, data = [] }) => {
   const minValue = Math.min(...data.map((d) => d.pnl));
   const maxValue = Math.max(...data.map((d) => d.pnl));
   const padding = Math.abs(maxValue - minValue) * 0.1; // 10% padding for better visualization
-  const yMin = minValue - padding;
+  const yMin = 0;
   const yMax = maxValue + padding;
 
   // Prepare sparkline data from cumulative P&L (data prop)
