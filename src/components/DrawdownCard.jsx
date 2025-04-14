@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, Info } from "lucide-react"; // Added Info icon
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -13,6 +13,7 @@ import {
   Filler,
 } from "chart.js";
 import "chartjs-adapter-date-fns";
+import { RenderTooltip } from "../utils/statUtils.jsx"; // Imported RenderTooltip
 
 ChartJS.register(LineElement, PointElement, LinearScale, TimeScale, Tooltip, Legend, Filler);
 
@@ -123,11 +124,17 @@ const DrawdownCard = ({ maxDrawdown = 0, recoveryFactor = 0, data = [] }) => {
       transition={{ duration: 0.6 }}
       className="w-full h-full relative"
     >
-      {/* Title and Max Drawdown */}
+      {/* Title and Max Drawdown with Tooltip */}
       <div className="flex justify-between items-center mb-3">
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-white">
-          Max Drawdown
-        </h3>
+        <div className="flex items-center gap-1">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-white">
+            Max Drawdown
+          </h3>
+          <RenderTooltip
+            id="max-drawdown-tooltip"
+            content="Max Drawdown shows the largest percentage decline in your account from a peak to a trough. It helps you assess the worst-case risk of your trading strategy and adjust to minimize future losses."
+          />
+        </div>
         <span className="text-sm text-red-600 font-semibold flex items-center gap-1">
           <ArrowDown size={14} /> {drawdownAbs.toFixed(2)}%
         </span>
