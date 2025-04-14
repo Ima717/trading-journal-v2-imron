@@ -25,7 +25,7 @@ const DrawdownCard = ({ maxDrawdown = 0, recoveryFactor = 0, data = [] }) => {
   const minValue = Math.min(...data.map((d) => d.pnl));
   const maxValue = Math.max(...data.map((d) => d.pnl));
   const padding = Math.abs(maxValue - minValue) * 0.1; // 10% padding for better visualization
-  const yMin = 0;
+  const yMin = minValue - padding;
   const yMax = maxValue + padding;
 
   // Prepare sparkline data from cumulative P&L (data prop)
@@ -85,11 +85,15 @@ const DrawdownCard = ({ maxDrawdown = 0, recoveryFactor = 0, data = [] }) => {
       y: {
         min: yMin, // Start from the minimum data value
         max: yMax, // Extend to the maximum data value
+        beginAtZero: false, // Prevent Chart.js from forcing y=0 into the range
         grid: {
           display: false,
         },
         ticks: {
           display: false, // Hide y-axis ticks
+        },
+        afterFit: (scale) => {
+          scale.paddingBottom = 0; // Remove padding at the bottom
         },
       },
     },
@@ -117,7 +121,7 @@ const DrawdownCard = ({ maxDrawdown = 0, recoveryFactor = 0, data = [] }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="w-full h-full flex flex-col py-0"
+      className="w-full h-full relative"
     >
       {/* Title and Max Drawdown */}
       <div className="flex justify-between items-center mb-3">
@@ -137,13 +141,8 @@ const DrawdownCard = ({ maxDrawdown = 0, recoveryFactor = 0, data = [] }) => {
         />
       </div>
 
-      {/* Sparkline Chart */}
-      <div className="w-full h-24 mb-3">
-        <Line data={chartData} options={chartOptions} />
-      </div>
-
       {/* Recovery Factor */}
-      <div className="flex justify-between items-center text-sm">
+      <div className="flex justify-between items-center text-sm mb-3">
         <span className="text-gray-500 dark:text-gray-400">Recovery Factor</span>
         <span
           className={`font-semibold px-2 py-0.5 rounded-full text-xs ${
@@ -156,6 +155,11 @@ const DrawdownCard = ({ maxDrawdown = 0, recoveryFactor = 0, data = [] }) => {
         >
           {recoveryFactor.toFixed(2)}
         </span>
+      </div>
+
+      {/* Sparkline Chart, positioned at the bottom with pixel height */}
+      <div className="absolute bottom-0 left-0 right-0 h-[120px]">
+        <Line data={chartData} options={chartOptions} />
       </div>
     </motion.div>
   );
