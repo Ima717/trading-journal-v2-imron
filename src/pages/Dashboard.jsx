@@ -213,8 +213,9 @@ const Dashboard = () => {
           {error ? (
             <div className="text-center py-10 text-red-500 dark:text-red-400">{error}</div>
           ) : isLoading ? (
-            <div className="text-center py-10 text-gray-500 dark:text-gray-400">
-              Loading dashboard...
+            <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)]">
+              <div className="w-12 h-12 border-4 border-t-4 border-gray-200 border-t-gray-500 dark:border-gray-600 dark:border-t-gray-300 rounded-full animate-spin"></div>
+              <p className="mt-4 text-gray-500 dark:text-gray-400 text-lg">Loading dashboard...</p>
             </div>
           ) : (
             <>
@@ -265,7 +266,7 @@ const Dashboard = () => {
                 <motion.div
                   whileHover={{ y: -4, scale: 1.015 }}
                   transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                  className="h-full"
+                  className="h-[300px]"
                 >
                   <ChartCard>
                     <DrawdownCard
