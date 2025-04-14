@@ -110,7 +110,7 @@ const DrawdownCard = ({ maxDrawdown = 0, recoveryFactor = 0, data = [] }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="w-full h-300 flex flex-col justify-between py-4"
+      className="w-full h-500 flex flex-col justify-between py-4"
     >
       {/* Title and Max Drawdown */}
       <div className="flex justify-between items-center mb-6">
