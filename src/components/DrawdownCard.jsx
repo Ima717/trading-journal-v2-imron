@@ -110,36 +110,36 @@ const DrawdownCard = ({ maxDrawdown = 0, recoveryFactor = 0, data = [] }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="w-full h-full flex flex-col justify-between py-4"
+      className="w-full h-full flex flex-col justify-between py-6" // Increased padding
     >
       {/* Title and Max Drawdown */}
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-white">
+      <div className="flex justify-between items-center mb-8">
+        <h3 className="text-base font-semibold text-gray-700 dark:text-white">
           Max Drawdown
         </h3>
-        <span className="text-sm text-red-600 font-semibold flex items-center gap-1">
-          <ArrowDown size={14} /> {drawdownAbs.toFixed(2)}%
+        <span className="text-base text-red-600 font-semibold flex items-center gap-1">
+          <ArrowDown size={16} /> {drawdownAbs.toFixed(2)}%
         </span>
       </div>
 
       {/* Progress Bar */}
-      <div className="w-full h-4 rounded-full bg-gray-200 dark:bg-zinc-700 relative overflow-hidden mb-6">
+      <div className="w-full h-6 rounded-full bg-gray-200 dark:bg-zinc-700 relative overflow-hidden mb-8">
         <div
-          className="absolute top-0 left-0 h-4 rounded-full bg-gradient-to-r from-red-400 to-red-700"
+          className="absolute top-0 left-0 h-6 rounded-full bg-gradient-to-r from-red-400 to-red-700"
           style={{ width: `${percent}%` }}
         />
       </div>
 
       {/* Sparkline Chart */}
-      <div className="w-full h-16 mb-6">
+      <div className="w-full h-32 mb-8">
         <Line data={chartData} options={chartOptions} />
       </div>
 
       {/* Recovery Factor */}
-      <div className="flex justify-between items-center text-sm">
+      <div className="flex justify-between items-center text-base">
         <span className="text-gray-500 dark:text-gray-400">Recovery Factor</span>
         <span
-          className={`font-semibold px-2 py-0.5 rounded-full text-xs ${
+          className={`font-semibold px-3 py-1 rounded-full text-sm ${
             recoveryFactor > 1
               ? "bg-green-100 text-green-700"
               : recoveryFactor > 0.5
