@@ -21,6 +21,13 @@ const DrawdownCard = ({ maxDrawdown = 0, recoveryFactor = 0, data = [] }) => {
   const maxRange = Math.max(drawdownAbs * 1.2, 1000); // Dynamic range
   const percent = Math.min((drawdownAbs / maxRange) * 100, 100);
 
+  // Calculate min and max for the y-axis based on data
+  const minValue = Math.min(...data.map((d) => d.pnl));
+  const maxValue = Math.max(...data.map((d) => d.pnl));
+  const padding = Math.abs(maxValue - minValue) * 0.1; // 10% padding for better visualization
+  const yMin = minValue - padding;
+  const yMax = maxValue + padding;
+
   // Prepare sparkline data from cumulative P&L (data prop)
   const chartData = {
     datasets: [
@@ -76,8 +83,8 @@ const DrawdownCard = ({ maxDrawdown = 0, recoveryFactor = 0, data = [] }) => {
         },
       },
       y: {
-        min: Math.min(...data.map((d) => d.pnl)) * 1.1, // Dynamic min with padding
-        max: Math.max(...data.map((d) => d.pnl)) * 1.1, // Dynamic max with padding
+        min: yMin, // Start from the minimum data value
+        max: yMax, // Extend to the maximum data value
         grid: {
           display: false,
         },
@@ -110,7 +117,7 @@ const DrawdownCard = ({ maxDrawdown = 0, recoveryFactor = 0, data = [] }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="w-full h-full flex flex-col py-0" // Removed padding to align with ChartCard
+      className="w-full h-full flex flex-col py-0"
     >
       {/* Title and Max Drawdown */}
       <div className="flex justify-between items-center mb-3">
