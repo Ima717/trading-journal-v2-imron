@@ -3,12 +3,21 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import dayjs from "dayjs";
+import { formatPnL } from "../utils/statUtils";
 
-const DailyTradeModal = ({ isOpen, onClose, selectedDate, trades, formatPnL }) => {
+const DailyTradeModal = ({ isOpen, onClose, selectedDate, trades }) => {
+  // Ensure trades is an array, default to empty array if not
+  const safeTrades = Array.isArray(trades) ? trades : [];
+
+  // Ensure selectedDate is valid, default to null if not
+  const safeSelectedDate = selectedDate && dayjs(selectedDate).isValid() ? selectedDate : null;
+
   // Filter trades for the selected date
-  const selectedTrades = trades.filter((trade) =>
-    dayjs(trade.date).isSame(selectedDate, "day")
-  );
+  const selectedTrades = safeSelectedDate
+    ? safeTrades.filter((trade) =>
+        dayjs(trade.date).isSame(safeSelectedDate, "day")
+      )
+    : [];
 
   // Calculate daily analytics
   const dailyAnalytics = selectedTrades.length
@@ -59,7 +68,7 @@ const DailyTradeModal = ({ isOpen, onClose, selectedDate, trades, formatPnL }) =
             {/* Modal Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-zinc-700">
               <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
-                Trades on {selectedDate.format("MMMM D, YYYY")}
+                Trades on {safeSelectedDate ? safeSelectedDate.format("MMMM D, YYYY") : "Unknown Date"}
               </h2>
               <button
                 onClick={onClose}
