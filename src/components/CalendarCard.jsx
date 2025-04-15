@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, Settings } from "lucide-react";
 import dayjs from "dayjs";
 import { Tooltip as ReactTooltip } from "react-tooltip";
 import DailyTradeModal from "./DailyTradeModal";
-import { formatPnL } from "../utils/statUtils"; // Import formatPnL
+import { formatPnL } from "../utils/statUtils";
 
 const CalendarCard = ({ trades = [] }) => {
   const [currentMonth, setCurrentMonth] = useState(dayjs());
@@ -202,8 +202,12 @@ const CalendarCard = ({ trades = [] }) => {
 
   // Handle date cell click to open modal
   const handleDateClick = (date) => {
-    setSelectedDate(date);
-    setIsModalOpen(true);
+    if (dayjs(date).isValid()) {
+      setSelectedDate(date);
+      setIsModalOpen(true);
+    } else {
+      console.error("Invalid date selected:", date);
+    }
   };
 
   return (
