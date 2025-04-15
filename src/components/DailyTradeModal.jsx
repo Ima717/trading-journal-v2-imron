@@ -118,7 +118,8 @@ const DailyTradeModal = ({ isOpen, onClose, selectedDate, trades }) => {
                     <div className="flex flex-col">
                       <span className="text-sm text-gray-500 dark:text-gray-400">Gross Profit</span>
                       <span className="text-lg font-semibold text-green-600">
-                        ${dailyAnalytics.grossProfit.toFixed(2)}
+                       ${!isNaN(dailyAnalytics.grossProfit) ? Number(dailyAnalytics.grossProfit).toFixed(2) : "0.00"}
+
                       </span>
                     </div>
                     <div className="flex flex-col">
