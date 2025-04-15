@@ -1,3 +1,4 @@
+// src/components/ProfitFactorCard.jsx
 import React, { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import {
@@ -12,12 +13,12 @@ import { valueAnimation, formatValue, RenderTooltip } from "../utils/statUtils.j
 ChartJS.register(ArcElement, ChartTooltip);
 
 const ProfitFactorCard = ({ value, trades }) => {
-  const [displayValue, setDisplayValue] = useState(value);
+  const [displayValue, setDisplayValue] = useState(value || "0.00"); // Initialize with "0.00" if value is undefined
   const chartContainerRef = useRef(null);
   const chartRef = useRef(null);
 
   useEffect(() => {
-    const timeout = setTimeout(() => setDisplayValue(value), 50);
+    const timeout = setTimeout(() => setDisplayValue(value || "0.00"), 50);
     return () => clearTimeout(timeout);
   }, [value]);
 
@@ -31,11 +32,12 @@ const ProfitFactorCard = ({ value, trades }) => {
     };
   }, []);
 
-  const totalProfit = trades
-    ? trades.filter((t) => t.pnl > 0).reduce((sum, t) => sum + t.pnl, 0)
+  const safeTrades = Array.isArray(trades) ? trades : [];
+  const totalProfit = safeTrades
+    ? safeTrades.filter((t) => (t.pnl || 0) > 0).reduce((sum, t) => sum + (t.pnl || 0), 0)
     : 0;
-  const totalLoss = trades
-    ? Math.abs(trades.filter((t) => t.pnl < 0).reduce((sum, t) => sum + t.pnl, 0))
+  const totalLoss = safeTrades
+    ? Math.abs(safeTrades.filter((t) => (t.pnl || 0) < 0).reduce((sum, t) => sum + (t.pnl || 0), 0))
     : 0;
 
   const chartData = {
@@ -84,7 +86,7 @@ const ProfitFactorCard = ({ value, trades }) => {
 
           // Set tooltip content
           const label = tooltip.dataPoints[0].label;
-          const value = tooltip.dataPoints[0].raw;
+          const value = tooltip.dataPoints[0].raw || 0; // Ensure value is a number
           tooltipEl.innerHTML = `${label}: $${value.toFixed(2)}`;
 
           // Position tooltip in the middle of the widget container
