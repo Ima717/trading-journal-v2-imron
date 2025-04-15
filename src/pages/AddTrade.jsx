@@ -96,7 +96,12 @@ const AddTrade = () => {
         calculatedPnL = ((exitPrice - entryPrice) * quantity) - fees - commissions;
       }
 
-      setFormData((prev) => ({ ...prev, pnl: calculatedPnL.toFixed(2) }));
+     setFormData((prev) => ({ 
+  ...prev, 
+  pnl: typeof calculatedPnL === "number" && !isNaN(calculatedPnL) 
+    ? calculatedPnL.toFixed(2) 
+    : "0.00" 
+}));
     };
 
     calculatePnL();
