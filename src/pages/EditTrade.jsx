@@ -174,13 +174,29 @@ const EditTrade = () => {
   }, [user, id]);
 
   // Calculate PnL, MAE, MFE, Net ROI, Gross P&L, Adjusted Cost, Zella Scale
-  useEffect(() => {
-    const calculateMetrics = () => {
-      const entryPrice = parseFloat(formData.entryPrice) || 0;
-      const exitPrice = parseFloat(formData.exitPrice) || 0;
-      const quantity = parseFloat(formData.quantity) || 0;
-      const fees = parseFloat(formData.fees) || 0;
-      const commissions = parseFloat(formData.commissions) || 0;
+ const {
+  entryPrice,
+  exitPrice,
+  quantity,
+  fees,
+  commissions,
+  instrumentType,
+  symbol,
+} = formData;
+
+useEffect(() => {
+  const calculateMetrics = () => {
+    const parsedEntry = parseFloat(entryPrice) || 0;
+    const parsedExit = parseFloat(exitPrice) || 0;
+    const parsedQty = parseFloat(quantity) || 0;
+    const parsedFees = parseFloat(fees) || 0;
+    const parsedCommissions = parseFloat(commissions) || 0;
+    // use parsed values for calculations
+  };
+
+  calculateMetrics();
+}, [entryPrice, exitPrice, quantity, fees, commissions, instrumentType, symbol]);
+
 
       // Calculate Gross P&L
       let grossPnl = 0;
