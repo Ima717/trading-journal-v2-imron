@@ -1,3 +1,4 @@
+// src/pages/Dashboard.jsx
 import React, { useEffect, useState, useMemo } from "react";
 import { auth, db } from "../utils/firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
@@ -48,6 +49,8 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!user) return;
+
+    console.log("User UID:", user.uid); // Debug log to verify user authentication
     setIsLoading(true);
     setError(null);
 
@@ -90,12 +93,14 @@ const Dashboard = () => {
           });
         }
 
+        console.log("Fetched trades:", finalTrades); // Debug log
         setLocalTrades(finalTrades);
         setIsLoading(false);
       },
       (error) => {
-        console.error("Firestore fetch error:", error);
+        console.error("Firestore fetch error details:", error.message, error.code, error); // Detailed error logging
         setError("Failed to load trades. Please try again later.");
+        setLocalTrades([]); // Ensure localTrades is an array even on error
         setIsLoading(false);
       }
     );
@@ -104,9 +109,11 @@ const Dashboard = () => {
   }, [user, dateRange]);
 
   const displayTrades = useMemo(() => {
-    return filteredTrades.length > 0 && filteredTrades.every((t) => t.pnl !== undefined)
+    const trades = filteredTrades.length > 0 && filteredTrades.every((t) => t.pnl !== undefined)
       ? filteredTrades
       : localTrades;
+    console.log("displayTrades:", trades); // Debug log
+    return Array.isArray(trades) ? trades : []; // Ensure displayTrades is always an array
   }, [filteredTrades, localTrades]);
 
   const pnlData = useMemo(() => getPnLOverTime(displayTrades), [displayTrades]);
