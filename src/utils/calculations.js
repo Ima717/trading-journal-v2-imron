@@ -1,130 +1,80 @@
-// Previous version of calculations.js provided by user
+// src/utils/calculations.js
 import dayjs from "dayjs";
 
-export function getPnLOverTime(trades) {
-  const sorted = [...trades].sort((a, b) => new Date(a.entryTime) - new Date(b.entryTime));
+// Calculate P&L over time (cumulative)
+export const getPnLOverTime = (trades) => {
+  if (!trades || trades.length === 0) return [];
+
+  const sortedTrades = [...trades].sort((a, b) =>
+    dayjs(a.date).diff(dayjs(b.date))
+  );
+
+  let cumulativePnL = 0;
+  return sortedTrades.map((trade) => {
+    cumulativePnL += trade.pnl || 0;
+    return {
+      date: trade.date,
+      pnl: cumulativePnL,
+    };
+  });
+};
+
+// Calculate Zella Score over time
+export const getZellaScoreOverTime = (trades) => {
+  if (!trades || trades.length === 0) return [];
+
+  const sortedTrades = [...trades].sort((a, b) =>
+    dayjs(a.date).diff(dayjs(b.date))
+  );
+
   const result = [];
-  let cumulative = 0;
-  const map = {};
+  let cumulativeScore = 0;
+  let tradeCount = 0;
 
-  for (const trade of sorted) {
-    const dateKey = dayjs(trade.entryTime).format("YYYY-MM-DD");
-    const netPnL = (trade.pnl || 0) - (trade.commission || 0) - (trade.fees || 0);
-    cumulative += netPnL;
-    map[dateKey] = cumulative;
-  }
-
-  for (const [date, pnl] of Object.entries(map)) {
-    result.push({ date, pnl });
-  }
-
-  return result.sort((a, b) => new Date(a.date) - new Date(b.date));
-}
-
-export function getZellaScoreOverTime(trades, windowDays = 7) {
-  const sortedTrades = [...trades].sort((a, b) => new Date(a.entryTime) - new Date(b.entryTime));
-  const result = [];
-
-  for (let i = 0; i < sortedTrades.length; i++) {
-    const currentTrade = sortedTrades[i];
-    const currentDate = dayjs(currentTrade.entryTime).format("YYYY-MM-DD");
-    const startDate = dayjs(currentDate).subtract(windowDays, "day");
-
-    // Get trades within the window
-    const windowTrades = sortedTrades.filter((trade) => {
-      const tradeDate = dayjs(trade.entryTime);
-      return tradeDate.isAfter(startDate) && tradeDate.isBefore(dayjs(currentDate).add(1, "day"));
+  sortedTrades.forEach((trade) => {
+    tradeCount += 1;
+    const win = trade.pnl > 0 ? 1 : 0;
+    cumulativeScore += win;
+    const score = (cumulativeScore / tradeCount) * 100;
+    result.push({
+      date: trade.date,
+      score: score,
     });
+  });
 
-    // Calculate metrics for the window
-    const totalTrades = windowTrades.length;
-    const wins = windowTrades.filter((t) => t.pnl > 0);
-    const losses = windowTrades.filter((t) => t.pnl < 0);
-    const winRate = totalTrades ? (wins.length / totalTrades) * 100 : 0;
+  return result;
+};
 
-    const avgWin = wins.length
-      ? wins.reduce((s, t) => s + t.pnl, 0) / wins.length
-      : 0;
-    const avgLoss = losses.length
-      ? Math.abs(losses.reduce((s, t) => s + t.pnl, 0) / losses.length)
-      : 0;
-    const avgWinLoss = avgLoss > 0 ? avgWin / avgLoss : (avgWin > 0 ? 100 : 0);
-    const normalizedAvgWinLoss = Math.min(avgWinLoss * 10, 100);
+// Calculate maximum drawdown
+export const getMaxDrawdown = (trades) => {
+  if (!trades || trades.length === 0) return 0;
 
-    const profitFactor = losses.length
-      ? wins.reduce((s, t) => s + t.pnl, 0) /
-        Math.abs(losses.reduce((s, t) => s + t.pnl, 0))
-      : (wins.length ? 100 : 0);
-    const normalizedProfitFactor = Math.min(profitFactor * 10, 100);
-
-    let peak = 0, trough = 0, maxDD = 0, cumulative = 0;
-    for (const trade of windowTrades) {
-      cumulative += trade.pnl || 0;
-      peak = Math.max(peak, cumulative);
-      trough = Math.min(cumulative, peak);
-      const dd = peak > 0 ? (peak - trough) / peak * 100 : 0;
-      maxDD = Math.max(maxDD, dd);
-    }
-    const normalizedMaxDD = Math.max(0, 100 - maxDD);
-
-    const dailyPnL = windowTrades.map(t => t.pnl || 0);
-    const meanPnL = dailyPnL.length ? dailyPnL.reduce((s, v) => s + v, 0) / dailyPnL.length : 0;
-    const variance = dailyPnL.length
-      ? dailyPnL.reduce((s, v) => s + Math.pow(v - meanPnL, 2), 0) / dailyPnL.length
-      : 0;
-    const stdDev = Math.sqrt(variance);
-    const normalizedConsistency = stdDev > 0 ? Math.max(0, 100 - stdDev / meanPnL * 100) : 100;
-
-    const avgRisk = windowTrades.length
-      ? windowTrades.reduce((s, t) => s + (t.amount || 0), 0) / windowTrades.length
-      : 0;
-    const normalizedRisk = avgRisk > 0 ? Math.max(0, 100 - avgRisk / 1000 * 100) : 100;
-
-    const score = Math.min(
-      winRate * 0.2 +
-      normalizedAvgWinLoss * 0.2 +
-      normalizedProfitFactor * 0.2 +
-      normalizedMaxDD * 0.15 +
-      normalizedConsistency * 0.15 +
-      normalizedRisk * 0.1,
-      100
-    );
-
-    result.push({ date: currentDate, score: parseFloat(score.toFixed(2)) });
-  }
-
-  // This previous version didn't aggregate scores daily, potentially returning multiple scores per day.
-  // Consider if aggregation is needed depending on how ChartZellaScore uses the data.
-  return result.sort((a, b) => new Date(a.date) - new Date(b.date)); // Ensure sorted
-}
-
-export function getMaxDrawdown(trades) {
-  const sorted = [...trades].sort(
-    (a, b) => new Date(a.entryTime) - new Date(b.entryTime)
+  const sortedTrades = [...trades].sort((a, b) =>
+    dayjs(a.date).diff(dayjs(b.date))
   );
 
   let peak = 0;
-  let maxDD = 0;
-  let cumulative = 0;
+  let trough = 0;
+  let maxDrawdown = 0;
+  let cumulativePnL = 0;
 
-  for (const t of sorted) {
-    const netPnL = (t.pnl || 0) - (t.commission || 0) - (t.fees || 0);
-    cumulative += netPnL;
-    peak = Math.max(peak, cumulative);
-    // Original calculation was percentage based on peak equity
-    const dd = peak > 0 ? (peak - cumulative) / peak * 100 : 0;
-    maxDD = Math.max(maxDD, dd);
-  }
+  sortedTrades.forEach((trade) => {
+    cumulativePnL += trade.pnl || 0;
+    peak = Math.max(peak, cumulativePnL);
+    trough = Math.min(trough, cumulativePnL);
+    const drawdown = peak - trough;
+    maxDrawdown = Math.max(maxDrawdown, drawdown);
+  });
 
-  return -parseFloat(maxDD.toFixed(2)); // As a negative percentage
-}
+  return maxDrawdown > 0 ? (maxDrawdown / peak) * 100 : 0;
+};
 
-// Original Recovery Factor calculation (using percentage drawdown)
-export function getRecoveryFactor(trades) {
-  const netProfit = trades.reduce((acc, t) => acc + (t.pnl || 0) - (t.commission || 0) - (t.fees || 0), 0);
-  const maxDDPercent = Math.abs(getMaxDrawdown(trades)); // Percentage
-  // Original attempt to convert percentage back to value using total net profit
-  const maxDDValue = maxDDPercent > 0 ? (netProfit / 100) * maxDDPercent : 0;
-  if (!maxDDValue || maxDDValue === 0) return 0; // Changed from !maxDDValue to maxDDValue === 0
-  return parseFloat((netProfit / maxDDValue).toFixed(2));
-}
+// Calculate recovery factor
+export const getRecoveryFactor = (trades) => {
+  if (!trades || trades.length === 0) return 0;
+
+  const netPnL = trades.reduce((sum, t) => sum + (t.pnl || 0), 0);
+  const maxDrawdown = getMaxDrawdown(trades);
+
+  return maxDrawdown > 0 ? netPnL / maxDrawdown : 0;
+};
