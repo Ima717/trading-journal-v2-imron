@@ -1,7 +1,7 @@
 // src/utils/calculations.js
 import dayjs from "dayjs";
 
-// Calculate P&L over time (cumulative)
+// Calculate cumulative P&L over time for equity curve
 export const getPnLOverTime = (trades) => {
   if (!trades || trades.length === 0) return [];
 
@@ -10,16 +10,18 @@ export const getPnLOverTime = (trades) => {
   );
 
   let cumulativePnL = 0;
-  return sortedTrades.map((trade) => {
+  const result = sortedTrades.map((trade) => {
     cumulativePnL += trade.pnl || 0;
     return {
       date: trade.date,
       pnl: cumulativePnL,
     };
   });
+
+  return result;
 };
 
-// Calculate Zella Score over time
+// Calculate Zella Score over time (simplified scoring logic)
 export const getZellaScoreOverTime = (trades) => {
   if (!trades || trades.length === 0) return [];
 
@@ -31,14 +33,21 @@ export const getZellaScoreOverTime = (trades) => {
   let cumulativeScore = 0;
   let tradeCount = 0;
 
-  sortedTrades.forEach((trade) => {
+  sortedTrades.forEach((trade, index) => {
     tradeCount += 1;
-    const win = trade.pnl > 0 ? 1 : 0;
-    cumulativeScore += win;
-    const score = (cumulativeScore / tradeCount) * 100;
+    const dailyPnL = trade.pnl || 0;
+    const scoreContribution = dailyPnL > 0 ? 10 : dailyPnL < 0 ? -5 : 0;
+    cumulativeScore += scoreContribution;
+
+    // Normalize score to 0-100 range
+    const normalizedScore = Math.min(
+      Math.max((cumulativeScore / tradeCount) + 50, 0),
+      100
+    );
+
     result.push({
       date: trade.date,
-      score: score,
+      score: normalizedScore,
     });
   });
 
@@ -53,28 +62,27 @@ export const getMaxDrawdown = (trades) => {
     dayjs(a.date).diff(dayjs(b.date))
   );
 
-  let peak = 0;
-  let trough = 0;
-  let maxDrawdown = 0;
   let cumulativePnL = 0;
+  let peak = 0;
+  let maxDrawdown = 0;
 
   sortedTrades.forEach((trade) => {
     cumulativePnL += trade.pnl || 0;
     peak = Math.max(peak, cumulativePnL);
-    trough = Math.min(trough, cumulativePnL);
-    const drawdown = peak - trough;
+    const drawdown = peak - cumulativePnL;
     maxDrawdown = Math.max(maxDrawdown, drawdown);
   });
 
-  return maxDrawdown > 0 ? (maxDrawdown / peak) * 100 : 0;
+  // Convert to percentage (assuming starting capital is peak)
+  return peak > 0 ? ((maxDrawdown / peak) * 100).toFixed(2) : 0;
 };
 
 // Calculate recovery factor
 export const getRecoveryFactor = (trades) => {
   if (!trades || trades.length === 0) return 0;
 
-  const netPnL = trades.reduce((sum, t) => sum + (t.pnl || 0), 0);
+  const netPnL = trades.reduce((sum, trade) => sum + (trade.pnl || 0), 0);
   const maxDrawdown = getMaxDrawdown(trades);
 
-  return maxDrawdown > 0 ? netPnL / maxDrawdown : 0;
+  return maxDrawdown > 0 ? (netPnL / maxDrawdown).toFixed(2) : 0;
 };
