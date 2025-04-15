@@ -17,7 +17,7 @@ const DayWinPercent = () => {
     <div className="bg-white p-6 rounded-lg shadow-sm w-full flex flex-col justify-center items-center">
       <h3 className="text-sm text-gray-600">Day Win %</h3>
       <p className={`text-2xl font-bold ${dayWinPercent >= 50 ? "text-green-600" : "text-red-500"}`}>
-        {dayWinPercent.toFixed(2)}%
+        {!isNaN(dayWinPercent) ? Number(dayWinPercent).toFixed(2) : "0.00"}%
       </p>
     </div>
   );
