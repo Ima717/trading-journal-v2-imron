@@ -86,8 +86,10 @@ const ProfitFactorCard = ({ value, trades }) => {
 
           // Set tooltip content
           const label = tooltip.dataPoints[0].label;
-          const value = tooltip.dataPoints[0].raw || 0; // Ensure value is a number
-          tooltipEl.innerHTML = `${label}: $${value.toFixed(2)}`;
+          const value = tooltip.dataPoints[0].raw || 0;
+tooltipEl.innerHTML = `${label}: $${typeof value === "number" && !isNaN(value) 
+  ? value.toFixed(2) 
+  : "0.00"}`;
 
           // Position tooltip in the middle of the widget container
           const widgetContainer = chartContainerRef.current;
