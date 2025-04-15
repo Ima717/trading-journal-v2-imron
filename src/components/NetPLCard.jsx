@@ -4,14 +4,14 @@ import { motion } from "framer-motion";
 import { valueAnimation, formatValue, RenderTooltip } from "../utils/statUtils.jsx";
 
 const NetPLCard = ({ value, badge, trades }) => {
-  const [displayValue, setDisplayValue] = useState(value || 0); // Initialize with 0 if value is undefined
+  const [displayValue, setDisplayValue] = useState(value);
 
   useEffect(() => {
-    const timeout = setTimeout(() => setDisplayValue(value || 0), 50);
+    const timeout = setTimeout(() => setDisplayValue(value), 50);
     return () => clearTimeout(timeout);
   }, [value]);
 
-  const color = (value || 0) >= 0 ? "text-green-600" : "text-red-500";
+  const color = value >= 0 ? "text-green-600" : "text-red-500";
 
   return (
     <div className="p-6 rounded-xl shadow-sm bg-white dark:bg-zinc-800 min-w-[200px] flex-1 h-24 flex flex-col justify-between hover:shadow-md hover:scale-[1.02] transition-all duration-200">
