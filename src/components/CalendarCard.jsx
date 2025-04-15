@@ -1,11 +1,8 @@
-// src/components/CalendarCard.jsx
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Settings } from "lucide-react";
 import dayjs from "dayjs";
 import { Tooltip as ReactTooltip } from "react-tooltip";
-import DailyTradeModal from "./DailyTradeModal";
-import { formatPnL } from "../utils/statUtils";
 
 const CalendarCard = ({ trades = [] }) => {
   const [currentMonth, setCurrentMonth] = useState(dayjs());
@@ -18,14 +15,11 @@ const CalendarCard = ({ trades = [] }) => {
     showTradesCount: true,
     colorIntensityMode: false,
   });
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const headerRef = useRef(null);
   const settingsRef = useRef(null);
   const settingsButtonRef = useRef(null);
 
-  // Load settings from localStorage
   useEffect(() => {
     const savedSettings = localStorage.getItem("calendarSettings");
     if (savedSettings) {
@@ -33,19 +27,16 @@ const CalendarCard = ({ trades = [] }) => {
     }
   }, []);
 
-  // Save settings to localStorage
   useEffect(() => {
     localStorage.setItem("calendarSettings", JSON.stringify(settings));
   }, [settings]);
 
-  // Measure header height for alignment
   useEffect(() => {
     if (headerRef.current) {
       setHeaderHeight(headerRef.current.offsetHeight);
     }
   }, []);
 
-  // Close settings dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -63,35 +54,6 @@ const CalendarCard = ({ trades = [] }) => {
     };
   }, []);
 
-  // Handle keyboard navigation for date selection
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (!isModalOpen) return;
-
-      if (event.key === "Escape") {
-        setIsModalOpen(false);
-        setSelectedDate(null);
-      } else if (event.key === "ArrowLeft" && selectedDate) {
-        const prevDay = dayjs(selectedDate).subtract(1, "day");
-        setSelectedDate(prevDay);
-        if (!prevDay.isSame(currentMonth, "month")) {
-          setCurrentMonth(prevDay);
-        }
-      } else if (event.key === "ArrowRight" && selectedDate) {
-        const nextDay = dayjs(selectedDate).add(1, "day");
-        setSelectedDate(nextDay);
-        if (!nextDay.isSame(currentMonth, "month")) {
-          setCurrentMonth(nextDay);
-        }
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isModalOpen, selectedDate, currentMonth]);
-
   const startOfMonth = currentMonth.startOf("month");
   const daysInMonth = currentMonth.daysInMonth();
   const firstDayOfWeek = startOfMonth.day();
@@ -102,7 +64,6 @@ const CalendarCard = ({ trades = [] }) => {
   const totalWeeks = Math.ceil((firstDayOfWeek + daysInMonth) / 7);
   const rowHeight = 700 / totalWeeks;
 
-  // Map trades to dates
   const tradeMap = useMemo(() => {
     const map = { pnl: {}, tradesCount: {}, percentage: {} };
     trades.forEach((t) => {
@@ -200,14 +161,17 @@ const CalendarCard = ({ trades = [] }) => {
     return dayjs().isSame(date, "day");
   };
 
-  // Handle date cell click to open modal
-  const handleDateClick = (date) => {
-    if (dayjs(date).isValid()) {
-      setSelectedDate(date);
-      setIsModalOpen(true);
-    } else {
-      console.error("Invalid date selected:", date);
+  // Enhanced P&L formatting: shorten values >= 1000 to "k" format
+  const formatPnL = (value) => {
+    const absValue = Math.abs(value);
+    if (absValue >= 1000) {
+      const kValue = (absValue / 1000).toFixed(1);
+      return `${value >= 0 ? "+" : "-"}$${kValue.endsWith(".0") ? kValue.slice(0, -2) : kValue}k`;
     }
+    if (Number.isInteger(absValue)) {
+      return `${value >= 0 ? "+" : "-"}$${absValue.toFixed(0)}`;
+    }
+    return `${value >= 0 ? "+" : "-"}$${absValue.toFixed(1)}`;
   };
 
   return (
@@ -215,19 +179,13 @@ const CalendarCard = ({ trades = [] }) => {
       <div className="bg-white dark:bg-zinc-800 rounded-2xl p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <button
-              onClick={handlePrevMonth}
-              className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
-            >
+            <button onClick={handlePrevMonth} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
               <ChevronLeft size={18} className="text-gray-600 dark:text-gray-300 tracking-wide" />
             </button>
             <h2 className="text-lg font-semibold text-gray-800 dark:text-white tracking-wide">
               {currentMonth.format("MMMM YYYY")}
             </h2>
-            <button
-              onClick={handleNextMonth}
-              className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
-            >
+            <button onClick={handleNextMonth} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
               <ChevronRight size={18} className="text-gray-600 dark:text-gray-300 tracking-wide" />
             </button>
             <button
@@ -476,17 +434,13 @@ const CalendarCard = ({ trades = [] }) => {
                     (key === extremeDays.mostProfit || key === extremeDays.mostLoss);
                   const isTodayDate = isToday(date);
                   const isWeekend = date.day() === 0 || date.day() === 6;
-                  const isSelected = selectedDate && selectedDate.isSame(date, "day");
 
                   return (
                     <div
                       key={key}
                       style={{ height: rowHeight }}
-                      onClick={() => handleDateClick(date)}
                       className={`rounded-md border ${
-                        isSelected
-                          ? "border-blue-500 dark:border-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.5)]"
-                          : pnl !== undefined
+                        pnl !== undefined
                           ? pnl >= 0
                             ? isExtremeDay
                               ? "border-green-500 dark:border-green-600"
@@ -580,17 +534,6 @@ const CalendarCard = ({ trades = [] }) => {
           </AnimatePresence>
         </div>
       </div>
-
-      {/* Render the Daily Trade Modal */}
-      <DailyTradeModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedDate(null);
-        }}
-        selectedDate={selectedDate}
-        trades={trades}
-      />
     </div>
   );
 };
