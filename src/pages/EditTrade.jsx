@@ -212,17 +212,21 @@ const EditTrade = () => {
         mfe: mfeValue,
       };
 
-      setFormData((prev) => ({
-        ...prev,
-        netRoi: netRoi.toFixed(2),
-        grossPnl: grossPnl.toFixed(2),
-        adjustedCost: adjustedCost.toFixed(2),
-        zellaScale,
-        pnl: netPnl.toFixed(2),
-      }));
-      setMae(maeValue.toFixed(2));
-      setMfe(mfeValue.toFixed(2));
-    };
+      const safeToFixed = (val, digits = 2) =>
+  !isNaN(val) ? Number(val).toFixed(digits) : "0.00";
+
+setFormData((prev) => ({
+  ...prev,
+  netRoi: safeToFixed(netRoi),
+  grossPnl: safeToFixed(grossPnl),
+  adjustedCost: safeToFixed(adjustedCost),
+  zellaScale, // assuming this one is safe
+  pnl: safeToFixed(netPnl),
+}));
+
+setMae(safeToFixed(maeValue));
+setMfe(safeToFixed(mfeValue));
+
 
     calculateMetrics();
   }, [formData.entryPrice, formData.exitPrice, formData.quantity, formData.fees, formData.commissions, formData.instrumentType, formData.symbol]);
