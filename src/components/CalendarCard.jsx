@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Settings } from "lucide-react";
 import dayjs from "dayjs";
 import { Tooltip as ReactTooltip } from "react-tooltip";
-import DailyTradeModal from "./DailyTradeModal"; // Import the new modal component
+import DailyTradeModal from "./DailyTradeModal";
+import { formatPnL } from "../utils/statUtils"; // Import formatPnL
 
 const CalendarCard = ({ trades = [] }) => {
   const [currentMonth, setCurrentMonth] = useState(dayjs());
@@ -197,18 +198,6 @@ const CalendarCard = ({ trades = [] }) => {
 
   const isToday = (date) => {
     return dayjs().isSame(date, "day");
-  };
-
-  const formatPnL = (value) => {
-    const absValue = Math.abs(value);
-    if (absValue >= 1000) {
-      const kValue = (absValue / 1000).toFixed(1);
-      return `${value >= 0 ? "+" : "-"}$${kValue.endsWith(".0") ? kValue.slice(0, -2) : kValue}k`;
-    }
-    if (Number.isInteger(absValue)) {
-      return `${value >= 0 ? "+" : "-"}$${absValue.toFixed(0)}`;
-    }
-    return `${value >= 0 ? "+" : "-"}$${absValue.toFixed(1)}`;
   };
 
   // Handle date cell click to open modal
@@ -597,7 +586,6 @@ const CalendarCard = ({ trades = [] }) => {
         }}
         selectedDate={selectedDate}
         trades={trades}
-        formatPnL={formatPnL}
       />
     </div>
   );
