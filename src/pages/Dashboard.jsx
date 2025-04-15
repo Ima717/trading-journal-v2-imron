@@ -66,7 +66,7 @@ const Dashboard = () => {
           const amount = parseFloat(data.amount) || 0;
           const commission = parseFloat(data.commission) || 0;
           const fees = parseFloat(data.fees) || 0;
-          const pnl = parseFloat(data.pnl) || 0;
+          const pnl = parseFloat(data.pnl) || 0; // Ensure pnl is a number
           return {
             id: doc.id,
             ...data,
@@ -79,11 +79,20 @@ const Dashboard = () => {
           };
         });
 
-        let finalTrades = trades;
+        // Filter out trades with invalid data
+        const validTrades = trades.filter((trade) => {
+          const isValid = trade.date && !isNaN(trade.pnl) && !isNaN(trade.amount) && !isNaN(trade.commission) && !isNaN(trade.fees);
+          if (!isValid) {
+            console.warn("Invalid trade data:", trade);
+          }
+          return isValid;
+        });
+
+        let finalTrades = validTrades;
         if (dateRange.start && dateRange.end) {
           const start = dayjs(dateRange.start);
           const end = dayjs(dateRange.end);
-          finalTrades = trades.filter((t) => {
+          finalTrades = validTrades.filter((t) => {
             const entryTime = dayjs(t.entryTime);
             return (
               entryTime.isValid() &&
@@ -131,14 +140,14 @@ const Dashboard = () => {
     });
     return Object.entries(tagMap).map(([tag, val]) => ({
       tag,
-      avgPnL: parseFloat((val.totalPnL / val.count).toFixed(2)),
+      avgPnL: isNaN(val.totalPnL / val.count) ? 0 : parseFloat((val.totalPnL / val.count).toFixed(2)),
     }));
   }, [displayTrades]);
 
   // Core Metrics
   const totalTrades = displayTrades.length;
-  const wins = displayTrades.filter((t) => t.pnl > 0);
-  const losses = displayTrades.filter((t) => t.pnl < 0);
+  const wins = displayTrades.filter((t) => (t.pnl || 0) > 0);
+  const losses = displayTrades.filter((t) => (t.pnl || 0) < 0);
 
   // Trade Win %
   const tradeWinPercent = totalTrades
@@ -146,8 +155,8 @@ const Dashboard = () => {
     : "0.00";
 
   // Profit Factor
-  const grossProfit = wins.reduce((sum, t) => sum + t.pnl, 0);
-  const grossLoss = Math.abs(losses.reduce((sum, t) => sum + t.pnl, 0));
+  const grossProfit = wins.reduce((sum, t) => sum + (t.pnl || 0), 0);
+  const grossLoss = Math.abs(losses.reduce((sum, t) => sum + (t.pnl || 0), 0));
   const profitFactor = totalTrades
     ? grossLoss > 0
       ? (grossProfit / grossLoss).toFixed(2)
@@ -160,7 +169,9 @@ const Dashboard = () => {
   const avgWin = wins.length ? grossProfit / wins.length : 0;
   const avgLoss = losses.length ? grossLoss / losses.length : 0;
   const avgWinLossTrade = wins.length && losses.length
-    ? (avgWin / avgLoss).toFixed(2)
+    ? isNaN(avgWin / avgLoss)
+      ? "N/A"
+      : (avgWin / avgLoss).toFixed(2)
     : wins.length
     ? "Infinity"
     : losses.length
