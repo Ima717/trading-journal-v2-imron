@@ -1,13 +1,13 @@
 // src/components/AvgWinLossCard.jsx
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { valueAnimation, RenderTooltip } from "../utils/statUtils.jsx";
+import { valueAnimation, formatValue, RenderTooltip } from "../utils/statUtils.jsx";
 
 const AvgWinLossCard = ({ value }) => {
-  const [displayValue, setDisplayValue] = useState(value || "0.00"); // Initialize with "0.00" if value is undefined
+  const [displayValue, setDisplayValue] = useState(value);
 
   useEffect(() => {
-    const timeout = setTimeout(() => setDisplayValue(value || "0.00"), 50);
+    const timeout = setTimeout(() => setDisplayValue(value), 50);
     return () => clearTimeout(timeout);
   }, [value]);
 
