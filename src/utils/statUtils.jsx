@@ -12,27 +12,22 @@ export const valueAnimation = {
 
 // Format numbers (currency, percentage, or raw)
 export const formatValue = (value, type) => {
-  // Ensure value is a number, default to 0 if invalid
-  const numericValue = typeof value === "string" ? parseFloat(value) : value;
-  const safeValue = isNaN(numericValue) ? 0 : numericValue;
-
-  if (type === "currency") return `$${safeValue.toFixed(2)}`;
-  if (type === "percent") return `${safeValue.toFixed(2)}%`;
-  return safeValue.toString();
+  if (type === "currency") return `$${parseFloat(value).toFixed(2)}`;
+  if (type === "percent") return `${parseFloat(value).toFixed(2)}%`;
+  return value;
 };
 
 // Format P&L values (handles k notation for large numbers)
 export const formatPnL = (value) => {
-  const safeValue = isNaN(value) ? 0 : value;
-  const absValue = Math.abs(safeValue);
+  const absValue = Math.abs(value);
   if (absValue >= 1000) {
     const kValue = (absValue / 1000).toFixed(1);
-    return `${safeValue >= 0 ? "+" : "-"}$${kValue.endsWith(".0") ? kValue.slice(0, -2) : kValue}k`;
+    return `${value >= 0 ? "+" : "-"}$${kValue.endsWith(".0") ? kValue.slice(0, -2) : kValue}k`;
   }
   if (Number.isInteger(absValue)) {
-    return `${safeValue >= 0 ? "+" : "-"}$${absValue.toFixed(0)}`;
+    return `${value >= 0 ? "+" : "-"}$${absValue.toFixed(0)}`;
   }
-  return `${safeValue >= 0 ? "+" : "-"}$${absValue.toFixed(1)}`;
+  return `${value >= 0 ? "+" : "-"}$${absValue.toFixed(1)}`;
 };
 
 // Reusable tooltip component with dynamic content
