@@ -336,8 +336,8 @@ const ImportTrades = () => {
                       <td className="p-4">{trade.date}</td>
                       <td className="p-4 capitalize">{trade.side}</td>
                       <td className="p-4">{trade.quantity}</td>
-                      <td className="p-4">${trade.price.toFixed(2)}</td>
-                      <td className="p-4">${trade.amount.toFixed(2)}</td>
+                      <td className="p-4">${!isNaN(trade.price) ? Number(trade.price).toFixed(2) : "0.00"}</td>
+                      <td className="p-4">${!isNaN(trade.amount) ? Number(trade.amount).toFixed(2) : "0.00"}</td>
                       <td className="p-4 capitalize">{trade.instrumentType}</td>
                     </tr>
                   ))}
