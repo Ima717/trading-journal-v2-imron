@@ -78,7 +78,9 @@ const ChartPnLBySymbol = () => {
             callbacks: {
               title: (items) => `Symbol: ${items[0].label}`,
               label: (ctx) => {
-                const val = ctx.raw.toFixed(2);
+                const val = typeof ctx.raw === "number" && !isNaN(ctx.raw) 
+  ? ctx.raw.toFixed(2) 
+  : "0.00";
                 const trades = counts[ctx.dataIndex];
                 return `${val >= 0 ? "+" : "-"}$${Math.abs(val)} avg P&L (${trades} trades)`;
               },
