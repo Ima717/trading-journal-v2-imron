@@ -1,3 +1,4 @@
+// src/components/CalendarCard.jsx
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Settings } from "lucide-react";
@@ -20,6 +21,7 @@ const CalendarCard = ({ trades = [] }) => {
   const settingsRef = useRef(null);
   const settingsButtonRef = useRef(null);
 
+  // Load settings from localStorage
   useEffect(() => {
     const savedSettings = localStorage.getItem("calendarSettings");
     if (savedSettings) {
@@ -27,16 +29,19 @@ const CalendarCard = ({ trades = [] }) => {
     }
   }, []);
 
+  // Save settings to localStorage
   useEffect(() => {
     localStorage.setItem("calendarSettings", JSON.stringify(settings));
   }, [settings]);
 
+  // Measure header height for alignment
   useEffect(() => {
     if (headerRef.current) {
       setHeaderHeight(headerRef.current.offsetHeight);
     }
   }, []);
 
+  // Close settings dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -64,6 +69,7 @@ const CalendarCard = ({ trades = [] }) => {
   const totalWeeks = Math.ceil((firstDayOfWeek + daysInMonth) / 7);
   const rowHeight = 700 / totalWeeks;
 
+  // Map trades to dates
   const tradeMap = useMemo(() => {
     const map = { pnl: {}, tradesCount: {}, percentage: {} };
     trades.forEach((t) => {
@@ -161,7 +167,6 @@ const CalendarCard = ({ trades = [] }) => {
     return dayjs().isSame(date, "day");
   };
 
-  // Enhanced P&L formatting: shorten values >= 1000 to "k" format
   const formatPnL = (value) => {
     const absValue = Math.abs(value);
     if (absValue >= 1000) {
@@ -179,13 +184,19 @@ const CalendarCard = ({ trades = [] }) => {
       <div className="bg-white dark:bg-zinc-800 rounded-2xl p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <button onClick={handlePrevMonth} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
+            <button
+              onClick={handlePrevMonth}
+              className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
+            >
               <ChevronLeft size={18} className="text-gray-600 dark:text-gray-300 tracking-wide" />
             </button>
             <h2 className="text-lg font-semibold text-gray-800 dark:text-white tracking-wide">
               {currentMonth.format("MMMM YYYY")}
             </h2>
-            <button onClick={handleNextMonth} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
+            <button
+              onClick={handleNextMonth}
+              className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
+            >
               <ChevronRight size={18} className="text-gray-600 dark:text-gray-300 tracking-wide" />
             </button>
             <button
