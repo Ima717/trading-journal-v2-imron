@@ -14,12 +14,12 @@ import dayjs from "dayjs";
 ChartJS.register(ArcElement, ChartTooltip);
 
 const DayWinPercentCard = ({ value, trades }) => {
-  const [displayValue, setDisplayValue] = useState(value || "0.00"); // Initialize with "0.00" if value is undefined
+  const [displayValue, setDisplayValue] = useState(value);
   const chartContainerRef = useRef(null);
   const chartRef = useRef(null);
 
   useEffect(() => {
-    const timeout = setTimeout(() => setDisplayValue(value || "0.00"), 50);
+    const timeout = setTimeout(() => setDisplayValue(value), 50);
     return () => clearTimeout(timeout);
   }, [value]);
 
@@ -34,10 +34,9 @@ const DayWinPercentCard = ({ value, trades }) => {
   }, []);
 
   // Calculate winning, breakeven, and losing days
-  const safeTrades = Array.isArray(trades) ? trades : [];
   const tradingDays = [
     ...new Set(
-      safeTrades
+      trades
         .map((t) =>
           dayjs(t.entryTime).isValid()
             ? dayjs(t.entryTime).format("YYYY-MM-DD")
@@ -49,7 +48,7 @@ const DayWinPercentCard = ({ value, trades }) => {
 
   const dayStats = tradingDays.reduce(
     (acc, day) => {
-      const dayPnL = safeTrades
+      const dayPnL = trades
         .filter((t) => dayjs(t.entryTime).format("YYYY-MM-DD") === day)
         .reduce((sum, t) => sum + (t.pnl || 0), 0);
       if (dayPnL > 0) acc.winningDays += 1;
