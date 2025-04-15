@@ -17,6 +17,19 @@ export const formatValue = (value, type) => {
   return value;
 };
 
+// Format P&L values (handles k notation for large numbers)
+export const formatPnL = (value) => {
+  const absValue = Math.abs(value);
+  if (absValue >= 1000) {
+    const kValue = (absValue / 1000).toFixed(1);
+    return `${value >= 0 ? "+" : "-"}$${kValue.endsWith(".0") ? kValue.slice(0, -2) : kValue}k`;
+  }
+  if (Number.isInteger(absValue)) {
+    return `${value >= 0 ? "+" : "-"}$${absValue.toFixed(0)}`;
+  }
+  return `${value >= 0 ? "+" : "-"}$${absValue.toFixed(1)}`;
+};
+
 // Reusable tooltip component with dynamic content
 export const RenderTooltip = ({ id, content }) => {
   // Default content based on id
