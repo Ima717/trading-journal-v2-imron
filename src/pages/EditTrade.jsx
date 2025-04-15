@@ -1,4 +1,3 @@
-// /src/pages/EditTrade.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
@@ -173,52 +172,47 @@ const EditTrade = () => {
     fetchTrade();
   }, [user, id]);
 
+  // Destructure formData for calculations
+  const {
+    entryPrice,
+    exitPrice,
+    quantity,
+    fees,
+    commissions,
+    instrumentType,
+    symbol,
+  } = formData;
+
   // Calculate PnL, MAE, MFE, Net ROI, Gross P&L, Adjusted Cost, Zella Scale
- const {
-  entryPrice,
-  exitPrice,
-  quantity,
-  fees,
-  commissions,
-  instrumentType,
-  symbol,
-} = formData;
-
-useEffect(() => {
-  const calculateMetrics = () => {
-    const parsedEntry = parseFloat(entryPrice) || 0;
-    const parsedExit = parseFloat(exitPrice) || 0;
-    const parsedQty = parseFloat(quantity) || 0;
-    const parsedFees = parseFloat(fees) || 0;
-    const parsedCommissions = parseFloat(commissions) || 0;
-    // use parsed values for calculations
-  };
-
-  calculateMetrics();
-}, [entryPrice, exitPrice, quantity, fees, commissions, instrumentType, symbol]);
-
+  useEffect(() => {
+    const calculateMetrics = () => {
+      const parsedEntry = parseFloat(entryPrice) || 0;
+      const parsedExit = parseFloat(exitPrice) || 0;
+      const parsedQty = parseFloat(quantity) || 0;
+      const parsedFees = parseFloat(fees) || 0;
+      const parsedCommissions = parseFloat(commissions) || 0;
 
       // Calculate Gross P&L
       let grossPnl = 0;
-      if (formData.instrumentType === "option") {
-        grossPnl = (exitPrice - entryPrice) * quantity * 100;
-      } else if (formData.instrumentType === "future") {
-        const tickData = futuresTickValues[formData.symbol] || { tickSize: 0.25, tickValue: 12.50 };
-        const ticks = (exitPrice - entryPrice) / tickData.tickSize;
-        grossPnl = ticks * tickData.tickValue * quantity;
+      if (instrumentType === "option") {
+        grossPnl = (parsedExit - parsedEntry) * parsedQty * 100;
+      } else if (instrumentType === "future") {
+        const tickData = futuresTickValues[symbol] || { tickSize: 0.25, tickValue: 12.50 };
+        const ticks = (parsedExit - parsedEntry) / tickData.tickSize;
+        grossPnl = ticks * tickData.tickValue * parsedQty;
       }
 
       // Calculate Net P&L
-      const netPnl = grossPnl - fees - commissions;
+      const netPnl = grossPnl - parsedFees - parsedCommissions;
 
       // Calculate Adjusted Cost
-      const adjustedCost = entryPrice * quantity * (formData.instrumentType === "option" ? 100 : 1);
+      const adjustedCost = parsedEntry * parsedQty * (instrumentType === "option" ? 100 : 1);
 
       // Calculate Net ROI
       const netRoi = adjustedCost !== 0 ? (netPnl / adjustedCost) * 100 : 0;
 
       // Calculate MAE/MFE (simplified: assuming linear price movement between entry and exit)
-      const priceDiff = exitPrice - entryPrice;
+      const priceDiff = parsedExit - parsedEntry;
       const maeValue = priceDiff < 0 ? Math.abs(priceDiff) : 0; // MAE is the max loss
       const mfeValue = priceDiff > 0 ? priceDiff : 0; // MFE is the max gain
 
@@ -229,23 +223,23 @@ useEffect(() => {
       };
 
       const safeToFixed = (val, digits = 2) =>
-  !isNaN(val) ? Number(val).toFixed(digits) : "0.00";
+        !isNaN(val) ? Number(val).toFixed(digits) : "0.00";
 
-setFormData((prev) => ({
-  ...prev,
-  netRoi: safeToFixed(netRoi),
-  grossPnl: safeToFixed(grossPnl),
-  adjustedCost: safeToFixed(adjustedCost),
-  zellaScale, // assuming this one is safe
-  pnl: safeToFixed(netPnl),
-}));
+      setFormData((prev) => ({
+        ...prev,
+        netRoi: safeToFixed(netRoi),
+        grossPnl: safeToFixed(grossPnl),
+        adjustedCost: safeToFixed(adjustedCost),
+        zellaScale,
+        pnl: safeToFixed(netPnl),
+      }));
 
-setMae(safeToFixed(maeValue));
-setMfe(safeToFixed(mfeValue));
-
+      setMae(safeToFixed(maeValue));
+      setMfe(safeToFixed(mfeValue));
+    };
 
     calculateMetrics();
-  }, [formData.entryPrice, formData.exitPrice, formData.quantity, formData.fees, formData.commissions, formData.instrumentType, formData.symbol]);
+  }, [entryPrice, exitPrice, quantity, fees, commissions, instrumentType, symbol]);
 
   // Setup TradingView chart
   useEffect(() => {
