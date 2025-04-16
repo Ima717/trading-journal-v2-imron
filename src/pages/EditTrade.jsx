@@ -5,6 +5,7 @@ import { db } from "../utils/firebase";
 import { useAuth } from "../context/AuthContext";
 import { useFilters } from "../context/FilterContext";
 import { createChart } from "lightweight-charts";
+import { safeToFixed } from '../utils/safeToFixed';
 import ReactQuill from "react-quill";
 
 const EditTrade = () => {
