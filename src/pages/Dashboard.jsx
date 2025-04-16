@@ -1,5 +1,3 @@
-as we created a ew fiel, should we update the dashbard?
-
 import React, { useEffect, useState, useMemo } from "react";
 import { auth, db } from "../utils/firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
