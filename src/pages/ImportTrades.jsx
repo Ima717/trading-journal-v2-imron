@@ -6,7 +6,7 @@ import { db } from "../utils/firebase";
 import { useAuth } from "../context/AuthContext";
 import { useFilters } from "../context/FilterContext";
 
-// Futures lookup table (expanded for robustness)
+// Futures lookup table (unchanged, kept for potential future use)
 const FUTURES_SPECS = {
   "/ES": { contractSize: 50, tickValue: 0.25 },
   "/CL": { contractSize: 1000, tickValue: 0.01 },
@@ -28,6 +28,7 @@ const ImportTrades = () => {
   const [importError, setImportError] = useState(null);
 
   const detectInstrumentType = (symbol) => {
+    if (!symbol || typeof symbol !== "string") return "unknown";
     if (symbol.startsWith("/")) return "futures";
     if (/^[A-Z]+[0-9]{6}[CP][0-9]+$/.test(symbol)) return "option";
     return "stock";
@@ -35,10 +36,15 @@ const ImportTrades = () => {
 
   const parseOptionDetails = (symbol) => {
     const match = symbol.match(/([A-Z]+)([0-9]{6})([CP])([0-9]+)/);
-    if (!match) return { baseSymbol: symbol, expiration: null, strike: null };
-    const [, baseSymbol, date, , strike] = match;
+    if (!match) return { baseSymbol: symbol, expiration: null, strike: null, type: null };
+    const [, baseSymbol, date, type, strike] = match;
     const expiration = `20${date.slice(0, 2)}-${date.slice(2, 4)}-${date.slice(4, 6)}`;
-    return { baseSymbol, expiration, strike: parseFloat(strike) };
+    return {
+      baseSymbol,
+      expiration,
+      strike: parseFloat(strike) / 1000, // Convert strike to decimal (e.g., 00548000 -> 548.000)
+      type: type === "C" ? "call" : "put",
+    };
   };
 
   const handleFileChange = useCallback((selectedFile) => {
@@ -55,18 +61,21 @@ const ImportTrades = () => {
         const validationErrors = [];
 
         data
-          .filter((row) => row.Symbol && (row.Side || row.Action))
+          .filter((row) => row["Symbol"] && row["Side"] && row["Status"] === "Filled")
           .forEach((row, index) => {
-            const symbol = row.Symbol || row.Ticker || "N/A";
-            const side = (row.Side || row.Action || "Unknown").toLowerCase();
-            if (side !== "buy" && side !== "sell") return;
-            const quantity = parseFloat(row.Filled || row.Quantity) || 0;
-            const price = parseFloat(row.Price) || 0;
-            const date = row["Filled Time"] || row.Date || row["Trade Date"] || new Date().toISOString();
-            const commission = parseFloat(row.Commission) || 0;
-            const fees = parseFloat(row.Fees) || 0;
+            const symbol = row["Symbol"] || "N/A";
+            const side = (row["Side"] || "unknown").toLowerCase();
+            if (side !== "buy" && side !== "sell") {
+              validationErrors.push(`Row ${index + 1}: Invalid side (${row["Side"]})`);
+              return;
+            }
+            const quantity = parseFloat(row["Filled"]) || 0;
+            const price = parseFloat(row["Avg Price"] || row["Price"]?.replace("@", "")) || 0;
+            const date = row["Filled Time"] || new Date().toISOString();
+            const commission = parseFloat(row["Commission"] || 0);
+            const fees = parseFloat(row["Fees"] || 0);
 
-            const uniqueKey = `${symbol}-${side}-${date}`;
+            const uniqueKey = `${symbol}-${side}-${date}-${quantity}-${price}`;
             if (uniqueTrades.has(uniqueKey)) {
               console.log(`Duplicate found: ${uniqueKey}`);
               return;
@@ -79,13 +88,15 @@ const ImportTrades = () => {
             let strike = null;
             let expiration = null;
             let baseSymbol = symbol;
+            let optionType = null;
 
             if (instrumentType === "option") {
-              multiplier = 100;
-              const { baseSymbol: bs, expiration: exp, strike: st } = parseOptionDetails(symbol);
+              multiplier = 100; // Standard options multiplier
+              const { baseSymbol: bs, expiration: exp, strike: st, type: ot } = parseOptionDetails(symbol);
               baseSymbol = bs;
               expiration = exp;
               strike = st;
+              optionType = ot;
             } else if (instrumentType === "futures") {
               const futuresRoot = symbol.split(/[0-9]/)[0];
               const spec = FUTURES_SPECS[futuresRoot] || { contractSize: 1, tickValue: 1 };
@@ -95,9 +106,11 @@ const ImportTrades = () => {
 
             const amount = side === "buy" ? -quantity * price * multiplier : quantity * price * multiplier;
 
+            // Validation
             if (symbol === "N/A") validationErrors.push(`Row ${index + 1}: Missing symbol`);
             if (isNaN(new Date(date).getTime())) validationErrors.push(`Row ${index + 1}: Invalid date (${date})`);
-            if (quantity <= 0 || price <= 0) validationErrors.push(`Row ${index + 1}: Invalid quantity or price`);
+            if (quantity <= 0) validationErrors.push(`Row ${index + 1}: Invalid quantity (${quantity})`);
+            if (price <= 0) validationErrors.push(`Row ${index + 1}: Invalid price (${price})`);
 
             uniqueTrades.set(uniqueKey, {
               symbol,
@@ -115,8 +128,9 @@ const ImportTrades = () => {
               tickValue,
               strike,
               expiration,
+              optionType,
               tags: [],
-              notes: row.Description || "",
+              notes: "",
             });
           });
 
@@ -127,6 +141,10 @@ const ImportTrades = () => {
       },
       header: true,
       skipEmptyLines: true,
+      transform: (value, header) => {
+        if (header === "Price") return value.replace("@", "");
+        return value.trim();
+      },
       error: (err) => setErrors([`CSV parsing failed: ${err.message}`]),
     });
   }, []);
@@ -145,7 +163,7 @@ const ImportTrades = () => {
     let batch = writeBatch(db);
     let success = 0;
     const batchSize = 50;
-    const writtenDocs = new Set(); // Track written document IDs to prevent duplicates
+    const writtenDocs = new Set();
 
     const sortedTrades = [...trades].sort((a, b) => new Date(a.date) - new Date(b.date));
     console.log("Total trades to import:", sortedTrades.length);
@@ -153,9 +171,9 @@ const ImportTrades = () => {
 
     for (let i = 0; i < sortedTrades.length; i++) {
       const trade = sortedTrades[i];
-      const { symbol, instrumentType, side, quantity, price, commission, fees, strike, expiration } = trade;
+      const { symbol, instrumentType, side, quantity, price, commission, fees, strike, expiration, optionType } = trade;
       const matchKey =
-        instrumentType === "option" ? `${symbol}-${strike}-${expiration}` :
+        instrumentType === "option" ? `${symbol}-${strike}-${expiration}-${optionType}` :
         instrumentType === "futures" ? symbol : trade.baseSymbol;
 
       if (!tradeQueues[matchKey]) tradeQueues[matchKey] = [];
@@ -175,7 +193,7 @@ const ImportTrades = () => {
 
           if (instrumentType === "futures") {
             realizedPnL += (price - buy.price) * matchQty * trade.contractSize * trade.tickValue;
-          } else {
+          } else if (instrumentType === "option") {
             realizedPnL += (matchQty * price - matchQty * buy.price) * trade.multiplier;
           }
 
