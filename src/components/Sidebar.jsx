@@ -7,16 +7,16 @@ import {
   FileBarChart,
   History,
   Repeat,
-  User,
+  User, // Keep User icon for Account link
   LogOut,
   Upload,
   Moon,
   Sun,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTheme } from "../context/ThemeContext";
+import { useTheme } from "../context/ThemeContext"; // Assuming path is correct
 import { signOut } from "firebase/auth";
-import { auth } from "../utils/firebase";
+import { auth } from "../utils/firebase"; // Assuming path is correct
 
 const navItems = [
   { name: "Dashboard", path: "/", icon: <LayoutDashboard size={20} /> },
@@ -55,8 +55,13 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
   };
 
   const handleLogout = async () => {
-    await signOut(auth);
-    navigate("/signin");
+    try {
+        await signOut(auth);
+        navigate("/signin");
+    } catch (error) {
+        console.error("Error signing out: ", error);
+        // Optionally: show an error message to the user
+    }
   };
 
   return (
@@ -90,6 +95,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
           <motion.span
             animate={{ rotate: collapsed ? 0 : 180 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="text-lg leading-none" // Adjusted for better visual appearance of arrows
           >
             {collapsed ? "»" : "«"}
           </motion.span>
@@ -97,7 +103,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
       </div>
 
       {/* Navigation Section */}
-      <div className="px-3 py-6 flex-1">
+      <div className="px-3 py-6 flex-1 overflow-y-auto"> {/* Added overflow-y-auto */}
         <Link
           to="/add-trade"
           className="w-full block mb-6 text-sm bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white px-3 py-2 rounded-lg text-center font-medium transition-all duration-300 shadow-md"
@@ -106,8 +112,10 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
             initial={{ scale: 0.95 }}
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
+            className="flex items-center justify-center gap-2" // Use flex for alignment
           >
-            ➕ {!collapsed && " Add Trade"}
+            <span className="text-lg">➕</span> {/* Adjusted icon size/style */}
+             {!collapsed && "Add Trade"}
           </motion.span>
         </Link>
         <nav className="flex flex-col gap-1.5">
@@ -130,7 +138,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
                 } ${collapsed ? "justify-center" : ""}`}
               >
                 <motion.div
-                  whileHover={{ scale: 1.15, rotate: 5 }}
+                  whileHover={{ scale: 1.15, rotate: collapsed ? 0 : 5 }} // Only rotate when expanded
                   transition={{ duration: 0.2, ease: "easeOut" }}
                   className="text-gray-400 group-hover:text-indigo-300 flex-shrink-0"
                 >
@@ -160,7 +168,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
                   initial={{ opacity: 0, x: -10 }}
                   whileHover={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="absolute left-14 top-1/2 transform -translate-y-1/2 bg-gray-800/90 text-white text-xs rounded-md py-1.5 px-3 shadow-md z-10 pointer-events-none"
+                  className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 bg-gray-800/90 text-white text-xs rounded-md py-1.5 px-3 shadow-md z-10 pointer-events-none whitespace-nowrap" // Use left-full and ml-2
                 >
                   {item.name}
                 </motion.div>
@@ -171,48 +179,101 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
       </div>
 
       {/* Footer Section */}
-      <div className="absolute bottom-0 w-full px-3 py-6 border-t border-gray-700/50 bg-gradient-to-t from-[#1A1F36] to-[#2A3147]">
+      {/* Wrap footer content to prevent overlap with main nav */}
+      <div className="mt-auto px-3 py-6 border-t border-gray-700/50 bg-gradient-to-t from-[#1A1F36] via-[#20273f] to-[#2A3147]">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.4, ease: "easeOut" }}
           className="space-y-1.5"
         >
+          {/* Import Trades Link */}
           <Link
-            to="/import"
-            className={`flex items-center gap-3 text-sm px-3 py-2.5 rounded-lg hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200 transition-all duration-200 ${collapsed ? "justify-center" : ""}`}
-          >
-            <motion.div whileHover={{ scale: 1.15 }} transition={{ duration: 0.2 }}>
-              <Upload size={20} />
-            </motion.div>
-            {!collapsed && <span>Import Trades</span>}
-          </Link>
+             to="/import" // Assuming this is the correct path
+             className={`group relative flex items-center gap-3 text-sm px-3 py-2.5 rounded-lg hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200 transition-all duration-200 ${collapsed ? "justify-center" : ""}`}
+           >
+             <motion.div whileHover={{ scale: 1.15 }} transition={{ duration: 0.2 }}>
+               <Upload size={20} />
+             </motion.div>
+             {!collapsed && <span>Import Trades</span>}
+             {collapsed && (
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  whileHover={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 bg-gray-800/90 text-white text-xs rounded-md py-1.5 px-3 shadow-md z-10 pointer-events-none whitespace-nowrap"
+                >
+                 Import Trades
+               </motion.div>
+             )}
+           </Link>
+
+          {/* Theme Toggle Button */}
           <button
-            onClick={toggleTheme}
-            className={`flex items-center gap-3 text-sm px-3 py-2.5 rounded-lg hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200 w-full text-left transition-all duration-200 ${collapsed ? "justify-center" : ""}`}
-          >
-            <motion.div whileHover={{ scale: 1.15 }} transition={{ duration: 0.2 }}>
-              {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
-            </motion.div>
-            {!collapsed && <span>{theme === "light" ? "Dark Mode" : "Light Mode"}</span>}
-          </button>
+             onClick={toggleTheme}
+             className={`group relative flex items-center gap-3 text-sm px-3 py-2.5 rounded-lg hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200 w-full text-left transition-all duration-200 ${collapsed ? "justify-center" : ""}`}
+           >
+             <motion.div whileHover={{ scale: 1.15 }} transition={{ duration: 0.2 }}>
+               {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
+             </motion.div>
+             {!collapsed && <span>{theme === "light" ? "Dark Mode" : "Light Mode"}</span>}
+             {collapsed && (
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  whileHover={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 bg-gray-800/90 text-white text-xs rounded-md py-1.5 px-3 shadow-md z-10 pointer-events-none whitespace-nowrap"
+                >
+                 {theme === "light" ? "Dark Mode" : "Light Mode"}
+               </motion.div>
+             )}
+           </button>
+
+          {/* --- UPDATED Account Link --- */}
           <Link
-            to="/settings"
-            className={`flex items-center gap-3 text-sm px-3 py-2.5 rounded-lg hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200 transition-all duration-200 ${collapsed ? "justify-center" : ""}`}
+            to="/account" // Changed path
+            className={`group relative flex items-center gap-3 text-sm px-3 py-2.5 rounded-lg transition-all duration-200 ${
+              location.pathname === '/account' // Added active state check
+                ? "bg-indigo-900/80 text-indigo-200 shadow-inner"
+                : "hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200"
+            } ${collapsed ? "justify-center" : ""}`}
           >
             <motion.div whileHover={{ scale: 1.15 }} transition={{ duration: 0.2 }}>
-              <User size={20} />
+              <User size={20} /> {/* Kept User icon */}
             </motion.div>
-            {!collapsed && <span>Profile</span>}
+            {!collapsed && <span>Account</span>} {/* Changed text */}
+             {collapsed && (
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  whileHover={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 bg-gray-800/90 text-white text-xs rounded-md py-1.5 px-3 shadow-md z-10 pointer-events-none whitespace-nowrap"
+                >
+                 Account
+               </motion.div>
+             )}
           </Link>
+          {/* --- End of UPDATED Account Link --- */}
+
+          {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className={`flex items-center gap-3 text-sm px-3 py-2.5 rounded-lg hover:bg-red-800/80 text-gray-300 hover:text-white w-full text-left transition-all duration-200 ${collapsed ? "justify-center" : ""}`}
+            className={`group relative flex items-center gap-3 text-sm px-3 py-2.5 rounded-lg hover:bg-red-800/80 text-gray-300 hover:text-white w-full text-left transition-all duration-200 ${collapsed ? "justify-center" : ""}`}
           >
             <motion.div whileHover={{ scale: 1.15 }} transition={{ duration: 0.2 }}>
               <LogOut size={20} />
             </motion.div>
             {!collapsed && <span>Log Out</span>}
+            {collapsed && (
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  whileHover={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 bg-gray-800/90 text-white text-xs rounded-md py-1.5 px-3 shadow-md z-10 pointer-events-none whitespace-nowrap"
+                >
+                 Log Out
+               </motion.div>
+             )}
           </button>
         </motion.div>
       </div>
