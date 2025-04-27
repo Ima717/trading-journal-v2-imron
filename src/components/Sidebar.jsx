@@ -12,48 +12,82 @@ import {
   Upload,
   Moon,
   Sun,
-  Plus // <-- Import the Plus icon
+  Plus,
+  ChevronsLeft, // Icon for collapse
+  ChevronsRight, // Icon for expand
+  MoreVertical // Optional: For a different style collapse button
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useTheme } from "../context/ThemeContext";
+import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import { useTheme } from "../context/ThemeContext"; // Assuming path is correct
 import { signOut } from "firebase/auth";
-import { auth } from "../utils/firebase";
+import { auth } from "../utils/firebase"; // Assuming path is correct
 
-const navItems = [
-  { name: "Dashboard", path: "/", icon: <LayoutDashboard size={20} /> },
-  { name: "Daily Journal", path: "/journal", icon: <Book size={20} /> },
-  { name: "Trades", path: "/trades", icon: <NotebookPen size={20} /> },
-  { name: "Notebook", path: "/notebook", icon: <FileBarChart size={20} /> },
-  { name: "Playbooks", path: "/playbooks", icon: <History size={20} /> },
-  { name: "Progress Tracker", path: "/progress", icon: <Repeat size={20} />, badge: "BETA" },
+// --- Configuration ---
+const SIDEBAR_WIDTH_EXPANDED = 256; // Wider sidebar in px
+const SIDEBAR_WIDTH_COLLAPSED = 72;  // Slightly wider collapsed state in px
+
+// --- Navigation Items ---
+const mainNavItems = [
+  { name: "Dashboard", path: "/", icon: LayoutDashboard },
+  { name: "Daily Journal", path: "/journal", icon: Book },
+  { name: "Trades", path: "/trades", icon: NotebookPen },
+  { name: "Notebook", path: "/notebook", icon: FileBarChart },
+  { name: "Playbooks", path: "/playbooks", icon: History },
+  { name: "Progress Tracker", path: "/progress", icon: Repeat, badge: "BETA" },
 ];
 
+const footerNavItems = [
+    { name: "Import Trades", path: "/import", icon: Upload },
+    // Theme toggle is handled separately
+    { name: "Account", path: "/account", icon: User },
+    // Logout is handled separately
+];
+
+// --- Animation Variants ---
+const sidebarVariants = {
+  expanded: {
+    width: SIDEBAR_WIDTH_EXPANDED,
+    transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] }, // Smooth cubic bezier
+  },
+  collapsed: {
+    width: SIDEBAR_WIDTH_COLLAPSED,
+    transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
+  },
+};
+
+const textVariants = {
+  visible: {
+    opacity: 1,
+    display: 'inline-flex', // Use inline-flex for alignment
+    width: 'auto',
+    marginLeft: '0.75rem', // Space between icon and text ( Tailwind ml-3)
+    transition: { delay: 0.1, duration: 0.2, ease: "easeOut" },
+  },
+  hidden: {
+    opacity: 0,
+    width: 0,
+    marginLeft: 0,
+    display: 'none', // Hide completely
+    transition: { duration: 0.1, ease: "easeIn" },
+  },
+};
+
+const iconVariants = {
+    expanded: { rotate: 0 },
+    collapsed: { rotate: 0 } // Icons don't need to rotate usually
+}
+
+const tooltipVariants = {
+    hidden: { opacity: 0, x: -5, scale: 0.95, transition: { duration: 0.15 } },
+    visible: { opacity: 1, x: 0, scale: 1, transition: { delay: 0.3, duration: 0.2 } } // Slight delay
+}
+
+// --- Sidebar Component ---
 const Sidebar = ({ collapsed, setCollapsed }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-
-  // Animation variants remain the same
-  const sidebarVariants = {
-    expanded: { width: 240 },
-    collapsed: { width: 60 },
-  };
-  const textVariants = {
-    visible: { opacity: 1, width: "auto", transition: { duration: 0.2, ease: "easeOut" } }, // Faster transition
-    hidden: { opacity: 0, width: 0, transition: { duration: 0.15, ease: "easeIn" } }, // Faster transition
-  };
-   const iconOnlyTextVariants = { // Variant for text next to icon when collapsed = false
-     visible: { opacity: 1, display: "inline-block", transition: { delay: 0.1, duration: 0.2 } },
-     hidden: { opacity: 0, display: "none", transition: { duration: 0.1 } },
-   };
-  const itemVariants = {
-    hidden: { opacity: 0, x: -30 }, // Slightly less movement
-    visible: (i) => ({
-      opacity: 1,
-      x: 0,
-      transition: { delay: i * 0.08, duration: 0.3, ease: [0.4, 0, 0.2, 1] }, // Faster stagger
-    }),
-  };
+  const controls = useAnimation(); // For controlling animations manually if needed
 
   const handleLogout = async () => {
     try {
@@ -64,244 +98,296 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
     }
   };
 
+  // Effect to potentially trigger animations on collapse/expand if needed
+  React.useEffect(() => {
+    controls.start(collapsed ? "collapsed" : "expanded");
+  }, [collapsed, controls]);
+
   return (
-    // Main container: flex column, fixed height, overflow hidden to prevent scrolling
     <motion.div
+      // Use layout prop for smooth width animation without variants if preferred,
+      // but variants give more control over the transition easing/duration.
       variants={sidebarVariants}
-      initial="expanded"
-      animate={collapsed ? "collapsed" : "expanded"}
-      transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }} // Slightly faster duration
-      className="h-screen bg-gradient-to-b from-[#1A1F36] to-[#2A3147] text-gray-200 fixed z-20 shadow-xl flex flex-col overflow-hidden" // Ensure overflow-hidden
+      initial={false} // Don't animate initial state unless desired
+      animate={controls} // Use animation controls
+      className={`fixed top-0 left-0 z-30 h-screen flex flex-col bg-gradient-to-b from-gray-900 to-gray-800 dark:from-[#111827] dark:to-[#171f31] text-gray-300 shadow-lg`}
+      style={{ width: collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH_EXPANDED }} // Set initial width via style to avoid flash
     >
-      {/* Header Section */}
-      <div className="flex items-center justify-between px-4 py-5 border-b border-gray-700/50 flex-shrink-0"> {/* Added flex-shrink-0 */}
+      {/* === Header === */}
+      <div className={`flex items-center h-[60px] px-4 border-b border-gray-700/50 flex-shrink-0 ${collapsed ? 'justify-center' : 'justify-between'}`}>
         <AnimatePresence>
           {!collapsed && (
             <motion.span
-              variants={iconOnlyTextVariants} // Use specific variant
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-              className="text-xl font-semibold tracking-tight bg-gradient-to-r from-indigo-400 to-indigo-600 bg-clip-text text-transparent"
+              key="logo-text"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20, transition: { duration: 0.15 } }}
+              transition={{ delay: 0.1, duration: 0.3 }}
+              className="text-xl font-bold tracking-tight bg-gradient-to-r from-purple-400 to-indigo-500 bg-clip-text text-transparent whitespace-nowrap"
             >
-              by IMRON
+              IMRON Journal
             </motion.span>
           )}
         </AnimatePresence>
+        {/* Collapse/Expand Button */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="text-gray-400 hover:text-indigo-300 focus:outline-none transition-colors duration-200 p-1 rounded-full hover:bg-gray-700/50"
+          className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-gray-700/60 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          {/* Using simple arrows, ensure good alignment */}
-          <motion.span
-            key={collapsed ? 'collapsed-arrow' : 'expanded-arrow'} // Add key for better animation trigger
-            initial={{ rotate: collapsed ? -180 : 0 }} // Animate from previous state
-            animate={{ rotate: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="block text-lg leading-none" // Ensure block display
-          >
-            {collapsed ? "»" : "«"}
-          </motion.span>
+          {/* Animate between Chevrons */}
+          <AnimatePresence mode="wait" initial={false}>
+             <motion.div
+                 key={collapsed ? 'expand' : 'collapse'}
+                 initial={{ opacity: 0, rotate: -90 }}
+                 animate={{ opacity: 1, rotate: 0 }}
+                 exit={{ opacity: 0, rotate: 90 }}
+                 transition={{ duration: 0.2 }}
+             >
+                 {collapsed ? <ChevronsRight size={20} /> : <ChevronsLeft size={20} />}
+             </motion.div>
+         </AnimatePresence>
         </button>
       </div>
 
-      {/* Navigation Section: flex-1 allows it to take up available space, overflow-y-auto handles scrolling ONLY if nav items exceed space */}
-      <div className="flex-1 px-3 py-6 overflow-y-auto overflow-x-hidden"> {/* Allow vertical scroll IF needed, hide horizontal */}
-        {/* Add Trade Button */}
-        <Link
-          to="/add-trade"
-          className={`w-full block mb-6 text-sm bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white px-3 py-2 rounded-lg font-medium transition-all duration-300 shadow-md ${collapsed ? 'text-center' : ''}`} // Center icon only when collapsed
-        >
+      {/* === Main Navigation Area === */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden py-4 space-y-1">
+        {/* --- Add Trade Button --- */}
+        <div className="px-3 mb-4">
+          <Link
+            to="/add-trade"
+            className={`w-full flex items-center justify-center text-sm font-semibold px-3 h-10 rounded-lg transition-all duration-300 shadow-md text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:ring-offset-gray-900 ${collapsed ? 'w-10 h-10 p-0' : 'px-3 h-10'}`} // Adjust padding/size when collapsed
+          >
             <motion.div
-             className={`flex items-center gap-2 ${collapsed ? 'justify-center' : 'justify-start'}`} // Center content when collapsed
-             initial={{ scale: 0.95 }}
-             whileHover={{ scale: 1.02 }} // Slightly less aggressive hover scale
-             transition={{ duration: 0.2 }}
+              className="flex items-center"
+              whileHover={{ scale: collapsed ? 1.1 : 1.0 }} // Only scale icon when collapsed
+              transition={{ duration: 0.2 }}
             >
-             <Plus size={collapsed ? 20 : 18} /> {/* Use Lucide Plus icon, slightly larger when collapsed */}
-             <AnimatePresence>
-               {!collapsed && (
-                 <motion.span variants={iconOnlyTextVariants} initial="hidden" animate="visible" exit="hidden">
+              <Plus size={20} className={`${!collapsed ? 'mr-2' : ''}`} /> {/* Margin only when expanded */}
+              <AnimatePresence>
+                {!collapsed && (
+                  <motion.span
+                    key="add-trade-text"
+                    variants={textVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="hidden"
+                    className="whitespace-nowrap" // Prevent wrapping during animation
+                  >
                     Add Trade
-                 </motion.span>
-               )}
-              </AnimatePresence>
-            </motion.div>
-        </Link>
-
-        {/* Main Navigation Items */}
-        <nav className="flex flex-col gap-1.5">
-          {navItems.map((item, index) => (
-            <motion.div
-              key={item.name}
-              custom={index}
-              variants={itemVariants}
-              initial="hidden"
-              animate="visible"
-              className="relative group flex items-center"
-              layout // Smooth layout transitions
-            >
-              <Link
-                to={item.path}
-                className={`flex items-center gap-3 text-sm w-full px-3 py-2.5 rounded-lg transition-all duration-200 ${
-                  location.pathname === item.path
-                    ? "bg-indigo-900/80 text-indigo-200 shadow-inner"
-                    : "hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200"
-                } ${collapsed ? "justify-center" : ""}`} // Center content when collapsed
-              >
-                {/* Icon */}
-                <motion.div
-                  whileHover={{ scale: 1.15, rotate: collapsed ? 0 : 5 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="text-gray-400 group-hover:text-indigo-300 flex-shrink-0"
-                >
-                  {item.icon}
-                </motion.div>
-                {/* Text Label */}
-                <AnimatePresence>
-                  {!collapsed && (
-                    <motion.span
-                      variants={iconOnlyTextVariants} // Use specific variant
-                      initial="hidden"
-                      animate="visible"
-                      exit="hidden"
-                      className="overflow-hidden whitespace-nowrap flex-grow" // Use flex-grow
-                    >
-                      {item.name}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-                {/* Badge */}
-                {!collapsed && item.badge && (
-                   <motion.span
-                     variants={iconOnlyTextVariants} // Use specific variant
-                     initial="hidden"
-                     animate="visible"
-                     exit="hidden"
-                     className="text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-medium flex-shrink-0 ml-auto" // Push badge to the right
-                   >
-                    {item.badge}
                   </motion.span>
                 )}
-              </Link>
-              {/* Tooltip for collapsed state */}
-              {collapsed && (
-                <div // No motion needed here, parent group hover triggers it via CSS potentially or just appears
-                  className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 bg-gray-800/95 text-white text-xs rounded-md py-1 px-2.5 shadow-lg z-10 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap" // Use group-hover for tooltip
-                >
-                  {item.name}
-                   {item.badge && <span className="ml-1.5 text-xs bg-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full font-medium">{item.badge}</span>}
-                </div>
-              )}
+              </AnimatePresence>
             </motion.div>
+          </Link>
+        </div>
+
+        {/* --- Navigation Links --- */}
+        <nav className="px-3 space-y-1">
+          {mainNavItems.map((item) => (
+            <NavItem
+              key={item.name}
+              item={item}
+              collapsed={collapsed}
+              isActive={location.pathname === item.path}
+            />
           ))}
         </nav>
-      </div> {/* End Navigation Section */}
+      </div>
 
-      {/* Footer Section: Use mt-auto to push to bottom within flex column */}
-      <div className="mt-auto px-3 py-4 border-t border-gray-700/50 bg-gradient-to-t from-[#1A1F36] via-[#20273f] to-[#2A3147] flex-shrink-0"> {/* Added flex-shrink-0 and adjusted padding */}
-        <motion.div
-          // No complex animation needed here, just ensure items are visible
-          className="space-y-1.5"
-        >
-          {/* Import */}
-          <Link
-            to="/import"
-            className={`group relative flex items-center gap-3 text-sm px-3 py-2 rounded-lg transition-all duration-200 ${
-                location.pathname === '/import'
-                    ? "bg-indigo-900/80 text-indigo-200 shadow-inner"
-                    : "hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200"
-            } ${collapsed ? "justify-center" : ""}`}
-          >
-            <motion.div whileHover={{ scale: 1.15 }} transition={{ duration: 0.2 }} className="flex-shrink-0">
-              <Upload size={20} />
-            </motion.div>
-             <AnimatePresence>
-               {!collapsed && <motion.span variants={iconOnlyTextVariants} initial="hidden" animate="visible" exit="hidden">Import Trades</motion.span>}
-             </AnimatePresence>
-             {collapsed && ( <div className="tooltip-content">{/* Tooltip defined via CSS/JS */} Import Trades </div> )}
-          </Link>
+      {/* === Footer Area === */}
+      <div className="px-3 py-4 border-t border-gray-700/50 flex-shrink-0 space-y-1">
+         {/* Footer Links */}
+         {footerNavItems.map((item) => (
+            <NavItem
+              key={item.name}
+              item={item}
+              collapsed={collapsed}
+              isActive={location.pathname === item.path}
+            />
+          ))}
 
-          {/* Theme Toggle */}
-          <button
+         {/* Theme Toggle */}
+         <button
             onClick={toggleTheme}
-            className={`group relative flex items-center gap-3 text-sm px-3 py-2 rounded-lg hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200 w-full text-left transition-all duration-200 ${collapsed ? "justify-center" : ""}`}
+            className={`group relative w-full flex items-center text-sm px-3 h-10 rounded-lg transition-colors duration-200 text-gray-400 hover:text-white hover:bg-gray-700/60 ${collapsed ? 'justify-center' : ''}`}
           >
-            <motion.div whileHover={{ scale: 1.15 }} transition={{ duration: 0.2 }} className="flex-shrink-0">
-              {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
-            </motion.div>
-            <AnimatePresence>
-               {!collapsed && <motion.span variants={iconOnlyTextVariants} initial="hidden" animate="visible" exit="hidden">{theme === "light" ? "Dark Mode" : "Light Mode"}</motion.span>}
-            </AnimatePresence>
-            {collapsed && ( <div className="tooltip-content">{/* Tooltip defined via CSS/JS */} {theme === "light" ? "Dark Mode" : "Light Mode"} </div> )}
-          </button>
-
-          {/* Account Link */}
-          <Link
-            to="/account"
-            className={`group relative flex items-center gap-3 text-sm px-3 py-2 rounded-lg transition-all duration-200 ${
-              location.pathname === '/account'
-                ? "bg-indigo-900/80 text-indigo-200 shadow-inner"
-                : "hover:bg-indigo-800/60 text-gray-300 hover:text-indigo-200"
-            } ${collapsed ? "justify-center" : ""}`}
-          >
-            <motion.div whileHover={{ scale: 1.15 }} transition={{ duration: 0.2 }} className="flex-shrink-0">
-              <User size={20} />
-            </motion.div>
-            <AnimatePresence>
-              {!collapsed && <motion.span variants={iconOnlyTextVariants} initial="hidden" animate="visible" exit="hidden">Account</motion.span>}
-            </AnimatePresence>
-            {collapsed && ( <div className="tooltip-content">{/* Tooltip defined via CSS/JS */} Account </div> )}
-          </Link>
-
-          {/* Logout Button */}
-          <button
-            onClick={handleLogout}
-            className={`group relative flex items-center gap-3 text-sm px-3 py-2 rounded-lg hover:bg-red-800/80 text-gray-300 hover:text-white w-full text-left transition-all duration-200 ${collapsed ? "justify-center" : ""}`}
-          >
-            <motion.div whileHover={{ scale: 1.15 }} transition={{ duration: 0.2 }} className="flex-shrink-0">
-              <LogOut size={20} />
-            </motion.div>
+             <motion.div whileHover={{ scale: 1.1 }} transition={{ duration: 0.2 }} className="flex-shrink-0">
+               {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
+             </motion.div>
              <AnimatePresence>
-               {!collapsed && <motion.span variants={iconOnlyTextVariants} initial="hidden" animate="visible" exit="hidden">Log Out</motion.span>}
+                 {!collapsed && (
+                     <motion.span variants={textVariants} initial="hidden" animate="visible" exit="hidden" className="whitespace-nowrap">
+                         {theme === "light" ? "Dark Mode" : "Light Mode"}
+                     </motion.span>
+                 )}
              </AnimatePresence>
-             {collapsed && ( <div className="tooltip-content">{/* Tooltip defined via CSS/JS */} Log Out </div> )}
-          </button>
-        </motion.div>
-      </div> {/* End Footer Section */}
+             {/* Tooltip */}
+             {collapsed && (
+                 <motion.span variants={tooltipVariants} initial="hidden" whileHover="visible" className="tooltip-style">
+                     {theme === "light" ? "Dark Mode" : "Light Mode"}
+                 </motion.span>
+             )}
+         </button>
+
+         {/* Logout Button */}
+         <button
+            onClick={handleLogout}
+            className={`group relative w-full flex items-center text-sm px-3 h-10 rounded-lg transition-colors duration-200 text-red-400 hover:text-red-300 hover:bg-red-800/30 ${collapsed ? 'justify-center' : ''}`}
+          >
+             <motion.div whileHover={{ scale: 1.1 }} transition={{ duration: 0.2 }} className="flex-shrink-0">
+               <LogOut size={20} />
+             </motion.div>
+             <AnimatePresence>
+                 {!collapsed && (
+                     <motion.span variants={textVariants} initial="hidden" animate="visible" exit="hidden" className="whitespace-nowrap">
+                         Log Out
+                     </motion.span>
+                 )}
+             </AnimatePresence>
+             {/* Tooltip */}
+             {collapsed && (
+                 <motion.span variants={tooltipVariants} initial="hidden" whileHover="visible" className="tooltip-style">
+                     Log Out
+                 </motion.span>
+             )}
+         </button>
+      </div>
     </motion.div>
   );
 };
 
 
-// Helper component for simplified tooltip structure (example - you might use a library)
-// Add this outside the Sidebar component or in a separate file
-const Tooltip = ({ text, children }) => {
+// --- Reusable NavItem Component ---
+const NavItem = ({ item, collapsed, isActive }) => {
+  const IconComponent = item.icon;
+
   return (
-    <div className="relative group">
-      {children}
-      <div className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2
-                    bg-gray-800/95 text-white text-xs rounded-md py-1 px-2.5 shadow-lg z-10
-                    pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-        {text}
-      </div>
-    </div>
+    <Link
+      to={item.path}
+      className={`group relative flex items-center text-sm h-10 rounded-lg transition-colors duration-200 ${
+        isActive
+          ? "bg-gradient-to-r from-indigo-600/30 to-purple-600/30 text-white font-medium shadow-inner" // Active state style
+          : "text-gray-400 hover:text-white hover:bg-gray-700/60" // Default & Hover state
+      } ${collapsed ? 'justify-center px-0 w-10 mx-auto' : 'px-3'}`} // Centering and padding when collapsed
+    >
+      {/* Active Indicator Bar (only visible when active and expanded) */}
+       <AnimatePresence>
+        {isActive && !collapsed && (
+            <motion.div
+                layoutId="activeIndicator" // Animate layout between active items
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute left-0 top-1 bottom-1 w-1 bg-indigo-400 rounded-r-full"
+            />
+        )}
+       </AnimatePresence>
+
+      {/* Icon */}
+      <motion.div
+        variants={iconVariants} // Apply variants if needed
+        whileHover={{ scale: 1.1 }}
+        transition={{ duration: 0.2 }}
+        className="flex-shrink-0"
+      >
+        <IconComponent size={20} />
+      </motion.div>
+
+      {/* Text Label & Badge */}
+      <AnimatePresence>
+        {!collapsed && (
+          <motion.span
+            key="nav-text"
+            variants={textVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            className="flex items-center justify-between flex-grow whitespace-nowrap" // Use flex-grow
+          >
+            <span>{item.name}</span>
+            {item.badge && (
+              <span className="ml-2 text-xs bg-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full font-semibold">
+                {item.badge}
+              </span>
+            )}
+          </motion.span>
+        )}
+      </AnimatePresence>
+
+      {/* Tooltip (only visible when collapsed and hovered) */}
+      {collapsed && (
+         <motion.span
+             variants={tooltipVariants}
+             initial="hidden"
+             whileHover="visible" // Show on hover of the parent group
+             // Common tooltip styling - extract to CSS or Tailwind @apply if needed
+             className="tooltip-style"
+         >
+             {item.name}
+             {item.badge && <span className="ml-1.5 text-xs bg-amber-500/40 text-amber-200 px-1 py-0.5 rounded-full">{item.badge}</span>}
+         </motion.span>
+      )}
+    </Link>
   );
 };
 
-// How to use the Tooltip component (replace the inline div tooltips if you prefer this):
-// Example for Logout button when collapsed:
+// Add this CSS for the tooltip style (or use Tailwind @apply)
+// You might need a global CSS file or styled-components for this.
 /*
-{collapsed && (
-  <Tooltip text="Log Out">
-     // The button content itself (icon) would be here,
-     // but for links/buttons covering the whole area,
-     // the inline div approach might be simpler.
-     // The inline div approach using group-hover is implemented above.
-  </Tooltip>
-)}
+.tooltip-style {
+  position: absolute;
+  left: calc(100% + 0.75rem); // Position to the right of the collapsed sidebar (w-10 + ml-3)
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #2d3748; // bg-gray-800
+  color: #e2e8f0; // text-gray-200
+  font-size: 0.75rem; // text-xs
+  font-weight: 500; // font-medium
+  padding: 0.25rem 0.6rem; // py-1 px-2.5
+  border-radius: 0.375rem; // rounded-md
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); // shadow-lg
+  white-space: nowrap;
+  z-index: 50;
+  pointer-events: none; // Important so it doesn't block hover on the item below
+}
 */
 
 
 export default Sidebar;
+
+```
+
+**To make the `tooltip-style` work:**
+
+* **Option 1 (Global CSS):** Add the CSS block commented out at the end to your main CSS file (e.g., `index.css` or `App.css`).
+* **Option 2 (Tailwind `@apply`):** If you have Tailwind configured to process CSS, you can define the `.tooltip-style` class in your CSS file using `@apply`:
+    ```css
+    @tailwind base;
+    @tailwind components;
+    @tailwind utilities;
+
+    @layer components {
+      .tooltip-style {
+        @apply absolute left-full ml-3 top-1/2 -translate-y-1/2 /* Positioning */
+               bg-gray-800 text-gray-200 text-xs font-medium /* Colors & Font */
+               py-1 px-2.5 rounded-md shadow-lg /* Box */
+               whitespace-nowrap z-50 pointer-events-none /* Behavior */;
+      }
+    }
+    ```
+    *Note: Adjusted `ml-3` to match the positioning logic.*
+
+**Key Improvements in this Version:**
+
+* **Layout Animation:** Uses `framer-motion` variants for width changes, providing more control over easing.
+* **Component Structure:** Extracted `NavItem` into a reusable component for cleaner code.
+* **Active Indicator:** Added `layoutId="activeIndicator"` to a `motion.div` within `NavItem`. This creates a smooth animation where the indicator bar slides between active items.
+* **Hover Effects:** Uses `whileHover` for subtle scaling on icons and applies background/text color changes via Tailwind's `hover:` variants.
+* **Tooltips:** Uses `motion.span` with variants for a slightly delayed, animated appearance. Styling is centralized (requires adding the CSS).
+* **Collapse Button:** Uses `AnimatePresence` and different icons (`ChevronsLeft`/`ChevronsRight`) for a clear visual transition.
+* **"Add Trade" Button:** Adapts size and padding when collapsed/expanded for a cleaner look.
+* **Code Clarity:** Added more comments and structured the code logically.
+* **Configuration:** Defined sidebar widths as constants at the top for easy modification.
+
+This version should provide a much more polished and modern user experience for your sidebar. Remember to implement the tooltip CSS for the collapsed state tooltips to appear correct
