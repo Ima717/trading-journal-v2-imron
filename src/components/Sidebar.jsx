@@ -355,39 +355,3 @@ const NavItem = ({ item, collapsed, isActive }) => {
 
 
 export default Sidebar;
-
-```
-
-**To make the `tooltip-style` work:**
-
-* **Option 1 (Global CSS):** Add the CSS block commented out at the end to your main CSS file (e.g., `index.css` or `App.css`).
-* **Option 2 (Tailwind `@apply`):** If you have Tailwind configured to process CSS, you can define the `.tooltip-style` class in your CSS file using `@apply`:
-    ```css
-    @tailwind base;
-    @tailwind components;
-    @tailwind utilities;
-
-    @layer components {
-      .tooltip-style {
-        @apply absolute left-full ml-3 top-1/2 -translate-y-1/2 /* Positioning */
-               bg-gray-800 text-gray-200 text-xs font-medium /* Colors & Font */
-               py-1 px-2.5 rounded-md shadow-lg /* Box */
-               whitespace-nowrap z-50 pointer-events-none /* Behavior */;
-      }
-    }
-    ```
-    *Note: Adjusted `ml-3` to match the positioning logic.*
-
-**Key Improvements in this Version:**
-
-* **Layout Animation:** Uses `framer-motion` variants for width changes, providing more control over easing.
-* **Component Structure:** Extracted `NavItem` into a reusable component for cleaner code.
-* **Active Indicator:** Added `layoutId="activeIndicator"` to a `motion.div` within `NavItem`. This creates a smooth animation where the indicator bar slides between active items.
-* **Hover Effects:** Uses `whileHover` for subtle scaling on icons and applies background/text color changes via Tailwind's `hover:` variants.
-* **Tooltips:** Uses `motion.span` with variants for a slightly delayed, animated appearance. Styling is centralized (requires adding the CSS).
-* **Collapse Button:** Uses `AnimatePresence` and different icons (`ChevronsLeft`/`ChevronsRight`) for a clear visual transition.
-* **"Add Trade" Button:** Adapts size and padding when collapsed/expanded for a cleaner look.
-* **Code Clarity:** Added more comments and structured the code logically.
-* **Configuration:** Defined sidebar widths as constants at the top for easy modification.
-
-This version should provide a much more polished and modern user experience for your sidebar. Remember to implement the tooltip CSS for the collapsed state tooltips to appear correct
