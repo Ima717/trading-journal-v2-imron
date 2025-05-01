@@ -136,7 +136,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
                 theme === "light" ? "text-blue-600" : "text-indigo-400"
               }`}
             >
-              TradeRiser {/* Or your app name */}
+              IMAI {/* Or your app name */}
             </motion.div>
           )}
         </AnimatePresence>
