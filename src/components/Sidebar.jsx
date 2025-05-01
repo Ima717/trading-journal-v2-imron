@@ -23,7 +23,8 @@ import { signOut } from "firebase/auth";
 import { auth } from "../utils/firebase"; // Assuming path is correct
 
 // --- Configuration ---
-const SIDEBAR_WIDTH_EXPANDED = 256; // Wider sidebar in px
+// UPDATED: Reduced the expanded width
+const SIDEBAR_WIDTH_EXPANDED = 224; // Narrower sidebar in px (Tailwind w-56)
 const SIDEBAR_WIDTH_COLLAPSED = 72;  // Slightly wider collapsed state in px
 
 // --- Navigation Items ---
@@ -205,13 +206,13 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
               collapsed={collapsed}
               isActive={location.pathname === item.path}
             />
-          ))}
+         ))}
 
          {/* Theme Toggle */}
          <button
             onClick={toggleTheme}
             className={`group relative w-full flex items-center text-sm px-3 h-10 rounded-lg transition-colors duration-200 text-gray-400 hover:text-white hover:bg-gray-700/60 ${collapsed ? 'justify-center' : ''}`}
-          >
+         >
              <motion.div whileHover={{ scale: 1.1 }} transition={{ duration: 0.2 }} className="flex-shrink-0">
                {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
              </motion.div>
@@ -234,7 +235,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
          <button
             onClick={handleLogout}
             className={`group relative w-full flex items-center text-sm px-3 h-10 rounded-lg transition-colors duration-200 text-red-400 hover:text-red-300 hover:bg-red-800/30 ${collapsed ? 'justify-center' : ''}`}
-          >
+         >
              <motion.div whileHover={{ scale: 1.1 }} transition={{ duration: 0.2 }} className="flex-shrink-0">
                <LogOut size={20} />
              </motion.div>
@@ -273,15 +274,15 @@ const NavItem = ({ item, collapsed, isActive }) => {
     >
       {/* Active Indicator Bar (only visible when active and expanded) */}
        <AnimatePresence>
-        {isActive && !collapsed && (
-            <motion.div
-                layoutId="activeIndicator" // Animate layout between active items
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute left-0 top-1 bottom-1 w-1 bg-indigo-400 rounded-r-full"
-            />
-        )}
+       {isActive && !collapsed && (
+           <motion.div
+               layoutId="activeIndicator" // Animate layout between active items
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               exit={{ opacity: 0 }}
+               className="absolute left-0 top-1 bottom-1 w-1 bg-indigo-400 rounded-r-full"
+           />
+       )}
        </AnimatePresence>
 
       {/* Icon */}
