@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom';
 import {
     User, ShieldCheck, Settings, GitBranch, CreditCard, Database, HelpCircle,
-    Eye, EyeOff, AlertTriangle, CheckCircle, X, Info, Loader2, UploadCloud, LogOut // Icons - Removed Calendar, Clock as Intl is used
+    Eye, EyeOff, AlertTriangle, CheckCircle, X, Info, Loader2, UploadCloud, LogOut // Icons
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -101,7 +101,7 @@ const LoadingButton = ({ children, onClick, isLoading = false, disabled = false,
 
     const variants = {
         primary: `bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500 ${darkFocusOffset} disabled:bg-indigo-400`,
-        secondary: `border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:ring-indigo-500 ${darkFocusOffset} disabled:opacity-50`, // Dark mode bg adjusted
+        secondary: `border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:ring-indigo-500 ${darkFocusOffset} disabled:opacity-50`,
         danger: `bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 ${darkFocusOffset} disabled:bg-red-400`,
     };
 
@@ -169,12 +169,11 @@ const SkeletonCard = ({ children }) => ( <div className="bg-white dark:bg-zinc-8
 
 // --- Password Strength Checker ---
 const checkPasswordStrength = (password) => {
-    let score = 0; if (!password) return { score: 0, label: '', color: 'bg-gray-200 dark:bg-zinc-600', widthPercent: 0 }; // Adjusted default color
+    let score = 0; if (!password) return { score: 0, label: '', color: 'bg-gray-200 dark:bg-zinc-600', widthPercent: 0 };
     if (password.length >= 8) score++; if (password.length >= 12) score++; if (/[a-z]/.test(password)) score++; if (/[A-Z]/.test(password)) score++; if (/\d/.test(password)) score++; if (/[^A-Za-z0-9]/.test(password)) score++;
-    let label = 'Weak'; let color = 'bg-red-500'; if (score >= 6) { label = 'Very Strong'; color = 'bg-emerald-500'; } else if (score >= 5) { label = 'Strong'; color = 'bg-green-500'; } else if (score >= 3) { label = 'Medium'; color = 'bg-yellow-500'; } const widthPercent = Math.min(score, 5) * 20; // Cap width at 100% for score 5+
+    let label = 'Weak'; let color = 'bg-red-500'; if (score >= 6) { label = 'Very Strong'; color = 'bg-emerald-500'; } else if (score >= 5) { label = 'Strong'; color = 'bg-green-500'; } else if (score >= 3) { label = 'Medium'; color = 'bg-yellow-500'; } const widthPercent = Math.min(score, 5) * 20;
     return { score, label, color, widthPercent };
 };
-
 
 // --- Account Page Component ---
 const AccountPage = () => {
@@ -200,7 +199,7 @@ const AccountPage = () => {
     const [tempDisplayName, setTempDisplayName] = useState('');
 
     // --- Utility Functions ---
-     const showToast = useCallback((message, type = 'info') => { setToast({ isVisible: true, message, type }); }, []); // Removed duration, handled in Toast component
+     const showToast = useCallback((message, type = 'info') => { setToast({ isVisible: true, message, type }); }, []);
      const setLoading = useCallback((key, value) => setIsLoading(prev => ({ ...prev, [key]: value })), []);
      const setErrorMessage = useCallback((key, message) => setError(prev => ({ ...prev, [key]: message })), []);
      const clearErrors = useCallback((...keys) => setError(prev => { const next = {...prev}; keys.forEach(k => { if(next[k] !== undefined) next[k] = ''; }); return next; }), []);
@@ -238,6 +237,15 @@ const AccountPage = () => {
     const handleFinalDeleteAccount = async () => { if (deleteConfirmationInput !== 'DELETE') { setErrorMessage('delete', 'Type DELETE to confirm.'); return; } if (!user) return; setLoading('delete', true); clearErrors('delete'); try { await deleteUser(auth.currentUser); showToast("Account deleted successfully. You have been logged out.", "success", 5000); setTimeout(() => { navigate('/signin'); closeModal(); }, 4000); } catch (err) { console.error("Error deleting account:", err); setErrorMessage('delete', `Failed to delete account: ${err.message}. Please try again or contact support.`); showToast("Failed to delete account.", "error"); setLoading('delete', false); } };
     const handleSignOut = async () => { try { await signOut(auth); setUser(null); showToast("Signed out successfully.", "success"); navigate('/signin'); } catch (error) { console.error("Sign out error:", error); showToast("Failed to sign out.", "error"); } };
     const handleExportData = () => { showToast("Data export feature is coming soon!", "info"); };
+
+    // --- NEW: Email Support Click Handler ---
+    const handleEmailSupportClick = () => {
+        const recipient = '2006imron@gmail.com';
+        const subject = 'Trading Journal Support';
+        const encodedSubject = encodeURIComponent(subject);
+        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${recipient}&su=${encodedSubject}`;
+        window.open(gmailUrl, '_blank', 'noopener,noreferrer');
+    };
 
     // --- Date/Time Formatting ---
      const formatDate = useCallback((isoString, formatOptions = preferencesData) => { if (!isoString) return 'N/A'; try { const date = new Date(isoString); if (formatOptions.dateFormat === 'YYYY-MM-DD') return date.toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }); if (formatOptions.dateFormat === 'MM/DD/YYYY') return date.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }); if (formatOptions.dateFormat === 'DD/MM/YYYY') return date.toLocaleDateString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit' }); return date.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }); } catch (e) { console.error("Date formatting error", e); return 'Invalid Date'; } }, [preferencesData.dateFormat]);
@@ -300,29 +308,26 @@ const AccountPage = () => {
                 break;
             case 'Security':
                 content = (
-                    <>
-                        <h2 className="text-xl font-semibold mb-5 text-zinc-900 dark:text-white">Security Settings</h2>
-                        {/* Password Change Card */}
-                        <div className="bg-white dark:bg-zinc-800 shadow-md rounded-lg p-6 mb-6">
-                           <h3 className="text-lg font-medium mb-2 text-zinc-900 dark:text-white">Password</h3>
-                           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Last updated: Never</p> {/* Placeholder */}
-                           <LoadingButton onClick={handleChangePasswordAttempt} isLoading={isLoading.password && modalState.type === 'reauth-password'} variant="secondary"> Change Password </LoadingButton>
-                        </div>
-                        {/* Active Sessions Card */}
+                     <>
+                         <h2 className="text-xl font-semibold mb-5 text-zinc-900 dark:text-white">Security Settings</h2>
                          <div className="bg-white dark:bg-zinc-800 shadow-md rounded-lg p-6 mb-6">
-                            <h3 className="text-lg font-medium mb-2 text-zinc-900 dark:text-white">Active Sessions</h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">This shows where your account is currently logged in. Listing all sessions requires advanced setup.</p>
-                            <div className="border border-dashed border-gray-300 dark:border-zinc-600 rounded-md p-6 text-center text-gray-500 dark:text-gray-400 mb-4"> Session list is not available in this version. </div>
-                             <LoadingButton onClick={handleSignOut} variant="secondary" className="border-red-500 text-red-600 hover:bg-red-50 dark:border-red-500/50 dark:text-red-400 dark:hover:bg-red-900/20" > <LogOut size={16} className="mr-2"/> Sign Out This Device </LoadingButton>
+                            <h3 className="text-lg font-medium mb-2 text-zinc-900 dark:text-white">Password</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Last updated: Never</p> {/* Placeholder */}
+                            <LoadingButton onClick={handleChangePasswordAttempt} isLoading={isLoading.password && modalState.type === 'reauth-password'} variant="secondary"> Change Password </LoadingButton>
                          </div>
-                        {/* 2FA Card (Placeholder) */}
-                        <div className="bg-white dark:bg-zinc-800 shadow-md rounded-lg p-6 opacity-60">
-                           <h3 className="text-lg font-medium mb-2 text-zinc-900 dark:text-white">Two-Factor Authentication (2FA)</h3>
-                           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Add an extra layer of security using an authenticator app.</p>
-                           <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">Status: Not Available Yet</p>
-                           <LoadingButton disabled={true} variant="primary"> Setup 2FA (Coming Soon) </LoadingButton>
-                        </div>
-                    </>
+                          <div className="bg-white dark:bg-zinc-800 shadow-md rounded-lg p-6 mb-6">
+                             <h3 className="text-lg font-medium mb-2 text-zinc-900 dark:text-white">Active Sessions</h3>
+                             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">This shows where your account is currently logged in. Listing all sessions requires advanced setup.</p>
+                             <div className="border border-dashed border-gray-300 dark:border-zinc-600 rounded-md p-6 text-center text-gray-500 dark:text-gray-400 mb-4"> Session list is not available in this version. </div>
+                              <LoadingButton onClick={handleSignOut} variant="secondary" className="border-red-500 text-red-600 hover:bg-red-50 dark:border-red-500/50 dark:text-red-400 dark:hover:bg-red-900/20" > <LogOut size={16} className="mr-2"/> Sign Out This Device </LoadingButton>
+                          </div>
+                         <div className="bg-white dark:bg-zinc-800 shadow-md rounded-lg p-6 opacity-60">
+                            <h3 className="text-lg font-medium mb-2 text-zinc-900 dark:text-white">Two-Factor Authentication (2FA)</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Add an extra layer of security using an authenticator app.</p>
+                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">Status: Not Available Yet</p>
+                            <LoadingButton disabled={true} variant="primary"> Setup 2FA (Coming Soon) </LoadingButton>
+                         </div>
+                     </>
                 );
                 break;
             case 'Preferences':
@@ -393,8 +398,13 @@ const AccountPage = () => {
                      <h2 className="text-xl font-semibold mb-5 text-zinc-900 dark:text-white">Help & Support</h2>
                       <div className="bg-white dark:bg-zinc-800 shadow-md rounded-lg p-6 mb-6">
                          <h3 className="text-lg font-medium mb-2 text-zinc-900 dark:text-white">Contact Us</h3>
-                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4"> Have questions or need assistance? Reach out directly via email. </p>
-                          <a href="mailto:2006imron@gmail.com?subject=Trading%20Journal%20Support" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-zinc-800" > Email Support (2006imron@gmail.com) </a>
+                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4"> Have questions or need assistance? Reach out directly via email. Clicking below will open Gmail in a new tab. </p>
+                          {/* UPDATED: Uses LoadingButton and onClick handler */}
+                          <LoadingButton
+                              onClick={handleEmailSupportClick}
+                              variant="primary"
+                              className="inline-flex items-center"
+                          > Email Support (Opens Gmail) </LoadingButton>
                       </div>
                       <div className="bg-white dark:bg-zinc-800 shadow-md rounded-lg p-6 mb-6 opacity-60">
                           <h3 className="text-lg font-medium mb-2 text-zinc-900 dark:text-white">FAQ & Documentation</h3>
@@ -409,6 +419,7 @@ const AccountPage = () => {
                  content = <div>Select a category.</div>;
          }
 
+        // CORRECTED: Final return uses AnimatePresence wrapper
         return (
             <AnimatePresence mode="wait">
                 <motion.div key={activeTab} variants={contentVariants} initial="hidden" animate="visible" exit="exit" >
@@ -416,7 +427,7 @@ const AccountPage = () => {
                 </motion.div>
             </AnimatePresence>
         );
-    }, [activeTab, profileData, preferencesData, isLoading, error, isEditingName, tempDisplayName, user, contentVariants, formatDate, formatTime, handleAvatarChangeClick, handleAvatarUpload, handleCancelEditName, handleEditNameClick, handleSaveDisplayName, handleSignOut, handleChangePasswordAttempt, handleDeleteAccountAttempt, handleSavePreferences, handlePreferencesChange, fileInputRef, handleExportData, theme /* Added theme dependency */ ]);
+    }, [activeTab, profileData, preferencesData, isLoading, error, isEditingName, tempDisplayName, user, contentVariants, formatDate, formatTime, handleAvatarChangeClick, handleAvatarUpload, handleCancelEditName, handleEditNameClick, handleSaveDisplayName, handleSignOut, handleChangePasswordAttempt, handleDeleteAccountAttempt, handleSavePreferences, handlePreferencesChange, fileInputRef, handleExportData, theme, handleEmailSupportClick /* Added new handler */ ]);
 
 
     // --- Render Modal Content ---
@@ -434,7 +445,7 @@ const AccountPage = () => {
                             <>
                                  <PasswordInputField id="newPassword" label="New Password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required={true} className="mb-0"/>
                                  {newPassword && (
-                                     <div className="mt-2 mb-3"> {/* Adjusted margin */}
+                                     <div className="mt-2 mb-3">
                                          <div className="h-2 w-full bg-gray-200 dark:bg-zinc-600 rounded-full overflow-hidden"> <div className={`h-full rounded-full transition-all duration-300 ${passwordStrength.color}`} style={{ width: `${passwordStrength.widthPercent}%` }} ></div> </div>
                                          <p className={`text-xs mt-1 font-medium ${ passwordStrength.score < 3 ? 'text-red-500' : passwordStrength.score < 5 ? 'text-yellow-500' : 'text-green-500' }`} > Strength: {passwordStrength.label} </p>
                                      </div>
@@ -442,12 +453,13 @@ const AccountPage = () => {
                                  <PasswordInputField id="confirmNewPassword" label="Confirm New Password" value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)} required={true}/>
                             </>
                          )}
-                         {error.reauth && <p className="text-red-500 text-xs mt-2 mb-3">{error.reauth}</p>} {/* Adjusted margin */}
+                         {error.reauth && <p className="text-red-500 text-xs mt-2 mb-3">{error.reauth}</p>}
                          {error.password && <p className="text-red-500 text-xs mt-1 mb-3">{error.password}</p>}
                          <div className="flex justify-end space-x-3 mt-5"> <LoadingButton type="button" variant="secondary" onClick={closeModal} disabled={isLoading.password}> Cancel </LoadingButton> <LoadingButton type="submit" variant={isDeleting ? "danger" : "primary"} isLoading={isLoading.password}> {isDeleting ? 'Authenticate' : 'Confirm Change'} </LoadingButton> </div>
                      </form>
                 );
             case 'confirm-delete':
+                // CORRECTED: Replaced placeholder with actual JSX
                 return (
                      <div>
                          <p className="text-sm text-red-600 dark:text-red-400 mb-4 font-medium"> <AlertTriangle size={18} className="inline mr-1 mb-0.5" /> This action is final and irreversible! </p>
