@@ -605,7 +605,20 @@ const AccountPage = () => {
             content = <div>Select a category.</div>;
         }
 
-        return ( /* ... AnimatePresence wrapper from previous code ... */ );
+       return (
+    <AnimatePresence mode="wait">
+        <motion.div
+            key={activeTab}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            variants={contentVariants}
+            className="w-full"
+        >
+            {content}
+        </motion.div>
+    </AnimatePresence>
+);
     };
 
      // --- Render Modal Content ---
