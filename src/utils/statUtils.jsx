@@ -12,22 +12,44 @@ export const valueAnimation = {
 
 // Format numbers (currency, percentage, or raw)
 export const formatValue = (value, type) => {
-  if (type === "currency") return `$${parseFloat(value).toFixed(2)}`;
-  if (type === "percent") return `${parseFloat(value).toFixed(2)}%`;
-  return value;
+  const numericValue = parseFloat(value); // Attempt to parse
+
+  // Check if the parsed value is a valid number
+  if (isNaN(numericValue)) {
+    // If not a number, return a placeholder based on type
+    if (type === "currency") return "$--.--";
+    if (type === "percent") return "--.--%";
+    // For other types, or if no specific placeholder, you might return "N/A" or an empty string
+    return "N/A";
+  }
+
+  // If it's a valid number, proceed with formatting
+  if (type === "currency") return `$${numericValue.toFixed(2)}`;
+  if (type === "percent") return `${numericValue.toFixed(2)}%`;
+  return numericValue.toString(); // Return the number as a string if no other type matches
 };
 
 // Format P&L values (handles k notation for large numbers)
 export const formatPnL = (value) => {
-  const absValue = Math.abs(value);
+  const numericValue = parseFloat(value); // Attempt to parse the input value
+
+  // Check if the parsed value is a valid number
+  if (isNaN(numericValue)) {
+    console.warn("formatPnL received non-numeric or unparseable value:", value);
+    return "+$0.00"; // Or return "N/A", or some other suitable placeholder
+  }
+
+  // Now we know numericValue is a valid number, so Math.abs will also work correctly
+  const absValue = Math.abs(numericValue);
+
   if (absValue >= 1000) {
     const kValue = (absValue / 1000).toFixed(1);
-    return `${value >= 0 ? "+" : "-"}$${kValue.endsWith(".0") ? kValue.slice(0, -2) : kValue}k`;
+    return `${numericValue >= 0 ? "+" : "-"}$${kValue.endsWith(".0") ? kValue.slice(0, -2) : kValue}k`;
   }
-  if (Number.isInteger(absValue)) {
-    return `${value >= 0 ? "+" : "-"}$${absValue.toFixed(0)}`;
+  if (Number.isInteger(absValue)) { // This check is fine as absValue is now guaranteed numeric
+    return `${numericValue >= 0 ? "+" : "-"}$${absValue.toFixed(0)}`;
   }
-  return `${value >= 0 ? "+" : "-"}$${absValue.toFixed(1)}`;
+  return `${numericValue >= 0 ? "+" : "-"}$${absValue.toFixed(1)}`;
 };
 
 // Reusable tooltip component with dynamic content
